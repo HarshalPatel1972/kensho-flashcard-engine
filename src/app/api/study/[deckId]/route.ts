@@ -6,10 +6,13 @@ import { NextResponse } from "next/server";
 
 export const dynamic = "force-dynamic";
 
-export async function GET(req: Request, { params }: { params: { deckId: string } }) {
+export async function GET(req: Request, { params }: { params: Promise<{ deckId: string }> }) {
   try {
     const { userId } = await auth();
     if (!userId) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+
+    const p = await params;
+    const deckId = p.deckId;
 
     const dueCards = await db
       .select({
@@ -30,7 +33,7 @@ export async function GET(req: Request, { params }: { params: { deckId: string }
       )
       .where(
         and(
-          eq(cards.deckId, params.deckId),
+          eq(cards.deckId, deckId),
           lte(cardProgress.dueDate, new Date())
         )
       )

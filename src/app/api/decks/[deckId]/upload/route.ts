@@ -4,7 +4,8 @@ import { auth } from "@clerk/nextjs/server";
 import { GoogleGenerativeAI } from "@google/generative-ai";
 import { eq, and } from "drizzle-orm";
 import { NextResponse } from "next/server";
-import pdfParse from "pdf-parse";
+import * as pdfParseModule from "pdf-parse";
+const pdfParse = (pdfParseModule as any).default || pdfParseModule;
 
 // Increase max duration for Vercel Hobby tier (max 60s)
 export const maxDuration = 60;
@@ -23,13 +24,14 @@ function chunkText(text: string, chunkSize = 1500, overlap = 200) {
 
 export async function POST(
   req: Request,
-  { params }: { params: { deckId: string } }
+  { params }: { params: Promise<{ deckId: string }> }
 ) {
   try {
     const { userId } = await auth();
     if (!userId) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
 
-    const deckId = params.deckId;
+    const p = await params;
+    const deckId = p.deckId;
     
     // Verify deck belongs to user
     const [deck] = await db.select().from(decks).where(and(eq(decks.id, deckId), eq(decks.userId, userId)));

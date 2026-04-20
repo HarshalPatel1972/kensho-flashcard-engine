@@ -6,7 +6,7 @@ import { NextResponse } from "next/server";
 
 export async function DELETE(
   req: Request,
-  { params }: { params: { deckId: string } }
+  { params }: { params: Promise<{ deckId: string }> }
 ) {
   try {
     const { userId } = await auth();
@@ -14,7 +14,8 @@ export async function DELETE(
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
 
-    const deckId = params.deckId;
+    const p = await params;
+    const deckId = p.deckId;
 
     // Delete deck (cascade handles cards and card_progress)
     await db

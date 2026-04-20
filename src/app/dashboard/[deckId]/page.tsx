@@ -5,11 +5,12 @@ import { eq, and, asc } from "drizzle-orm";
 import Link from "next/link";
 import { notFound, redirect } from "next/navigation";
 
-export default async function DeckOverviewPage({ params }: { params: { deckId: string } }) {
+export default async function DeckOverviewPage({ params }: { params: Promise<{ deckId: string }> }) {
   const { userId } = await auth();
   if (!userId) redirect("/sign-in");
 
-  const deckId = params.deckId;
+  const p = await params;
+  const deckId = p.deckId;
 
   const [deck] = await db
     .select()

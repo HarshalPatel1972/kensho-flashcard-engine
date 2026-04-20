@@ -5,10 +5,13 @@ import { auth } from "@clerk/nextjs/server";
 import { eq, and } from "drizzle-orm";
 import { NextResponse } from "next/server";
 
-export async function POST(req: Request, { params }: { params: { deckId: string } }) {
+export async function POST(req: Request, { params }: { params: Promise<{ deckId: string }> }) {
   try {
     const { userId } = await auth();
     if (!userId) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+
+    const p = await params;
+    const deckId = p.deckId;
 
     const body = await req.json();
     const { cardId, quality, currentState, currentStatus } = body; 
@@ -33,7 +36,7 @@ export async function POST(req: Request, { params }: { params: { deckId: string 
       })
       .where(and(eq(cardProgress.cardId, cardId), eq(cardProgress.userId, userId)));
 
-    const [deck] = await db.select({ masteredCount: decks.masteredCount }).from(decks).where(eq(decks.id, params.deckId));
+    const [deck] = await db.select({ masteredCount: decks.masteredCount }).from(decks).where(eq(decks.id, deckId));
     
     // Only increment mastered count if this specific transition happened: not-mastered -> mastered
     let newMasteredCount = deck?.masteredCount ?? 0;
@@ -44,7 +47,7 @@ export async function POST(req: Request, { params }: { params: { deckId: string 
     await db
       .update(decks)
       .set({ lastStudiedAt: new Date(), masteredCount: newMasteredCount })
-      .where(eq(decks.id, params.deckId));
+      .where(eq(decks.id, deckId));
 
     return NextResponse.json({ success: true, nextState });
   } catch (error) {
