@@ -8,28 +8,27 @@ export async function POST(request: Request): Promise<NextResponse> {
     const jsonResponse = await handleUpload({
       body,
       request,
-      onBeforeGenerateToken: async (
-        pathname,
-        /* clientPayload */
-      ) => {
-        // Here you can check auth, etc.
+      // Explicitly pass the token to avoid auto-detection failure in Edge
+      token: process.env.BLOB_READ_WRITE_TOKEN,
+      onBeforeGenerateToken: async (pathname) => {
         return {
           allowedContentTypes: ["application/pdf"],
           tokenPayload: JSON.stringify({
-            // optional, sent to your server on upload completion
+            // Sent back upon completion
           }),
         };
       },
       onUploadCompleted: async ({ blob, tokenPayload }) => {
-        // console.log('blob upload completed', blob, tokenPayload);
+        // Handle post-upload logic here if needed
       },
     });
 
     return NextResponse.json(jsonResponse);
   } catch (error) {
+    console.error("[Vercel Blob Error]:", error);
     return NextResponse.json(
       { error: (error as Error).message },
-      { status: 400 }, // The client will also get this error
+      { status: 400 },
     );
   }
 }
