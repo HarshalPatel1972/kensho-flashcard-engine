@@ -27,6 +27,7 @@ export default function StudySessionPage() {
   const [currentIndex, setCurrentIndex] = useState(0);
   const [isFlipped, setIsFlipped] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
+  const [sessionLogs, setSessionLogs] = useState<{ cardFront: string; quality: number }[]>([]);
   
   // Session metrics
   const [masteredThisSession, setMasteredThisSession] = useState(0);
@@ -91,6 +92,8 @@ export default function StudySessionPage() {
       });
       const { nextState } = await res.json();
       
+      setSessionLogs(prev => [...prev, { cardFront: currentCard.front, quality }]);
+
       if (currentCard.status !== "mastered" && nextState.status === "mastered") {
         setMasteredThisSession((prev) => prev + 1);
       }
@@ -121,10 +124,15 @@ export default function StudySessionPage() {
     );
   }
 
-  if (isComplete || totalDue === 0) {
+  if (isComplete || (totalDue === 0 && !isLoading)) {
     return (
       <main className="min-h-screen p-4 flex items-center justify-center">
-        <StudyComplete deckId={deckId} reviewed={currentIndex + (isComplete ? 1 : 0)} mastered={masteredThisSession} />
+        <StudyComplete 
+          deckId={deckId} 
+          reviewed={currentIndex + (isComplete ? 1 : 0)} 
+          mastered={masteredThisSession} 
+          sessionLogs={sessionLogs}
+        />
       </main>
     );
   }
