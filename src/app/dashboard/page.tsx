@@ -2,17 +2,22 @@ import { DeckCard } from "@/components/DeckCard";
 import { db } from "@/db";
 import { decks, cards, cardProgress, users } from "@/db/schema";
 import { auth } from "@clerk/nextjs/server";
-import { eq, and, sql, lte } from "drizzle-orm";
+import { eq, and, sql, lte, or, ilike, exists } from "drizzle-orm";
 import Link from "next/link";
 import { redirect } from "next/navigation";
+import { DashboardSearch } from "@/components/DashboardSearch";
 
 export const dynamic = "force-dynamic";
 
-export default async function DashboardPage() {
+export default async function DashboardPage({ searchParams }: { searchParams: Promise<{ q?: string }> }) {
   const { userId } = await auth();
   if (!userId) {
     redirect("/sign-in");
   }
+
+  const queryParams = await searchParams;
+  const q = queryParams.q;
+  const searchTerm = q ? `%${q}%` : null;
 
   try {
     await db.insert(users).values({ id: userId }).onConflictDoNothing();
@@ -34,13 +39,31 @@ export default async function DashboardPage() {
         lastStudiedAt: decks.lastStudiedAt,
         createdAt: decks.createdAt,
         cardCount: sql<number>`count(distinct ${cards.id})`.mapWith(Number),
-        // Progress is defined by touch: if the card has been reviewed at least once
         masteredCount: sql<number>`count(distinct case when ${cardProgress.lastReviewedAt} is not null then ${cards.id} end)`.mapWith(Number),
       })
       .from(decks)
       .leftJoin(cards, eq(decks.id, cards.deckId))
       .leftJoin(cardProgress, and(eq(cards.id, cardProgress.cardId), eq(cardProgress.userId, userId)))
-      .where(eq(decks.userId, userId))
+      .where(
+        and(
+          eq(decks.userId, userId),
+          searchTerm 
+            ? or(
+                ilike(decks.title, searchTerm),
+                exists(
+                  db.select()
+                    .from(cards)
+                    .where(
+                      and(
+                        eq(cards.deckId, decks.id),
+                        ilike(cards.front, searchTerm)
+                      )
+                    )
+                )
+              )
+            : undefined
+        )
+      )
       .groupBy(decks.id, decks.title, decks.description, decks.lastStudiedAt, decks.createdAt)
       .orderBy(decks.createdAt);
       
@@ -82,19 +105,24 @@ export default async function DashboardPage() {
 
   return (
     <div className="space-y-8 animate-in fade-in slide-in-from-bottom-4 duration-500">
-      <div className="flex items-center justify-between">
+      <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
         <h1 className="text-3xl font-medium tracking-tight">Your Decks</h1>
+        <DashboardSearch />
       </div>
 
       {userDecks.length === 0 ? (
         <div className="text-center py-20 border border-dashed border-border rounded-xl bg-surface/50">
-          <p className="text-slate-400 mb-6">No decks yet. Upload a PDF to get started.</p>
-          <Link
-            href="/dashboard/new"
-            className="inline-flex items-center justify-center rounded-md bg-gold px-6 py-2.5 text-sm font-medium text-black hover:bg-gold-hover transition-colors"
-          >
-            Create your first deck
-          </Link>
+          <p className="text-slate-400 mb-6">
+            {q ? "No decks match your search." : "No decks yet. Upload a PDF to get started."}
+          </p>
+          {!q && (
+            <Link
+              href="/dashboard/new"
+              className="inline-flex items-center justify-center rounded-md bg-gold px-6 py-2.5 text-sm font-medium text-black hover:bg-gold-hover transition-colors"
+            >
+              Create your first deck
+            </Link>
+          )}
         </div>
       ) : (
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
