@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { useState, useRef, useEffect } from "react";
-import { cn } from "@/lib/utils";
+import { motion, AnimatePresence, useReducedMotion } from "framer-motion";
 
 type DeckCardProps = {
   id: string;
@@ -19,10 +19,10 @@ export function DeckCard({ id, title, cardCount, masteredCount, dueTodayCount, l
   const [showModal, setShowModal] = useState(false);
   const [isDeleting, setIsDeleting] = useState(false);
   const menuRef = useRef<HTMLDivElement>(null);
+  const shouldReduceMotion = useReducedMotion();
 
   const progress = cardCount > 0 ? (masteredCount / cardCount) * 100 : 0;
 
-  // Handle outside click to close menu
   useEffect(() => {
     function handleClickOutside(event: MouseEvent) {
       if (menuRef.current && !menuRef.current.contains(event.target as Node)) {
@@ -33,7 +33,6 @@ export function DeckCard({ id, title, cardCount, masteredCount, dueTodayCount, l
     return () => document.removeEventListener("mousedown", handleClickOutside);
   }, []);
 
-  // Handle Escape key to close modal
   useEffect(() => {
     function handleEsc(event: KeyboardEvent) {
       if (event.key === "Escape") setShowModal(false);
@@ -107,7 +106,6 @@ export function DeckCard({ id, title, cardCount, masteredCount, dueTodayCount, l
           </div>
         </Link>
         
-        {/* Actions Menu */}
         <div className="absolute top-4 right-4" ref={menuRef}>
           <button 
             onClick={(e) => { e.preventDefault(); e.stopPropagation(); setShowMenu(!showMenu); }}
@@ -117,47 +115,69 @@ export function DeckCard({ id, title, cardCount, masteredCount, dueTodayCount, l
             <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 24 24"><path d="M12 8c1.1 0 2-.9 2-2s-.9-2-2-2-2 .9-2 2 .9 2 2 2zm0 2c-1.1 0-2 .9-2 2s.9 2 2 2 2-.9 2-2-.9-2-2-2zm0 6c-1.1 0-2 .9-2 2s.9 2 2 2 2-.9 2-2-.9-2-2-2z"/></svg>
           </button>
           
-          {showMenu && (
-            <div className="absolute right-0 mt-1 w-40 bg-surface border border-border shadow-2xl rounded-lg py-1 z-10 animate-in fade-in zoom-in-95 duration-100">
-              <button 
-                onClick={(e) => { e.preventDefault(); e.stopPropagation(); setShowModal(true); setShowMenu(false); }}
-                className="w-full text-left px-4 py-2 text-sm text-red-400 hover:bg-red-500/10 transition-colors"
+          <AnimatePresence>
+            {showMenu && (
+              <motion.div 
+                initial={shouldReduceMotion ? { opacity: 1 } : { opacity: 0, scale: 0.95 }}
+                animate={{ opacity: 1, scale: 1 }}
+                exit={{ opacity: 0, scale: 0.95 }}
+                transition={{ duration: 0.1 }}
+                className="absolute right-0 mt-1 w-40 bg-surface border border-border shadow-2xl rounded-lg py-1 z-10"
               >
-                Delete deck
-              </button>
-            </div>
-          )}
+                <button 
+                  onClick={(e) => { e.preventDefault(); e.stopPropagation(); setShowModal(true); setShowMenu(false); }}
+                  className="w-full text-left px-4 py-2 text-sm text-red-400 hover:bg-red-500/10 transition-colors"
+                >
+                  Delete deck
+                </button>
+              </motion.div>
+            )}
+          </AnimatePresence>
         </div>
       </div>
 
-      {/* Confirmation Modal */}
-      {showModal && (
-        <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 animate-in fade-in duration-200">
-          <div className="fixed inset-0 bg-black/80 backdrop-blur-sm" onClick={() => setShowModal(false)} />
-          <div className="relative w-full max-w-sm bg-surface border border-border shadow-2xl rounded-2xl p-6 animate-in zoom-in-95 slide-in-from-bottom-4 duration-300">
-            <h4 className="text-xl font-medium text-white mb-2">Delete this deck?</h4>
-            <p className="text-sm text-slate-400 mb-6 leading-relaxed">
-              This will permanently delete <strong className="text-slate-200">{title}</strong> and all <strong className="text-slate-200">{cardCount}</strong> cards. This cannot be undone.
-            </p>
-            <div className="flex gap-3">
-              <button 
-                onClick={() => setShowModal(false)}
-                className="flex-1 px-4 py-2.5 rounded-lg border border-border text-sm font-medium text-slate-300 hover:bg-white/5 transition-colors"
-                disabled={isDeleting}
-              >
-                Cancel
-              </button>
-              <button 
-                onClick={handleDelete}
-                className="flex-1 px-4 py-2.5 rounded-lg bg-red-500 text-white text-sm font-medium hover:bg-red-600 transition-colors disabled:opacity-50"
-                disabled={isDeleting}
-              >
-                {isDeleting ? "Deleting..." : "Delete"}
-              </button>
-            </div>
+      <AnimatePresence>
+        {showModal && (
+          <div className="fixed inset-0 z-[100] flex items-center justify-center p-4">
+            <motion.div 
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 0.6 }}
+              exit={{ opacity: 0 }}
+              transition={{ duration: 0.15 }}
+              className="fixed inset-0 bg-black backdrop-blur-sm" 
+              onClick={() => setShowModal(false)} 
+            />
+            <motion.div 
+              initial={shouldReduceMotion ? { opacity: 1 } : { opacity: 0, scale: 0.95, y: 8 }}
+              animate={{ opacity: 1, scale: 1, y: 0 }}
+              exit={{ opacity: 0, scale: 0.95, y: 8 }}
+              transition={{ duration: 0.15, ease: "easeOut" }}
+              className="relative w-full max-w-sm bg-surface border border-border shadow-2xl rounded-2xl p-6"
+            >
+              <h4 className="text-xl font-medium text-white mb-2">Delete this deck?</h4>
+              <p className="text-sm text-slate-400 mb-6 leading-relaxed">
+                This will permanently delete <strong className="text-slate-200">{title}</strong> and all <strong className="text-slate-200">{cardCount}</strong> cards. This cannot be undone.
+              </p>
+              <div className="flex gap-3">
+                <button 
+                  onClick={() => setShowModal(false)}
+                  className="flex-1 px-4 py-2.5 rounded-lg border border-border text-sm font-medium text-slate-300 hover:bg-white/5 transition-colors"
+                  disabled={isDeleting}
+                >
+                  Cancel
+                </button>
+                <button 
+                  onClick={handleDelete}
+                  className="flex-1 px-4 py-2.5 rounded-lg bg-red-500 text-white text-sm font-medium hover:bg-red-600 transition-colors disabled:opacity-50"
+                  disabled={isDeleting}
+                >
+                  {isDeleting ? "Deleting..." : "Delete"}
+                </button>
+              </div>
+            </motion.div>
           </div>
-        </div>
-      )}
+        )}
+      </AnimatePresence>
     </>
   );
 }

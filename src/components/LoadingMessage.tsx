@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useEffect } from "react";
+import { motion, AnimatePresence, useReducedMotion } from "framer-motion";
 
 type LoadingMessageProps = {
   messages: string[];
@@ -21,6 +22,7 @@ export function LoadingMessage({ messages, intervalMs = 3000, quote = false }: L
   const [index, setIndex] = useState(0);
   const [quoteIndex, setQuoteIndex] = useState(0);
   const [secondsPassed, setSecondsPassed] = useState(0);
+  const shouldReduceMotion = useReducedMotion();
 
   useEffect(() => {
     const timer = setInterval(() => {
@@ -51,17 +53,42 @@ export function LoadingMessage({ messages, intervalMs = 3000, quote = false }: L
           <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
           <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
         </svg>
-        <p className="text-slate-300 font-medium tracking-wide animate-pulse">
-          {messages[index]}
-        </p>
+        <div className="relative h-6 w-64 overflow-hidden">
+          <AnimatePresence mode="wait">
+            <motion.p
+              key={messages[index]}
+              initial={shouldReduceMotion ? { opacity: 1 } : { opacity: 0, y: 8 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={shouldReduceMotion ? { opacity: 1 } : { opacity: 0, y: -8 }}
+              transition={{ duration: 0.1 }}
+              className="text-slate-300 font-medium tracking-wide"
+            >
+              {messages[index]}
+            </motion.p>
+          </AnimatePresence>
+        </div>
       </div>
 
       {quote && secondsPassed > 15 && (
-        <div className="pt-8 border-t border-border/30 animate-in fade-in slide-in-from-bottom-4 duration-1000">
-          <p className="text-xs text-slate-500 italic leading-relaxed">
-            "{QUOTES[quoteIndex]}"
-          </p>
-        </div>
+        <motion.div 
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          transition={{ duration: 1 }}
+          className="pt-8 border-t border-border/30"
+        >
+          <AnimatePresence mode="wait">
+            <motion.p 
+              key={QUOTES[quoteIndex]}
+              initial={shouldReduceMotion ? { opacity: 1 } : { opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={shouldReduceMotion ? { opacity: 1 } : { opacity: 0 }}
+              transition={{ duration: 0.5 }}
+              className="text-xs text-slate-500 italic leading-relaxed"
+            >
+              "{QUOTES[quoteIndex]}"
+            </motion.p>
+          </AnimatePresence>
+        </motion.div>
       )}
     </div>
   );

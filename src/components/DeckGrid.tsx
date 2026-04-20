@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import { DeckCard } from "./DeckCard";
-import { motion, useReducedMotion } from "framer-motion";
+import { motion, useReducedMotion, AnimatePresence } from "framer-motion";
 
 type Deck = {
   id: string;
@@ -20,7 +20,8 @@ const containerVariants = {
 
 const itemVariants = {
   hidden: { opacity: 0, y: 20 },
-  visible: { opacity: 1, y: 0, transition: { duration: 0.4, ease: "easeOut" } }
+  visible: { opacity: 1, y: 0, transition: { duration: 0.4, ease: "easeOut" } },
+  exit: { opacity: 0, scale: 0.95, transition: { duration: 0.2 } }
 };
 
 export function DeckGrid({ initialDecks }: { initialDecks: Deck[] }) {
@@ -48,14 +49,23 @@ export function DeckGrid({ initialDecks }: { initialDecks: Deck[] }) {
       initial="hidden"
       animate="visible"
     >
-      {decks.map((deck) => (
-        <motion.div key={deck.id} variants={shouldReduceMotion ? {} : itemVariants}>
-          <DeckCard
-            {...deck}
-            onDelete={() => handleDelete(deck.id)}
-          />
-        </motion.div>
-      ))}
+      <AnimatePresence mode="popLayout">
+        {decks.map((deck) => (
+          <motion.div 
+            key={deck.id} 
+            variants={shouldReduceMotion ? {} : itemVariants}
+            layout
+            initial="hidden"
+            animate="visible"
+            exit="exit"
+          >
+            <DeckCard
+              {...deck}
+              onDelete={() => handleDelete(deck.id)}
+            />
+          </motion.div>
+        ))}
+      </AnimatePresence>
     </motion.div>
   );
 }
