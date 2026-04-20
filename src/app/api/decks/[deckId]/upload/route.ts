@@ -4,8 +4,23 @@ import { auth } from "@clerk/nextjs/server";
 import { GoogleGenerativeAI } from "@google/generative-ai";
 import { eq, and } from "drizzle-orm";
 import { NextResponse } from "next/server";
-import { runUniversalAI } from "@/lib/ai";
-import { del } from "@vercel/blob";
+
+export const dynamic = "force-dynamic";
+
+function constructMultipartBody(buffer: Buffer, filename: string): Buffer {
+  const metadataPart = Buffer.from(
+    "--BOUNDARY\r\n" +
+    "Content-Type: application/json\r\n\r\n" +
+    JSON.stringify({ displayName: filename }) +
+    "\r\n"
+  );
+  const filePart = Buffer.from(
+    "--BOUNDARY\r\n" +
+    "Content-Type: application/pdf\r\n\r\n"
+  );
+  const closing = Buffer.from("\r\n--BOUNDARY--");
+  return Buffer.concat([metadataPart, filePart, buffer, closing]);
+}
 
 export async function POST(
   req: Request,
@@ -22,16 +37,39 @@ export async function POST(
     const [deck] = await db.select().from(decks).where(and(eq(decks.id, deckId), eq(decks.userId, userId)));
     if (!deck) return NextResponse.json({ error: "Deck not found" }, { status: 404 });
 
-    const body = await req.json();
-    const { blobUrl } = body;
-    if (!blobUrl) return NextResponse.json({ error: "No blob URL provided" }, { status: 400 });
+    // Step 1: Receive the PDF as FormData
+    const formData = await req.formData();
+    const file = formData.get("pdf") as File;
+    if (!file) return NextResponse.json({ error: "No PDF provided" }, { status: 400 });
 
-    // Step 1: Fetch PDF from Vercel Blob
-    const response = await fetch(blobUrl);
-    const pdfBuffer = Buffer.from(await response.arrayBuffer());
-    const base64Pdf = pdfBuffer.toString("base64");
+    const buffer = Buffer.from(await file.arrayBuffer());
 
-    // Single high-speed prompt to stay under 10s Hobby timeout
+    // Step 2: Upload to Google Files API
+    const uploadResponse = await fetch(
+      "https://generativelanguage.googleapis.com/upload/v1beta/files",
+      {
+        method: "POST",
+        headers: {
+          "X-Goog-Upload-Protocol": "multipart",
+          "X-Goog-Api-Key": process.env.GEMINI_API_KEY!,
+          "Content-Type": `multipart/related; boundary=BOUNDARY`
+        },
+        body: constructMultipartBody(buffer, file.name)
+      }
+    );
+
+    if (!uploadResponse.ok) {
+      const errText = await uploadResponse.text();
+      throw new Error(`Google Files API upload failed: ${errText}`);
+    }
+
+    const { file: uploadedFile } = await uploadResponse.json();
+    const fileUri = uploadedFile.uri;
+
+    // Step 3: Pass fileUri to Gemini for card generation
+    const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY!);
+    const model = genAI.getGenerativeModel({ model: "gemini-1.5-flash" });
+
     const prompt = `
       You are a master educator. Read this provided PDF. Generate 10-15 high-quality flashcards based on the material inside it.
       
@@ -42,19 +80,37 @@ export async function POST(
       - No markdown, no preamble.
     `;
 
-    // Feature: Universal AI Failover Engine (Google -> DeepSeek -> Groq)
-    const { text: responseText } = await runUniversalAI(prompt, base64Pdf);
-    
-    // Step 2: Clean up storage immediately
+    const result = await model.generateContent([
+      {
+        fileData: {
+          mimeType: "application/pdf",
+          fileUri: fileUri
+        }
+      },
+      { text: prompt }
+    ]);
+
+    const responseText = result.response.text();
+
+    // Step 4: Delete the file from Google after generation (cleanup)
     try {
-      await del(blobUrl);
+      await fetch(
+        `https://generativelanguage.googleapis.com/v1beta/${uploadedFile.name}`,
+        {
+          method: "DELETE",
+          headers: { "X-Goog-Api-Key": process.env.GEMINI_API_KEY! }
+        }
+      );
     } catch (e) {
-      console.warn("Failed to delete blob:", blobUrl);
+      console.warn("Failed to delete Gemini file:", uploadedFile.name);
     }
 
     let generatedCards;
     try {
-      generatedCards = JSON.parse(responseText);
+      // Find JSON array in case there's preamble (safety)
+      const jsonMatch = responseText.match(/\[.*\]/s);
+      const cleanJson = jsonMatch ? jsonMatch[0] : responseText;
+      generatedCards = JSON.parse(cleanJson);
     } catch (e) {
       console.error("Gemini failed to return valid JSON:", responseText);
       return NextResponse.json({ error: "AI failed to generate a valid study deck." }, { status: 500 });
@@ -64,7 +120,7 @@ export async function POST(
       return NextResponse.json({ error: "No flashcards were generated." }, { status: 400 });
     }
 
-    // Insert cards and progress in a batch
+    // Step 5: Insert cards and progress
     const newCards = await db.insert(cards).values(
       generatedCards.slice(0, 20).map(c => ({
         deckId,

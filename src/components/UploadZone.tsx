@@ -19,27 +19,18 @@ export function UploadZone({ deckId, onSuccess }: UploadZoneProps) {
       setError("Please upload a PDF file.");
       return;
     }
-    if (file.size > 50 * 1024 * 1024) {
-      setError("File exceeds 50MB limit.");
-      return;
-    }
-
+    
+    // Size limit handled by server (Gemini Files API supports up to 2GB)
     setIsUploading(true);
     setError(null);
 
     try {
-      // Step 1: Upload to Vercel Blob (Client-side)
-      const { upload } = await import("@vercel/blob/client");
-      const blob = await upload(file.name, file, {
-        access: "public",
-        handleUploadUrl: "/api/upload-url",
-      });
+      const formData = new FormData();
+      formData.append("pdf", file);
 
-      // Step 2: Send Blob URL to our Processing API
       const res = await fetch(`/api/decks/${deckId}/upload`, {
         method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ blobUrl: blob.url }),
+        body: formData,
       });
       
       const data = await res.json();
@@ -88,8 +79,8 @@ export function UploadZone({ deckId, onSuccess }: UploadZoneProps) {
           <LoadingMessage 
             quote 
             messages={[
+              "Uploading to Gemini...",
               "Reading your PDF...",
-              "Finding the key ideas...",
               "Distilling the concepts...",
               "Crafting your cards...",
               "Sharpening the edges...",
@@ -102,7 +93,7 @@ export function UploadZone({ deckId, onSuccess }: UploadZoneProps) {
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
             </svg>
             <p className="text-lg text-slate-200">Drop your PDF here or click to upload</p>
-            <p className="text-sm text-slate-500">Max 50MB</p>
+            <p className="text-sm text-slate-500">PDF up to 500MB supported</p>
           </div>
         )}
       </label>
