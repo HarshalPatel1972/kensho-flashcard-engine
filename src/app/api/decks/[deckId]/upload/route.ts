@@ -36,7 +36,12 @@ export async function POST(
     const base64Pdf = buffer.toString("base64");
 
     const genAI = new GoogleGenerativeAI(apiKey);
-    const model = genAI.getGenerativeModel({ model: "gemini-2.5-flash" });
+    const modelsToTry = [
+      "gemini-2.5-flash",
+      "gemini-flash-latest",
+      "gemini-3-flash-preview",
+      "gemini-2.0-flash"
+    ];
 
     // Single high-speed prompt to stay under 10s Hobby timeout
     const prompt = `
@@ -49,19 +54,44 @@ export async function POST(
       - No markdown, no preamble.
     `;
 
-    const result = await model.generateContent([
-      prompt,
-      {
-        inlineData: {
-          data: base64Pdf,
-          mimeType: "application/pdf"
+    let responseText = "";
+    let lastError = null;
+
+    for (const modelName of modelsToTry) {
+      try {
+        console.log(`Attempting generation with model: ${modelName}`);
+        const model = genAI.getGenerativeModel({ model: modelName });
+        const result = await model.generateContent([
+          prompt,
+          {
+            inlineData: {
+              data: base64Pdf,
+              mimeType: "application/pdf"
+            }
+          }
+        ]);
+        
+        responseText = result.response.text()
+          .replace(/```json\n?/g, "")
+          .replace(/```\n?/g, "")
+          .trim();
+        
+        // If we got here without throwing and have text, break the fallback loop!
+        if (responseText) {
+          console.log(`Success with model: ${modelName}`);
+          lastError = null;
+          break;
         }
+      } catch (err: any) {
+        console.warn(`Model ${modelName} failed or is unavailable. Falling back...`, err.message);
+        lastError = err;
+        // Continue to the next model in the array
       }
-    ]);
-    const responseText = result.response.text()
-      .replace(/```json\n?/g, "")
-      .replace(/```\n?/g, "")
-      .trim();
+    }
+
+    if (lastError || !responseText) {
+      throw lastError || new Error("All generative models failed to return a response.");
+    }
 
     let generatedCards;
     try {
