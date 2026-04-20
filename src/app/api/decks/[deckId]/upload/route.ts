@@ -30,7 +30,7 @@ export async function POST(
     const formData = await req.formData();
     const file = formData.get("file") as File | null;
     if (!file) return NextResponse.json({ error: "No file uploaded" }, { status: 400 });
-    if (file.size > 10 * 1024 * 1024) return NextResponse.json({ error: "File too large (Max 10MB)" }, { status: 400 });
+    if (file.size > 4 * 1024 * 1024) return NextResponse.json({ error: "File too large (Max 4MB for high-speed processing)" }, { status: 400 });
 
     const buffer = Buffer.from(await file.arrayBuffer());
     const base64Pdf = buffer.toString("base64");
