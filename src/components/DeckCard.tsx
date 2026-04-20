@@ -53,19 +53,27 @@ export function DeckCard({ id, title, cardCount, masteredCount, dueTodayCount, l
       <div className="space-y-4">
         <div className="space-y-1.5">
           <div className="flex justify-between text-xs text-slate-400">
-            <span>{masteredCount} / {cardCount} Mastered</span>
+            <span>{masteredCount} / {cardCount} {cardCount === 0 ? "" : "Studied"}</span>
             <span>{Math.round(progress)}%</span>
           </div>
           <div className="h-1.5 w-full bg-bg rounded-full overflow-hidden">
-            <div 
-              className="h-full bg-gold rounded-full transition-all duration-500" 
-              style={{ width: `${progress}%` }}
-            />
+            {cardCount > 0 ? (
+              <div 
+                className="h-full bg-gold rounded-full transition-all duration-500" 
+                style={{ width: `${progress}%` }}
+              />
+            ) : (
+              <div className="flex items-center justify-center h-full"> 
+                <span className="text-[10px] text-slate-600 uppercase tracking-widest">Empty Deck</span>
+              </div>
+            )}
           </div>
         </div>
 
         <div className="flex items-center justify-between pt-2">
-          {dueTodayCount > 0 ? (
+          {cardCount === 0 ? (
+            <span className="text-xs text-red-400/60 font-medium">Ready for PDF upload</span>
+          ) : dueTodayCount > 0 ? (
             <span className="inline-flex items-center px-2 py-1 rounded text-xs font-medium bg-gold/10 text-gold">
               {dueTodayCount} due today
             </span>

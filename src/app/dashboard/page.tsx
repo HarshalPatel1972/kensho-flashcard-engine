@@ -25,11 +25,26 @@ export default async function DashboardPage() {
   let dbError = null;
 
   try {
+    // Dynamic query to ensure counts are always accurate even if interrupted
     const decksResult = await db
-      .select()
+      .select({
+        id: decks.id,
+        title: decks.title,
+        description: decks.description,
+        lastStudiedAt: decks.lastStudiedAt,
+        createdAt: decks.createdAt,
+        cardCount: sql<number>`(SELECT COUNT(*) FROM ${cards} WHERE ${cards.deckId} = ${decks.id})`.mapWith(Number),
+        // A card is 'mastered' for the progress bar if it has been studied at least once (repetitions > 0)
+        masteredCount: sql<number>`(
+          SELECT COUNT(*) FROM ${cardProgress} 
+          WHERE ${cardProgress.cardId} IN (SELECT id FROM ${cards} WHERE ${cards.deckId} = ${decks.id})
+          AND ${cardProgress.repetitions} > 0
+        )`.mapWith(Number),
+      })
       .from(decks)
       .where(eq(decks.userId, userId))
       .orderBy(decks.createdAt);
+      
     userDecks = decksResult;
 
     const dueCountRows = await db
