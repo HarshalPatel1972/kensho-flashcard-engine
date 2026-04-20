@@ -17,7 +17,8 @@ export function UploadZone({ deckId, onSuccess }: UploadZoneProps) {
   const [error, setError] = useState<string | null>(null);
   const [abortController, setAbortController] = useState<AbortController | null>(null);
 
-  const { startUpload, isUploading, stopUpload } = useUploadThing("pdfUploader", {
+  const { startUpload, isUploading } = useUploadThing("pdfUploader", {
+    signal: abortController?.signal,
     onClientUploadComplete: async (res) => {
       const fileUrl = res?.[0]?.url;
       if (!fileUrl) {
@@ -69,17 +70,19 @@ export function UploadZone({ deckId, onSuccess }: UploadZoneProps) {
     }
     
     setError(null);
+    const controller = new AbortController();
+    setAbortController(controller);
     await startUpload([file]);
   };
 
-  const handleCancel = useCallback(async () => {
-    if (isUploading) {
-      stopUpload();
-      toast.info("Upload cancelled");
-    } else if (isGenerating && abortController) {
+  const handleCancel = () => {
+    if (abortController) {
       abortController.abort();
     }
-  }, [isUploading, isGenerating, abortController, stopUpload, deckId]);
+    setIsGenerating(false);
+    setAbortController(null);
+    toast.info("Process cancelled");
+  };
 
   const handleDrop = useCallback((e: React.DragEvent) => {
     e.preventDefault();
