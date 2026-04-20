@@ -20,30 +20,51 @@ export default async function DashboardPage() {
     console.error("Failed to upsert user. Database might be unreachable.", error);
   }
 
-  const userDecks = await db
-    .select()
-    .from(decks)
-    .where(eq(decks.userId, userId))
-    .orderBy(decks.createdAt);
+  let userDecks: any[] = [];
+  let dueByDeck: Record<string, number> = {};
+  let dbError = null;
 
-  const dueCountRows = await db
-    .select({
-      deckId: cards.deckId,
-      dueCount: sql<number>`count(*)`.mapWith(Number),
-    })
-    .from(cardProgress)
-    .innerJoin(cards, eq(cardProgress.cardId, cards.id))
-    .where(
-      and(
-        eq(cardProgress.userId, userId),
-        lte(cardProgress.dueDate, new Date())
+  try {
+    const decksResult = await db
+      .select()
+      .from(decks)
+      .where(eq(decks.userId, userId))
+      .orderBy(decks.createdAt);
+    userDecks = decksResult;
+
+    const dueCountRows = await db
+      .select({
+        deckId: cards.deckId,
+        dueCount: sql<number>`count(*)`.mapWith(Number),
+      })
+      .from(cardProgress)
+      .innerJoin(cards, eq(cardProgress.cardId, cards.id))
+      .where(
+        and(
+          eq(cardProgress.userId, userId),
+          lte(cardProgress.dueDate, new Date())
+        )
       )
-    )
-    .groupBy(cards.deckId);
+      .groupBy(cards.deckId);
 
-  const dueByDeck = Object.fromEntries(
-    dueCountRows.map((row) => [row.deckId, row.dueCount])
-  );
+    dueByDeck = Object.fromEntries(
+      dueCountRows.map((row) => [row.deckId, row.dueCount])
+    );
+  } catch (error: any) {
+    console.error("Database Error:", error);
+    dbError = error.message;
+  }
+
+  if (dbError) {
+    return (
+      <div className="p-8 bg-red-500/10 border border-red-500/50 rounded-xl max-w-2xl mx-auto mt-20 text-center">
+        <h2 className="text-xl font-bold text-red-500 mb-2">Database Connection Failed</h2>
+        <p className="text-sm text-red-400 font-mono mb-4 text-left p-4 bg-red-950/30 rounded">{dbError}</p>
+        <p className="text-slate-300">It looks like the Neon database connection failed. Please ensure you visited <strong className="text-white">/api/migrate</strong> to create the tables, and verify your <strong>DATABASE_URL</strong> in Vercel.</p>
+        <p className="text-xs text-slate-500 mt-4">Current URL Prefix: {process.env.DATABASE_URL?.substring(0, 15) || "UNDEFINED"}</p>
+      </div>
+    );
+  }
 
   return (
     <div className="space-y-8 animate-in fade-in slide-in-from-bottom-4 duration-500">
