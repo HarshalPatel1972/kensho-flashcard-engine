@@ -7,6 +7,7 @@ import { notFound, redirect } from "next/navigation";
 import { PageTransition } from "@/components/PageTransition";
 import { WeakCards } from "@/components/WeakCards";
 import { DeckDetailUpload } from "@/components/DeckDetailUpload";
+import { DeckTitle } from "@/components/DeckTitle";
 
 export const dynamic = "force-dynamic";
 
@@ -71,9 +72,7 @@ export default async function DeckOverviewPage({ params }: { params: Promise<{ d
           </Link>
           <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
             <div>
-              <h1 className="text-3xl font-medium tracking-tight text-primary line-clamp-1">
-                {deck.title}
-              </h1>
+                <DeckTitle deckId={deckId} initialTitle={deck.title} />
               {deck.description && (
                 <p className="text-secondary mt-2 line-clamp-2">{deck.description}</p>
               )}
