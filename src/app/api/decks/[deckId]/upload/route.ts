@@ -11,7 +11,7 @@ function constructMultipartBody(buffer: Buffer, filename: string): Buffer {
   const metadataPart = Buffer.from(
     "--BOUNDARY\r\n" +
     "Content-Type: application/json\r\n\r\n" +
-    JSON.stringify({ displayName: filename }) +
+    JSON.stringify({ display_name: filename }) +
     "\r\n"
   );
   const filePart = Buffer.from(
