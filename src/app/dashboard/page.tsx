@@ -6,6 +6,7 @@ import { eq, and, sql, lte, or, ilike, exists } from "drizzle-orm";
 import Link from "next/link";
 import { redirect } from "next/navigation";
 import { DashboardSearch } from "@/components/DashboardSearch";
+import { DeckGrid } from "@/components/DeckGrid";
 
 export const dynamic = "force-dynamic";
 
@@ -110,34 +111,29 @@ export default async function DashboardPage({ searchParams }: { searchParams: Pr
         <DashboardSearch />
       </div>
 
-      {userDecks.length === 0 ? (
+      {userDecks.length === 0 && !q ? (
         <div className="text-center py-20 border border-dashed border-border rounded-xl bg-surface/50">
           <p className="text-slate-400 mb-6">
-            {q ? "No decks match your search." : "No decks yet. Upload a PDF to get started."}
+            No decks yet. Upload a PDF to get started.
           </p>
-          {!q && (
-            <Link
-              href="/dashboard/new"
-              className="inline-flex items-center justify-center rounded-md bg-gold px-6 py-2.5 text-sm font-medium text-black hover:bg-gold-hover transition-colors"
-            >
-              Create your first deck
-            </Link>
-          )}
+          <Link
+            href="/dashboard/new"
+            className="inline-flex items-center justify-center rounded-md bg-gold px-6 py-2.5 text-sm font-medium text-black hover:bg-gold-hover transition-colors"
+          >
+            Create your first deck
+          </Link>
         </div>
       ) : (
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-          {userDecks.map((deck) => (
-            <DeckCard
-              key={deck.id}
-              id={deck.id}
-              title={deck.title}
-              cardCount={deck.cardCount ?? 0}
-              masteredCount={deck.masteredCount ?? 0}
-              dueTodayCount={dueByDeck[deck.id] || 0}
-              lastStudiedAt={deck.lastStudiedAt ? deck.lastStudiedAt.toISOString() : null}
-            />
-          ))}
-        </div>
+        <DeckGrid 
+          initialDecks={userDecks.map(deck => ({
+            id: deck.id,
+            title: deck.title,
+            cardCount: deck.cardCount ?? 0,
+            masteredCount: deck.masteredCount ?? 0,
+            dueTodayCount: dueByDeck[deck.id] || 0,
+            lastStudiedAt: deck.lastStudiedAt ? deck.lastStudiedAt.toISOString() : null,
+          }))} 
+        />
       )}
 
       {userDecks.length > 0 && (
