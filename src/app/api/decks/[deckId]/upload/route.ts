@@ -7,7 +7,7 @@ import { NextResponse } from "next/server";
 
 export const dynamic = "force-dynamic";
 
-function constructMultipartBody(buffer: Buffer, filename: string): Uint8Array {
+function constructMultipartBody(buffer: Buffer, filename: string): Buffer {
   const metadataPart = Buffer.from(
     "--BOUNDARY\r\n" +
     "Content-Type: application/json\r\n\r\n" +
@@ -19,7 +19,7 @@ function constructMultipartBody(buffer: Buffer, filename: string): Uint8Array {
     "Content-Type: application/pdf\r\n\r\n"
   );
   const closing = Buffer.from("\r\n--BOUNDARY--");
-  return new Uint8Array(Buffer.concat([metadataPart, filePart, buffer, closing]));
+  return Buffer.concat([metadataPart, filePart, buffer, closing]);
 }
 
 export async function POST(
@@ -54,7 +54,7 @@ export async function POST(
           "X-Goog-Api-Key": process.env.GEMINI_API_KEY!,
           "Content-Type": `multipart/related; boundary=BOUNDARY`
         },
-        body: constructMultipartBody(buffer, file.name)
+        body: new Blob([constructMultipartBody(buffer, file.name) as any])
       }
     );
 
@@ -108,7 +108,7 @@ export async function POST(
     let generatedCards;
     try {
       // Find JSON array in case there's preamble (safety)
-      const jsonMatch = responseText.match(/\[.*\]/s);
+      const jsonMatch = responseText.match(/\[[\s\S]*\]/);
       const cleanJson = jsonMatch ? jsonMatch[0] : responseText;
       generatedCards = JSON.parse(cleanJson);
     } catch (e) {

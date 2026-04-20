@@ -4,11 +4,13 @@ import { clerkMiddleware, createRouteMatcher } from "@clerk/nextjs/server";
 // The handshake itself is secured by the BLOB_READ_WRITE_TOKEN
 const isPublicRoute = createRouteMatcher(["/", "/api/upload-url(.*)"]);
 
-export default clerkMiddleware(async (auth, request) => {
+const proxy = clerkMiddleware(async (auth, request) => {
   if (!isPublicRoute(request)) {
     await auth.protect();
   }
 });
+
+export default proxy;
 
 export const config = {
   matcher: [
