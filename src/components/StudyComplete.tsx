@@ -3,8 +3,26 @@
 import Link from "next/link";
 import { useEffect, useState } from "react";
 import { LoadingMessage } from "./LoadingMessage";
+import { motion, animate, useMotionValue, useTransform, useReducedMotion } from "framer-motion";
 
 type SessionLog = { cardFront: string; quality: number };
+
+function Counter({ value, delay = 0 }: { value: number; delay?: number }) {
+  const count = useMotionValue(0);
+  const rounded = useTransform(count, (latest) => Math.round(latest));
+  const shouldReduceMotion = useReducedMotion();
+
+  useEffect(() => {
+    const controls = animate(count, value, {
+      duration: shouldReduceMotion ? 0 : 0.8,
+      delay: shouldReduceMotion ? 0 : delay / 1000,
+      ease: "easeOut",
+    });
+    return controls.stop;
+  }, [value, count, delay, shouldReduceMotion]);
+
+  return <motion.span>{rounded}</motion.span>;
+}
 
 export function StudyComplete({ 
   deckId, 
@@ -62,11 +80,15 @@ export function StudyComplete({
       <div className="grid grid-cols-2 gap-4 w-full">
         <div className="p-6 rounded-xl border border-border/50 bg-surface">
           <p className="text-sm text-slate-400 mb-2">Cards Reviewed</p>
-          <p className="text-3xl font-medium text-slate-100">{reviewed}</p>
+          <p className="text-3xl font-medium text-slate-100">
+            <Counter value={reviewed} />
+          </p>
         </div>
         <div className="p-6 rounded-xl border border-gold/30 bg-gold/5 shadow-[0_0_20px_rgba(245,166,35,0.1)]">
           <p className="text-sm text-gold/80 mb-2">Mastered Today</p>
-          <p className="text-3xl font-medium text-gold">{mastered}</p>
+          <p className="text-3xl font-medium text-gold">
+            <Counter value={mastered} delay={200} />
+          </p>
         </div>
       </div>
 

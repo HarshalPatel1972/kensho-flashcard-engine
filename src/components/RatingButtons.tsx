@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect } from "react";
+import { motion, useReducedMotion } from "framer-motion";
 
 type RatingButtonsProps = {
   onRate: (quality: number) => void;
@@ -8,6 +9,8 @@ type RatingButtonsProps = {
 };
 
 export function RatingButtons({ onRate, disabled }: RatingButtonsProps) {
+  const shouldReduceMotion = useReducedMotion();
+
   useEffect(() => {
     if (disabled) return;
     const handleKeyDown = (e: KeyboardEvent) => {
@@ -32,15 +35,18 @@ export function RatingButtons({ onRate, disabled }: RatingButtonsProps) {
   return (
     <div className="flex flex-wrap items-center justify-center gap-4 mt-12 animate-in fade-in slide-in-from-bottom-4 duration-300">
       {buttons.map((btn) => (
-        <button
+        <motion.button
           key={btn.label}
           disabled={disabled}
           onClick={() => onRate(btn.value)}
+          whileHover={shouldReduceMotion ? {} : { scale: 1.03 }}
+          whileTap={shouldReduceMotion ? {} : { scale: 0.95 }}
+          transition={{ type: "spring", stiffness: 400, damping: 17 }}
           className={`flex flex-col items-center justify-center w-24 h-24 rounded-2xl border border-border/50 bg-surface transition-all duration-200 disabled:opacity-50 ${btn.color}`}
         >
           <span className="text-base font-medium mb-2">{btn.label}</span>
           <span className="text-xs text-slate-500 px-2 py-1 rounded-md bg-bg opacity-70">Press {btn.key}</span>
-        </button>
+        </motion.button>
       ))}
     </div>
   );
