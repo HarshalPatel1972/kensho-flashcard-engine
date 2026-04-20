@@ -156,6 +156,11 @@ export default async function DeckOverviewPage({ params }: { params: Promise<{ d
                     card.status === "learning" ? "bg-amber-500/10 text-amber-500 border border-amber-500/20" :
                     "bg-slate-800 text-slate-400 border border-slate-700"
                   }`}>
+                    {card.status === "mastered" && (
+                      <svg className="w-3 h-3 mr-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M5 13l4 4L19 7" />
+                      </svg>
+                    )}
                     {card.status ? card.status.charAt(0).toUpperCase() + card.status.slice(1) : "New"}
                   </span>
                 </td>

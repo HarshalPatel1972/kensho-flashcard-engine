@@ -23,10 +23,10 @@ export function RatingButtons({ onRate, disabled }: RatingButtonsProps) {
   }, [onRate, disabled]);
 
   const buttons = [
-    { label: "Again", key: "1", value: 0, color: "hover:bg-red-500/10 hover:text-red-400 hover:border-red-500/30" },
-    { label: "Hard", key: "2", value: 3, color: "hover:bg-orange-500/10 hover:text-orange-400 hover:border-orange-500/30" },
-    { label: "Good", key: "3", value: 4, color: "hover:bg-green-500/10 hover:text-green-400 hover:border-green-500/30" },
-    { label: "Easy", key: "4", value: 5, color: "hover:bg-teal-500/10 hover:text-teal-400 hover:border-teal-500/30" },
+    { label: "Again", key: "1", value: 0, color: "bg-red-500/5 text-red-500 border-red-500/20 hover:bg-red-500 hover:text-white" },
+    { label: "Hard", key: "2", value: 3, color: "bg-orange-500/5 text-orange-400 border-orange-500/20 hover:bg-orange-500 hover:text-white" },
+    { label: "Good", key: "3", value: 4, color: "bg-green-500/5 text-green-400 border-green-500/20 hover:bg-green-500 hover:text-white" },
+    { label: "Easy", key: "4", value: 5, color: "bg-cyan-500/5 text-cyan-400 border-cyan-500/20 hover:bg-cyan-500 hover:text-white" },
   ];
 
   return (

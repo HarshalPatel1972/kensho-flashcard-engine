@@ -74,12 +74,12 @@ export function DeckCard({ id, title, cardCount, masteredCount, dueTodayCount, l
           {cardCount === 0 ? (
             <span className="text-xs text-red-400/60 font-medium">Ready for PDF upload</span>
           ) : dueTodayCount > 0 ? (
-            <span className="inline-flex items-center px-2 py-1 rounded text-xs font-medium bg-gold/10 text-gold">
+            <span className="inline-flex items-center px-2 py-1 rounded text-xs font-medium bg-amber-500/10 text-amber-500">
               {dueTodayCount} due today
             </span>
           ) : (
-            <span className="inline-flex items-center px-2 py-1 rounded text-xs font-medium bg-slate-800 text-slate-400">
-              No cards due
+            <span className="inline-flex items-center px-2 py-1 rounded text-xs font-medium bg-slate-800/50 text-slate-500">
+              All caught up
             </span>
           )}
           <span className="text-xs text-slate-500">
