@@ -9,6 +9,7 @@ import { StudyComplete } from "@/components/StudyComplete";
 import Link from "next/link";
 import { UserButton } from "@clerk/nextjs";
 import { LoadingMessage } from "@/components/LoadingMessage";
+import { PageTransition } from "@/components/PageTransition";
 
 type StudyCard = {
   id: string;
@@ -30,7 +31,6 @@ export default function StudySessionPage() {
   const [isLoading, setIsLoading] = useState(true);
   const [sessionLogs, setSessionLogs] = useState<{ cardFront: string; quality: number }[]>([]);
   
-  // Session metrics
   const [masteredThisSession, setMasteredThisSession] = useState(0);
   const [isComplete, setIsComplete] = useState(false);
   const [totalDue, setTotalDue] = useState(0);
@@ -58,7 +58,6 @@ export default function StudySessionPage() {
     if (!isFlipped && !isSubmitting) setIsFlipped(true);
   }, [isFlipped, isSubmitting]);
 
-  // Spacebar to flip
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
       if (e.code === "Space") {
@@ -101,7 +100,6 @@ export default function StudySessionPage() {
 
       setIsFlipped(false);
       
-      // Allow flip animation to finish before moving to next card
       setTimeout(() => {
         if (currentIndex < cards.length - 1) {
           setCurrentIndex((prev) => prev + 1);
@@ -147,34 +145,36 @@ export default function StudySessionPage() {
   const currentCard = cards[currentIndex];
 
   return (
-    <div className="min-h-screen flex flex-col items-center p-4">
-      <header className="w-full max-w-3xl mx-auto flex items-center justify-between py-6">
-        <Link href={`/dashboard/${deckId}`} className="text-sm border-b border-transparent hover:border-gold text-slate-400 hover:text-gold transition-colors pb-0.5 inline-flex">
-          ← Exit
-        </Link>
-        <UserButton />
-      </header>
+    <PageTransition>
+      <div className="min-h-screen flex flex-col items-center p-4">
+        <header className="w-full max-w-3xl mx-auto flex items-center justify-between py-6">
+          <Link href={`/dashboard/${deckId}`} className="text-sm border-b border-transparent hover:border-gold text-slate-400 hover:text-gold transition-colors pb-0.5 inline-flex">
+            ← Exit
+          </Link>
+          <UserButton />
+        </header>
 
-      <main className="flex-1 w-full max-w-3xl mx-auto flex flex-col justify-center pb-20">
-        <div className="mb-8 space-y-3">
-          <div className="flex justify-between text-sm text-slate-400 font-medium">
-            <span>Card {currentIndex + 1} of {totalDue}</span>
-            <span>{totalDue - currentIndex - 1} left</span>
+        <main className="flex-1 w-full max-w-3xl mx-auto flex flex-col justify-center pb-20">
+          <div className="mb-8 space-y-3">
+            <div className="flex justify-between text-sm text-slate-400 font-medium">
+              <span>Card {currentIndex + 1} of {totalDue}</span>
+              <span>{totalDue - currentIndex - 1} left</span>
+            </div>
+            <ProgressBar current={currentIndex} total={totalDue} />
           </div>
-          <ProgressBar current={currentIndex} total={totalDue} />
-        </div>
 
-        <FlashCard 
-          front={currentCard.front} 
-          back={currentCard.back} 
-          isFlipped={isFlipped}
-          onFlip={handleFlip}
-        />
+          <FlashCard 
+            front={currentCard.front} 
+            back={currentCard.back} 
+            isFlipped={isFlipped}
+            onFlip={handleFlip}
+          />
 
-        <div className={`transition-all duration-300 ${isFlipped ? "opacity-100 translate-y-0" : "opacity-0 translate-y-4 pointer-events-none"}`}>
-          <RatingButtons onRate={handleRate} disabled={isSubmitting || !isFlipped} />
-        </div>
-      </main>
-    </div>
+          <div className={`transition-all duration-300 ${isFlipped ? "opacity-100 translate-y-0" : "opacity-0 translate-y-4 pointer-events-none"}`}>
+            <RatingButtons onRate={handleRate} disabled={isSubmitting || !isFlipped} />
+          </div>
+        </main>
+      </div>
+    </PageTransition>
   );
 }

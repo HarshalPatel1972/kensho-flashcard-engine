@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import { DeckCard } from "./DeckCard";
+import { motion, useReducedMotion } from "framer-motion";
 
 type Deck = {
   id: string;
@@ -12,8 +13,19 @@ type Deck = {
   lastStudiedAt: string | null;
 };
 
+const containerVariants = {
+  hidden: {},
+  visible: { transition: { staggerChildren: 0.06 } }
+};
+
+const itemVariants = {
+  hidden: { opacity: 0, y: 20 },
+  visible: { opacity: 1, y: 0, transition: { duration: 0.4, ease: "easeOut" } }
+};
+
 export function DeckGrid({ initialDecks }: { initialDecks: Deck[] }) {
   const [decks, setDecks] = useState(initialDecks);
+  const shouldReduceMotion = useReducedMotion();
 
   const handleDelete = (id: string) => {
     setDecks((prev) => prev.filter((d) => d.id !== id));
@@ -30,14 +42,20 @@ export function DeckGrid({ initialDecks }: { initialDecks: Deck[] }) {
   }
 
   return (
-    <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+    <motion.div 
+      className="grid grid-cols-1 md:grid-cols-2 gap-6"
+      variants={shouldReduceMotion ? {} : containerVariants}
+      initial="hidden"
+      animate="visible"
+    >
       {decks.map((deck) => (
-        <DeckCard
-          key={deck.id}
-          {...deck}
-          onDelete={() => handleDelete(deck.id)}
-        />
+        <motion.div key={deck.id} variants={shouldReduceMotion ? {} : itemVariants}>
+          <DeckCard
+            {...deck}
+            onDelete={() => handleDelete(deck.id)}
+          />
+        </motion.div>
       ))}
-    </div>
+    </motion.div>
   );
 }
