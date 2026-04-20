@@ -33,10 +33,14 @@ export async function runUniversalAI(
         const genAI = new GoogleGenerativeAI(key);
         const model = genAI.getGenerativeModel({ model: modelName });
         
-        const result = await model.generateContent([
-          prompt,
-          pdfBase64 ? { inlineData: { data: pdfBase64, mimeType: "application/pdf" } } : ""
-        ].filter(Boolean));
+        const content = pdfBase64 
+          ? [
+              { inlineData: { mimeType: "application/pdf", data: pdfBase64 } },
+              { text: prompt }
+            ]
+          : [{ text: prompt }];
+
+        const result = await model.generateContent(content);
         
         const text = result.response.text().replace(/```json\n?/g, "").replace(/```\n?/g, "").trim();
         if (text) return { text, provider: "google", model: modelName };
