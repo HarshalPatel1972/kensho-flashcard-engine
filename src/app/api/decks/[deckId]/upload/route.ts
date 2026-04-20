@@ -4,8 +4,6 @@ import { auth } from "@clerk/nextjs/server";
 import { GoogleGenerativeAI } from "@google/generative-ai";
 import { eq, and } from "drizzle-orm";
 import { NextResponse } from "next/server";
-import * as pdfParseModule from "pdf-parse";
-const pdfParse = (pdfParseModule as any).default || pdfParseModule;
 
 
 export async function POST(
@@ -35,33 +33,31 @@ export async function POST(
     if (file.size > 10 * 1024 * 1024) return NextResponse.json({ error: "File too large (Max 10MB)" }, { status: 400 });
 
     const buffer = Buffer.from(await file.arrayBuffer());
-    
-    // Parse PDF
-    const pdfData = await pdfParse(buffer);
-    const rawText = (pdfData.text || "").replace(/[\n\r]+/g, " ").substring(0, 10000); // Limit context for speed
-
-    if (!rawText.trim()) {
-      return NextResponse.json({ error: "PDF appears to be empty or unreadable text." }, { status: 400 });
-    }
+    const base64Pdf = buffer.toString("base64");
 
     const genAI = new GoogleGenerativeAI(apiKey);
     const model = genAI.getGenerativeModel({ model: "gemini-1.5-flash" });
 
     // Single high-speed prompt to stay under 10s Hobby timeout
     const prompt = `
-      You are a master educator. Generate 10-15 high-quality flashcards from this text study material.
+      You are a master educator. Read this provided PDF. Generate 10-15 high-quality flashcards based on the material inside it.
       
       Rules:
       - Front: Concrete question.
       - Back: Concise answer.
       - Return ONLY a JSON array: [{"front": "...", "back": "..."}, ...]
       - No markdown, no preamble.
-      
-      Text:
-      ${rawText}
     `;
 
-    const result = await model.generateContent(prompt);
+    const result = await model.generateContent([
+      prompt,
+      {
+        inlineData: {
+          data: base64Pdf,
+          mimeType: "application/pdf"
+        }
+      }
+    ]);
     const responseText = result.response.text()
       .replace(/```json\n?/g, "")
       .replace(/```\n?/g, "")
