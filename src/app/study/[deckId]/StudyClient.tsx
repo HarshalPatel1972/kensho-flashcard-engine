@@ -11,6 +11,7 @@ import { UserButton } from "@clerk/nextjs";
 import { LoadingMessage } from "@/components/LoadingMessage";
 import { PageTransition } from "@/components/PageTransition";
 import { ThemeToggle } from "@/components/ThemeToggle";
+import { ErrorState } from "@/components/ErrorState";
 
 type StudyCard = {
   id: string;
@@ -125,6 +126,18 @@ export default function StudyClient() {
             "Loading today's cards...",
             "Checking what's due..."
           ]} 
+        />
+      </div>
+    );
+  }
+
+  if (cards.length === 0 && !isComplete) {
+    return (
+      <div className="min-h-screen flex items-center justify-center p-4">
+        <ErrorState 
+          title="Couldn't load your cards"
+          message="Check your connection and try again."
+          onRetry={() => window.location.reload()}
         />
       </div>
     );

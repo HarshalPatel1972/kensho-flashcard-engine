@@ -8,6 +8,7 @@ import { PageTransition } from "@/components/PageTransition";
 import { WeakCards } from "@/components/WeakCards";
 import { DeckDetailUpload } from "@/components/DeckDetailUpload";
 import { DeckTitle } from "@/components/DeckTitle";
+import { ErrorState } from "@/components/ErrorState";
 
 export const dynamic = "force-dynamic";
 
@@ -15,10 +16,14 @@ export async function generateMetadata({ params }: { params: Promise<{ deckId: s
   const { userId } = await auth();
   if (!userId) return { title: "Kenshō" };
   const p = await params;
-  const [deck] = await db.select().from(decks).where(and(eq(decks.id, p.deckId), eq(decks.userId, userId)));
-  return {
-    title: deck ? `${deck.title} — Kenshō` : "Deck — Kenshō",
-  };
+  try {
+    const [deck] = await db.select().from(decks).where(and(eq(decks.id, p.deckId), eq(decks.userId, userId)));
+    return {
+      title: deck ? `${deck.title} — Kenshō` : "Deck — Kenshō",
+    };
+  } catch (e) {
+    return { title: "Kenshō" };
+  }
 }
 
 export default async function DeckOverviewPage({ params }: { params: Promise<{ deckId: string }> }) {
@@ -28,33 +33,50 @@ export default async function DeckOverviewPage({ params }: { params: Promise<{ d
   const p = await params;
   const deckId = p.deckId;
 
-  const [deck] = await db
-    .select()
-    .from(decks)
-    .where(and(eq(decks.id, deckId), eq(decks.userId, userId)));
+  let deck;
+  let deckCards;
+  try {
+    const deckResult = await db
+      .select()
+      .from(decks)
+      .where(and(eq(decks.id, deckId), eq(decks.userId, userId)));
+    
+    deck = deckResult[0];
 
-  if (!deck) notFound();
+    if (!deck) notFound();
 
-  const deckCards = await db
-    .select({
-      id: cards.id,
-      front: cards.front,
-      back: cards.back,
-      status: cardProgress.status,
-      dueDate: cardProgress.dueDate,
-      easeFactor: cardProgress.easeFactor,
-      repetitions: cardProgress.repetitions,
-    })
-    .from(cards)
-    .leftJoin(
-      cardProgress,
-      and(
-        eq(cards.id, cardProgress.cardId),
-        eq(cardProgress.userId, userId)
+    deckCards = await db
+      .select({
+        id: cards.id,
+        front: cards.front,
+        back: cards.back,
+        status: cardProgress.status,
+        dueDate: cardProgress.dueDate,
+        easeFactor: cardProgress.easeFactor,
+        repetitions: cardProgress.repetitions,
+      })
+      .from(cards)
+      .leftJoin(
+        cardProgress,
+        and(
+          eq(cards.id, cardProgress.cardId),
+          eq(cardProgress.userId, userId)
+        )
       )
-    )
-    .where(eq(cards.deckId, deckId))
-    .orderBy(asc(cards.createdAt));
+      .where(eq(cards.deckId, deckId))
+      .orderBy(asc(cards.createdAt));
+  } catch (error) {
+    console.error("Error loading deck:", error);
+    return (
+      <div className="flex items-center justify-center min-h-[50vh]">
+        <ErrorState 
+          title="Couldn't load this deck"
+          message="Try refreshing the page."
+          onRetry={() => {}} // Server component cannot pass client function here easily but we'll use error.tsx for better handling
+        />
+      </div>
+    );
+  }
 
   const totalCards = deckCards.length;
   const isEmpty = totalCards === 0;

@@ -7,6 +7,7 @@ import { redirect } from "next/navigation";
 import { DashboardSearch } from "@/components/DashboardSearch";
 import { DeckGrid } from "@/components/DeckGrid";
 import { PageTransition } from "@/components/PageTransition";
+import { ErrorState } from "@/components/ErrorState";
 
 export const metadata = {
   title: "Your Decks — Kenshō",
@@ -98,11 +99,12 @@ export default async function DashboardPage({ searchParams }: { searchParams: Pr
 
   if (dbError) {
     return (
-      <div className="p-8 bg-red-500/10 border border-red-500/50 rounded-xl max-w-2xl mx-auto mt-20 text-center">
-        <h2 className="text-xl font-bold text-red-500 mb-2">Database Connection Failed</h2>
-        <p className="text-sm text-red-400 font-mono mb-4 text-left p-4 bg-red-950/30 rounded">{dbError}</p>
-        <p className="text-primary">It looks like the Neon database connection failed. Please ensure you visited <strong className="text-primary">/api/migrate</strong> to create the tables, and verify your <strong>DATABASE_URL</strong> in Vercel.</p>
-        <p className="text-xs text-secondary mt-4">Current URL Prefix: {process.env.DATABASE_URL?.substring(0, 15) || "UNDEFINED"}</p>
+      <div className="flex items-center justify-center min-h-[50vh]">
+        <ErrorState 
+          title="Couldn't load your decks"
+          message="Something went wrong. Your data is safe."
+          onRetry={() => window.location.reload()}
+        />
       </div>
     );
   }
