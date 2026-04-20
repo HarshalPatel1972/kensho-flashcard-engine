@@ -1,7 +1,7 @@
 import { auth } from "@clerk/nextjs/server";
 import { GoogleGenerativeAI } from "@google/generative-ai";
 import { NextResponse } from "next/server";
-import { runWithRetry } from "@/lib/ai";
+import { runUniversalAI } from "@/lib/ai";
 
 export const dynamic = "force-dynamic";
 
@@ -20,27 +20,24 @@ export async function POST(
       return NextResponse.json({ error: "Missing session data" }, { status: 400 });
     }
 
-    const feedback = await runWithRetry(async (model) => {
-      const prompt = `
-        You are a learning coach analyzing a student's flashcard study session.
-        
-        Session data:
-        ${JSON.stringify(sessionData)}
-        
-        Quality scale: 0=complete blackout, 3=hard, 4=good, 5=easy
-        
-        Write exactly 2-3 sentences of specific, actionable coaching feedback.
-        Reference the actual card content where possible.
-        Be direct, warm, and specific — not generic.
-        Do NOT say "Great job!" or similar empty praise.
-        Focus on patterns: what they're struggling with and one concrete tip.
-        
-        Return only the coaching text, no labels, no JSON.
-      `;
+    const prompt = `
+      You are a learning coach analyzing a student's flashcard study session.
+      
+      Session data:
+      ${JSON.stringify(sessionData)}
+      
+      Quality scale: 0=complete blackout, 3=hard, 4=good, 5=easy
+      
+      Write exactly 2-3 sentences of specific, actionable coaching feedback.
+      Reference the actual card content where possible.
+      Be direct, warm, and specific — not generic.
+      Do NOT say "Great job!" or similar empty praise.
+      Focus on patterns: what they're struggling with and one concrete tip.
+      
+      Return only the coaching text, no labels, no JSON.
+    `;
 
-      const result = await model.generateContent(prompt);
-      return result.response.text().trim();
-    });
+    const { text: feedback } = await runUniversalAI(prompt);
 
     return NextResponse.json({ feedback });
   } catch (error) {

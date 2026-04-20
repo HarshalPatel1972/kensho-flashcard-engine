@@ -4,7 +4,7 @@ import { auth } from "@clerk/nextjs/server";
 import { GoogleGenerativeAI } from "@google/generative-ai";
 import { eq, and } from "drizzle-orm";
 import { NextResponse } from "next/server";
-import { runWithRetry } from "@/lib/ai";
+import { runUniversalAI } from "@/lib/ai";
 
 export async function POST(
   req: Request,
@@ -40,26 +40,8 @@ export async function POST(
       - No markdown, no preamble.
     `;
 
-    // Feature: Centralized AI Failover Engine (Key Rotation + Model Cascade)
-    const responseText = await runWithRetry(async (model) => {
-      const result = await model.generateContent([
-        prompt,
-        {
-          inlineData: {
-            data: base64Pdf,
-            mimeType: "application/pdf"
-          }
-        }
-      ]);
-      
-      const text = result.response.text()
-        .replace(/```json\n?/g, "")
-        .replace(/```\n?/g, "")
-        .trim();
-        
-      if (!text) throw new Error("Empty AI response");
-      return text;
-    });
+    // Feature: Universal AI Failover Engine (Google -> DeepSeek -> Groq)
+    const { text: responseText } = await runUniversalAI(prompt, base64Pdf);
 
     let generatedCards;
     try {
