@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import { DeckCard } from "./DeckCard";
-import { motion, useReducedMotion, AnimatePresence } from "framer-motion";
+import { motion, useReducedMotion, AnimatePresence, Variants } from "framer-motion";
 
 type Deck = {
   id: string;
@@ -13,15 +13,23 @@ type Deck = {
   lastStudiedAt: string | null;
 };
 
-const containerVariants = {
+const containerVariants: Variants = {
   hidden: {},
   visible: { transition: { staggerChildren: 0.06 } }
 };
 
-const itemVariants = {
+const itemVariants: Variants = {
   hidden: { opacity: 0, y: 20 },
-  visible: { opacity: 1, y: 0, transition: { duration: 0.4, ease: "easeOut" } },
-  exit: { opacity: 0, scale: 0.95, transition: { duration: 0.2 } }
+  visible: { 
+    opacity: 1, 
+    y: 0, 
+    transition: { duration: 0.4, ease: "easeOut" } 
+  },
+  exit: { 
+    opacity: 0, 
+    scale: 0.95, 
+    transition: { duration: 0.2 } 
+  }
 };
 
 export function DeckGrid({ initialDecks }: { initialDecks: Deck[] }) {
@@ -45,7 +53,7 @@ export function DeckGrid({ initialDecks }: { initialDecks: Deck[] }) {
   return (
     <motion.div 
       className="grid grid-cols-1 md:grid-cols-2 gap-6"
-      variants={shouldReduceMotion ? {} : containerVariants}
+      variants={shouldReduceMotion ? undefined : containerVariants}
       initial="hidden"
       animate="visible"
     >
@@ -53,7 +61,7 @@ export function DeckGrid({ initialDecks }: { initialDecks: Deck[] }) {
         {decks.map((deck) => (
           <motion.div 
             key={deck.id} 
-            variants={shouldReduceMotion ? {} : itemVariants}
+            variants={shouldReduceMotion ? undefined : itemVariants}
             layout
             initial="hidden"
             animate="visible"
