@@ -5,6 +5,8 @@ import { eq, and, asc } from "drizzle-orm";
 import Link from "next/link";
 import { notFound, redirect } from "next/navigation";
 
+export const dynamic = "force-dynamic";
+
 export default async function DeckOverviewPage({ params }: { params: Promise<{ deckId: string }> }) {
   const { userId } = await auth();
   if (!userId) redirect("/sign-in");
@@ -27,6 +29,7 @@ export default async function DeckOverviewPage({ params }: { params: Promise<{ d
       status: cardProgress.status,
       dueDate: cardProgress.dueDate,
       easeFactor: cardProgress.easeFactor,
+      repetitions: cardProgress.repetitions,
     })
     .from(cards)
     .leftJoin(
@@ -49,6 +52,11 @@ export default async function DeckOverviewPage({ params }: { params: Promise<{ d
     totalCards > 0
       ? deckCards.reduce((acc, c) => acc + (c.easeFactor ?? 2.5), 0) / totalCards
       : 2.5;
+
+  // Feature 2: Weak Cards Spotlight
+  const weakCards = deckCards
+    .filter((c) => (c.easeFactor ?? 2.5) < 2.0 && c.status !== "mastered")
+    .slice(0, 5);
 
   return (
     <div className="space-y-8 animate-in fade-in slide-in-from-bottom-4 duration-500 max-w-5xl mx-auto">
@@ -96,6 +104,32 @@ export default async function DeckOverviewPage({ params }: { params: Promise<{ d
           </div>
         ))}
       </div>
+
+      {weakCards.length > 0 && (
+        <div className="space-y-4">
+          <div>
+            <h2 className="text-xl font-medium text-white">Needs work</h2>
+            <p className="text-sm text-slate-400 mt-1">These cards are harder for you than average</p>
+          </div>
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+            {weakCards.map((card) => (
+              <div key={card.id} className="p-5 bg-surface border-l-4 border-gold rounded-r-xl border-y border-r border-border/40 shadow-xl shadow-black/20">
+                <p className="text-sm text-slate-200 font-medium mb-3 line-clamp-3">{card.front}</p>
+                <div className="flex items-center justify-between mt-auto">
+                  <div className="space-y-0.5">
+                    <p className="text-[10px] uppercase tracking-wider text-slate-500">Ease Factor</p>
+                    <p className="text-xs font-bold text-gold">{(card.easeFactor ?? 2.5).toFixed(2)}</p>
+                  </div>
+                  <div className="text-right space-y-0.5">
+                    <p className="text-[10px] uppercase tracking-wider text-slate-500">Reviews</p>
+                    <p className="text-xs font-bold text-slate-300">{card.repetitions ?? 0}</p>
+                  </div>
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
 
       <div className="overflow-x-auto bg-surface rounded-xl border border-border/50">
         <table className="w-full text-left border-collapse">
