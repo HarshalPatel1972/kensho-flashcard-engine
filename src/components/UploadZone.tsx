@@ -38,9 +38,19 @@ export function UploadZone({ deckId, onSuccess }: UploadZoneProps) {
           signal: controller.signal,
         });
 
+        if (!fetchRes.ok) {
+          const errorText = await fetchRes.text();
+          let errorMessage = "Generation failed";
+          try {
+            const errorJson = JSON.parse(errorText);
+            errorMessage = errorJson.error || errorMessage;
+          } catch {
+            errorMessage = `Server Error (${fetchRes.status}): ${errorText.substring(0, 50)}...`;
+          }
+          throw new Error(errorMessage);
+        }
+ 
         const data = await fetchRes.json();
-        if (!fetchRes.ok) throw new Error(data.error || "Generation failed");
-
         toast.success("Deck created successfully!");
         onSuccess();
       } catch (err: any) {
