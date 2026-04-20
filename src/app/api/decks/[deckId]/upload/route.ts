@@ -7,7 +7,7 @@ import { NextResponse } from "next/server";
 
 export const dynamic = "force-dynamic";
 
-function constructMultipartBody(buffer: Buffer, filename: string): Buffer {
+function constructMultipartBody(buffer: Buffer, filename: string): Uint8Array {
   const metadataPart = Buffer.from(
     "--BOUNDARY\r\n" +
     "Content-Type: application/json\r\n\r\n" +
@@ -19,7 +19,7 @@ function constructMultipartBody(buffer: Buffer, filename: string): Buffer {
     "Content-Type: application/pdf\r\n\r\n"
   );
   const closing = Buffer.from("\r\n--BOUNDARY--");
-  return Buffer.concat([metadataPart, filePart, buffer, closing]);
+  return new Uint8Array(Buffer.concat([metadataPart, filePart, buffer, closing]));
 }
 
 export async function POST(
