@@ -4,8 +4,7 @@ import { auth } from "@clerk/nextjs/server";
 import { GoogleGenerativeAI } from "@google/generative-ai";
 import { eq, and } from "drizzle-orm";
 import { NextResponse } from "next/server";
-// @ts-ignore
-import pdf from "pdf-parse";
+import { PDFParse } from "pdf-parse";
 
 export const dynamic = "force-dynamic";
 
@@ -123,8 +122,9 @@ export async function POST(
 
     let pdfText = "";
     try {
-      const pdfData = await pdf(buffer);
-      pdfText = pdfData.text;
+      const pdfParser = new PDFParse(new Uint8Array(arrayBuffer));
+      const result = await pdfParser.getText();
+      pdfText = result.text;
     } catch (e) {
       console.warn("PDF text extraction failed", e);
     }
