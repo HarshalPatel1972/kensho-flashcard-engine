@@ -21,6 +21,7 @@ export function DeckCard({ id, title, cardCount, masteredCount, dueTodayCount, l
   const menuRef = useRef<HTMLDivElement>(null);
   const shouldReduceMotion = useReducedMotion();
 
+  const isEmpty = cardCount === 0;
   const progress = cardCount > 0 ? (masteredCount / cardCount) * 100 : 0;
 
   useEffect(() => {
@@ -61,52 +62,65 @@ export function DeckCard({ id, title, cardCount, masteredCount, dueTodayCount, l
       <div className="group relative">
         <Link 
           href={`/dashboard/${id}`}
-          className="block p-6 rounded-xl border border-border/50 bg-surface hover:border-gold/50 transition-all relative overflow-hidden"
+          className={`block p-6 rounded-2xl border transition-all relative overflow-hidden ${
+            isEmpty 
+              ? "bg-surface/20 border-border/40 border-dashed hover:border-gold/40" 
+              : "bg-surface border-border/50 hover:border-gold/50 shadow-sm"
+          }`}
         >
-          <div className="flex justify-between items-start mb-4">
-            <h3 className="text-lg font-medium text-slate-100 group-hover:text-gold transition-colors pr-8">{title}</h3>
+          <div className="flex justify-between items-start mb-6">
+            <h3 className={`text-xl font-medium transition-colors pr-8 ${isEmpty ? "text-slate-400 group-hover:text-gold" : "text-slate-100 group-hover:text-gold"}`}>
+              {title}
+            </h3>
           </div>
 
-          <div className="space-y-4">
-            <div className="space-y-1.5">
-              <div className="flex justify-between text-xs text-slate-400">
-                <span>{masteredCount} / {cardCount} {cardCount === 0 ? "" : "Studied"}</span>
-                <span>{Math.round(progress)}%</span>
+          <div className="space-y-5">
+            <div className="space-y-2">
+              <div className="flex justify-between text-[11px] uppercase tracking-widest font-bold">
+                <span className={isEmpty ? "text-slate-600" : "text-slate-400"}>
+                  {isEmpty ? "0 Cards" : `${masteredCount} / ${cardCount} Mastered`}
+                </span>
+                {!isEmpty && <span className="text-gold">{Math.round(progress)}%</span>}
               </div>
-              <div className="h-1.5 w-full bg-bg rounded-full overflow-hidden">
-                {cardCount > 0 ? (
-                  <div 
-                    className="h-full bg-gold rounded-full transition-all duration-500" 
-                    style={{ width: `${progress}%` }}
+              
+              <div className={`h-1.5 w-full rounded-full overflow-hidden ${isEmpty ? "bg-bg/40 border border-dashed border-border/20" : "bg-bg"}`}>
+                {!isEmpty && (
+                  <motion.div 
+                    initial={{ width: 0 }}
+                    animate={{ width: `${progress}%` }}
+                    className="h-full bg-gold rounded-full"
+                    transition={{ duration: 1, ease: "circOut" }}
                   />
-                ) : (
-                  <div className="flex items-center justify-center h-full"> 
-                    <span className="text-[10px] text-slate-600 uppercase tracking-widest">Empty Deck</span>
-                  </div>
                 )}
               </div>
             </div>
 
-            <div className="flex items-center justify-between pt-2">
-              {cardCount === 0 ? (
-                <span className="text-xs text-red-400/60 font-medium">Ready for PDF upload</span>
-              ) : dueTodayCount > 0 ? (
-                <span className="inline-flex items-center px-2 py-1 rounded text-xs font-medium bg-amber-500/10 text-amber-500">
-                  {dueTodayCount} due today
+            <div className="flex items-center justify-between pt-1">
+              {isEmpty ? (
+                <span className="inline-flex items-center gap-1.5 text-xs font-semibold text-gold/60 group-hover:text-gold transition-colors">
+                  <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M12 4v16m8-8H4" />
+                  </svg>
+                  Add PDF to start
                 </span>
               ) : (
-                <span className="inline-flex items-center px-2 py-1 rounded text-xs font-medium bg-slate-800/50 text-slate-500">
-                  All caught up
+                <span className={`inline-flex items-center px-2.5 py-1 rounded-md text-[10px] font-bold uppercase tracking-tighter ${
+                  dueTodayCount > 0 
+                  ? "bg-amber-500/10 text-amber-500 border border-amber-500/20" 
+                  : "bg-slate-800/50 text-slate-500 border border-slate-700/50"
+                }`}>
+                  {dueTodayCount > 0 ? `${dueTodayCount} Due Now` : "Settled"}
                 </span>
               )}
-              <span className="text-xs text-slate-500">
-                {lastStudiedAt ? new Date(lastStudiedAt).toLocaleDateString() : "Never"}
+              
+              <span className="text-[10px] uppercase tracking-widest text-slate-600 font-bold">
+                {isEmpty ? "Empty" : lastStudiedAt ? new Date(lastStudiedAt).toLocaleDateString(undefined, { month: 'short', day: 'numeric' }) : "New"}
               </span>
             </div>
           </div>
         </Link>
         
-        <div className="absolute top-4 right-4" ref={menuRef}>
+        <div className="absolute top-5 right-5" ref={menuRef}>
           <button 
             onClick={(e) => { e.preventDefault(); e.stopPropagation(); setShowMenu(!showMenu); }}
             className="p-2 text-slate-500 hover:text-white transition-colors rounded-lg hover:bg-white/5"
@@ -122,7 +136,7 @@ export function DeckCard({ id, title, cardCount, masteredCount, dueTodayCount, l
                 animate={{ opacity: 1, scale: 1 }}
                 exit={{ opacity: 0, scale: 0.95 }}
                 transition={{ duration: 0.1 }}
-                className="absolute right-0 mt-1 w-40 bg-surface border border-border shadow-2xl rounded-lg py-1 z-10"
+                className="absolute right-0 mt-1 w-40 bg-surface border border-border shadow-2xl rounded-xl py-1 z-10"
               >
                 <button 
                   onClick={(e) => { e.preventDefault(); e.stopPropagation(); setShowModal(true); setShowMenu(false); }}
