@@ -8,6 +8,7 @@ import { ProgressBar } from "@/components/ProgressBar";
 import { StudyComplete } from "@/components/StudyComplete";
 import Link from "next/link";
 import { UserButton } from "@clerk/nextjs";
+import { LoadingMessage } from "@/components/LoadingMessage";
 
 type StudyCard = {
   id: string;
@@ -118,8 +119,14 @@ export default function StudySessionPage() {
 
   if (isLoading) {
     return (
-      <div className="min-h-screen flex items-center justify-center">
-        <div className="w-8 h-8 rounded-full border-2 border-gold border-t-transparent animate-spin" />
+      <div className="min-h-screen flex items-center justify-center p-4">
+        <LoadingMessage 
+          messages={[
+            "Picking up where you left off...",
+            "Loading today's cards...",
+            "Checking what's due..."
+          ]} 
+        />
       </div>
     );
   }

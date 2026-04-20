@@ -3,6 +3,7 @@
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { UploadZone } from "@/components/UploadZone";
+import { LoadingMessage } from "@/components/LoadingMessage";
 
 export default function NewDeckPage() {
   const router = useRouter();
@@ -12,8 +13,8 @@ export default function NewDeckPage() {
   const [isCreating, setIsCreating] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
-  const handleCreateDeck = async (e: React.FormEvent) => {
-    e.preventDefault();
+  const handleCreateDeck = async (e?: React.FormEvent) => {
+    if (e) e.preventDefault();
     if (!title.trim()) return;
     
     setIsCreating(true);
@@ -47,7 +48,10 @@ export default function NewDeckPage() {
       </div>
 
       {!deckId ? (
-        <form onSubmit={handleCreateDeck} className="space-y-6 bg-surface p-6 rounded-xl border border-border/50">
+        <form 
+          onSubmit={handleCreateDeck} 
+          className="space-y-6 bg-surface p-6 rounded-xl border border-border/50"
+        >
           <div className="space-y-2">
             <label htmlFor="title" className="text-sm font-medium text-slate-300">Deck Title</label>
             <input
@@ -73,13 +77,24 @@ export default function NewDeckPage() {
           </div>
           {error && <p className="text-sm text-red-500 font-medium">{error}</p>}
           <div className="pt-2">
-            <button
-              type="submit"
-              disabled={isCreating || !title.trim()}
-              className="w-full inline-flex items-center justify-center rounded-md bg-gold px-6 py-3 text-sm font-medium text-black hover:bg-gold-hover transition-colors disabled:opacity-50"
-            >
-              {isCreating ? "Creating..." : "Save and Continue"}
-            </button>
+            {isCreating ? (
+              <div className="py-4">
+                <LoadingMessage 
+                  messages={[
+                    "Building your deck...",
+                    "Setting things up..."
+                  ]} 
+                />
+              </div>
+            ) : (
+              <button
+                type="submit"
+                disabled={isCreating || !title.trim()}
+                className="w-full inline-flex items-center justify-center rounded-md bg-gold px-6 py-3 text-sm font-medium text-black hover:bg-gold-hover transition-colors disabled:opacity-50"
+              >
+                Save and Continue
+              </button>
+            )}
           </div>
         </form>
       ) : (

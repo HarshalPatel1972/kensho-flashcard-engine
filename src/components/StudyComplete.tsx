@@ -2,6 +2,7 @@
 
 import Link from "next/link";
 import { useEffect, useState } from "react";
+import { LoadingMessage } from "./LoadingMessage";
 
 type SessionLog = { cardFront: string; quality: number };
 
@@ -78,9 +79,16 @@ export function StudyComplete({
           </div>
           
           {isLoadingCoach ? (
-            <div className="space-y-2 animate-pulse">
-              <div className="h-4 bg-slate-800 rounded w-full"></div>
-              <div className="h-4 bg-slate-800 rounded w-5/6"></div>
+            <div className="py-4">
+              <LoadingMessage 
+                messages={[
+                  "Reviewing your session...",
+                  "Finding patterns...",
+                  "Curating your results...",
+                  "Writing your coaching note...",
+                  "Brewing something useful..."
+                ]} 
+              />
             </div>
           ) : (
             <p className="text-slate-300 text-sm leading-relaxed italic">
