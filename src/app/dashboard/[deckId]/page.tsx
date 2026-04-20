@@ -65,23 +65,23 @@ export default async function DeckOverviewPage({ params }: { params: Promise<{ d
 
   return (
     <PageTransition>
-      <div className="space-y-8 max-w-5xl mx-auto">
+      <div className="space-y-8 max-w-5xl mx-auto pb-24 md:pb-8">
         <div>
           <Link href="/dashboard" className="text-sm border-b border-transparent hover:border-gold text-secondary hover:text-gold transition-colors pb-0.5 inline-flex mb-4">
             ← Back to Decks
           </Link>
           <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
-            <div>
-                <DeckTitle deckId={deckId} initialTitle={deck.title} />
+            <div className="flex-1 min-w-0">
+              <DeckTitle deckId={deckId} initialTitle={deck.title} />
               {deck.description && (
                 <p className="text-secondary mt-2 line-clamp-2">{deck.description}</p>
               )}
             </div>
             {!isEmpty && (
-              <div>
+              <div className="fixed md:static bottom-0 left-0 w-full md:w-auto p-4 md:p-0 bg-bg/80 md:bg-transparent backdrop-blur-md md:backdrop-blur-none border-t md:border-t-0 border-border z-40">
                 <Link
                   href={`/study/${deckId}`}
-                  className={`inline-flex items-center justify-center rounded-md px-8 py-3 text-sm font-medium transition-colors ${
+                  className={`inline-flex items-center justify-center rounded-md px-8 py-3 text-sm font-medium transition-colors w-full md:w-auto ${
                     dueTodayCount > 0
                       ? "bg-gold text-black hover:bg-gold-hover shadow-lg shadow-gold/20"
                       : "bg-surface border border-border text-primary hover:bg-bg opacity-50 cursor-not-allowed pointer-events-none"
@@ -103,7 +103,7 @@ export default async function DeckOverviewPage({ params }: { params: Promise<{ d
                 <p className="text-secondary">Upload a PDF to extract smart flashcards and start your session.</p>
               </div>
               <DeckDetailUpload deckId={deckId} />
-              <div className="pt-4 flex items-center justify-center gap-6 opacity-30 grayscale saturate-0">
+              <div className="pt-4 flex items-center justify-center gap-4 md:gap-6 opacity-30 grayscale saturate-0 overflow-x-auto whitespace-nowrap">
                 <span className="text-[10px] uppercase tracking-widest font-bold text-secondary">PDF Reader</span>
                 <span className="text-[10px] uppercase tracking-widest font-bold text-secondary">AI Extraction</span>
                 <span className="text-[10px] uppercase tracking-widest font-bold text-secondary">Flashcards</span>
@@ -130,46 +130,48 @@ export default async function DeckOverviewPage({ params }: { params: Promise<{ d
 
             {weakCards.length > 0 && <WeakCards cards={weakCards} />}
 
-            <div className="overflow-x-auto bg-surface rounded-xl border border-border/50 shadow-2xl shadow-black/20">
-              <table className="w-full text-left border-collapse">
-                <thead>
-                  <tr className="border-b border-border/50 bg-bg/50">
-                    <th className="py-3 px-6 text-sm font-medium text-secondary w-1/3">Front</th>
-                    <th className="py-3 px-6 text-sm font-medium text-secondary w-1/3">Back</th>
-                    <th className="py-3 px-6 text-sm font-medium text-secondary">Status</th>
-                    <th className="py-3 px-6 text-sm font-medium text-secondary text-right">Next Review</th>
-                  </tr>
-                </thead>
-                <tbody className="divide-y divide-border/20">
-                  {deckCards.map((card) => (
-                    <tr key={card.id} className="hover:bg-bg/40 transition-colors">
-                      <td className="py-4 px-6 text-sm text-primary align-top">
-                        <div className="line-clamp-2">{card.front}</div>
-                      </td>
-                      <td className="py-4 px-6 text-sm text-secondary align-top">
-                        <div className="line-clamp-2">{card.back}</div>
-                      </td>
-                      <td className="py-4 px-6 align-top">
-                        <span className={`inline-flex items-center px-2.5 py-1 rounded-full text-xs font-medium ${
-                          card.status === "mastered" ? "bg-green-500/10 text-green-400 border border-green-500/20" :
-                          card.status === "learning" ? "bg-amber-500/10 text-amber-500 border border-amber-500/20" :
-                          "bg-slate-800 text-secondary border border-slate-700"
-                        }`}>
-                          {card.status === "mastered" && (
-                            <svg className="w-3 h-3 mr-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M5 13l4 4L19 7" />
-                            </svg>
-                          )}
-                          {card.status ? card.status.charAt(0).toUpperCase() + card.status.slice(1) : "New"}
-                        </span>
-                      </td>
-                      <td className="py-4 px-6 text-sm text-secondary text-right align-top whitespace-nowrap">
-                        {card.dueDate ? new Date(card.dueDate).toLocaleDateString() : "Pending"}
-                      </td>
+            <div className="bg-surface rounded-xl border border-border/50 shadow-2xl shadow-black/20 overflow-hidden">
+              <div className="overflow-x-auto">
+                <table className="w-full text-left border-collapse">
+                  <thead>
+                    <tr className="border-b border-border/50 bg-bg/50">
+                      <th className="py-3 px-4 md:px-6 text-sm font-medium text-secondary w-full md:w-1/3">Front</th>
+                      <th className="py-3 px-4 md:px-6 text-sm font-medium text-secondary hidden md:table-cell w-1/3">Back</th>
+                      <th className="py-3 px-4 md:px-6 text-sm font-medium text-secondary">Status</th>
+                      <th className="py-3 px-4 md:px-6 text-sm font-medium text-secondary text-right hidden md:table-cell">Next Review</th>
                     </tr>
-                  ))}
-                </tbody>
-              </table>
+                  </thead>
+                  <tbody className="divide-y divide-border/20">
+                    {deckCards.map((card) => (
+                      <tr key={card.id} className="hover:bg-bg/40 transition-colors">
+                        <td className="py-4 px-4 md:px-6 text-sm text-primary align-top">
+                          <div className="line-clamp-3">{card.front}</div>
+                        </td>
+                        <td className="py-4 px-4 md:px-6 text-sm text-secondary align-top hidden md:table-cell">
+                          <div className="line-clamp-3">{card.back}</div>
+                        </td>
+                        <td className="py-4 px-4 md:px-6 align-top">
+                          <span className={`inline-flex items-center px-2.5 py-1 rounded-full text-xs font-medium ${
+                            card.status === "mastered" ? "bg-green-500/10 text-green-400 border border-green-500/20" :
+                            card.status === "learning" ? "bg-amber-500/10 text-amber-500 border border-amber-500/20" :
+                            "bg-surface border border-border text-secondary"
+                          }`}>
+                            {card.status === "mastered" && (
+                              <svg className="w-3 h-3 mr-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M5 13l4 4L19 7" />
+                              </svg>
+                            )}
+                            {card.status ? card.status.charAt(0).toUpperCase() + card.status.slice(1) : "New"}
+                          </span>
+                        </td>
+                        <td className="py-4 px-4 md:px-6 text-sm text-secondary text-right align-top whitespace-nowrap hidden md:table-cell">
+                          {card.dueDate ? new Date(card.dueDate).toLocaleDateString() : "Pending"}
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
             </div>
           </>
         )}

@@ -33,7 +33,7 @@ export function RatingButtons({ onRate, disabled }: RatingButtonsProps) {
   ];
 
   return (
-    <div className="flex flex-wrap items-center justify-center gap-4 mt-12 animate-in fade-in slide-in-from-bottom-4 duration-300">
+    <div className="grid grid-cols-2 md:flex md:flex-row items-center justify-center gap-4 mt-8 md:mt-12 animate-in fade-in slide-in-from-bottom-4 duration-300 w-full max-w-xl mx-auto px-4 md:px-0">
       {buttons.map((btn) => (
         <motion.button
           key={btn.label}
@@ -42,10 +42,10 @@ export function RatingButtons({ onRate, disabled }: RatingButtonsProps) {
           whileHover={shouldReduceMotion ? {} : { scale: 1.03 }}
           whileTap={shouldReduceMotion ? {} : { scale: 0.95 }}
           transition={{ type: "spring", stiffness: 400, damping: 17 }}
-          className={`flex flex-col items-center justify-center w-24 h-24 rounded-2xl border border-border/50 bg-surface transition-all duration-200 disabled:opacity-50 ${btn.color}`}
+          className={`flex flex-col items-center justify-center w-full md:w-24 h-24 rounded-2xl border border-border/50 bg-surface transition-all duration-200 disabled:opacity-50 ${btn.color}`}
         >
-          <span className="text-base font-medium mb-2">{btn.label}</span>
-          <span className="text-xs text-secondary px-2 py-1 rounded-md bg-bg opacity-70">Press {btn.key}</span>
+          <span className="text-base font-medium mb-1 md:mb-2">{btn.label}</span>
+          <span className="text-[10px] md:text-xs text-secondary px-2 py-1 rounded-md bg-bg/50">Press {btn.key}</span>
         </motion.button>
       ))}
     </div>

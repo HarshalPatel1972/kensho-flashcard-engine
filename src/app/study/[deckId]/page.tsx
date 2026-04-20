@@ -10,6 +10,7 @@ import Link from "next/link";
 import { UserButton } from "@clerk/nextjs";
 import { LoadingMessage } from "@/components/LoadingMessage";
 import { PageTransition } from "@/components/PageTransition";
+import { ThemeToggle } from "@/components/ThemeToggle";
 
 type StudyCard = {
   id: string;
@@ -147,11 +148,14 @@ export default function StudySessionPage() {
   return (
     <PageTransition>
       <div className="min-h-screen flex flex-col items-center p-4">
-        <header className="w-full max-w-3xl mx-auto flex items-center justify-between py-6">
+        <header className="w-full max-w-3xl mx-auto flex items-center justify-between py-4 md:py-6">
           <Link href={`/dashboard/${deckId}`} className="text-sm border-b border-transparent hover:border-gold text-secondary hover:text-gold transition-colors pb-0.5 inline-flex">
             ← Exit
           </Link>
-          <UserButton />
+          <div className="flex items-center gap-4">
+            <ThemeToggle />
+            <UserButton />
+          </div>
         </header>
 
         <main className="flex-1 w-full max-w-3xl mx-auto flex flex-col justify-center pb-20">

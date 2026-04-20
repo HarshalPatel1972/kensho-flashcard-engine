@@ -130,7 +130,7 @@ export function UploadZone({ deckId, onSuccess }: UploadZoneProps) {
             />
             <button
               onClick={(e) => { e.stopPropagation(); handleCancel(); }}
-              className="mt-2 text-sm text-red-500 hover:text-red-400 font-medium cursor-pointer pointer-events-auto transition-colors"
+              className="mt-2 text-sm text-red-500 hover:text-red-400 font-medium cursor-pointer pointer-events-auto transition-colors w-full sm:w-auto"
             >
               {isUploading ? "Cancel upload" : "Cancel generation"}
             </button>
