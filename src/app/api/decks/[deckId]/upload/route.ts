@@ -7,20 +7,6 @@ import { NextResponse } from "next/server";
 import * as pdfParseModule from "pdf-parse";
 const pdfParse = (pdfParseModule as any).default || pdfParseModule;
 
-// Increase max duration for Vercel Hobby tier (max 60s)
-export const maxDuration = 60;
-
-const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY!);
-
-function chunkText(text: string, chunkSize = 1500, overlap = 200) {
-  const chunks = [];
-  let i = 0;
-  while (i < text.length) {
-    chunks.push(text.slice(i, i + chunkSize));
-    i += chunkSize - overlap;
-  }
-  return chunks;
-}
 
 export async function POST(
   req: Request,
