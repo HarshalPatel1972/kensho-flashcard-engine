@@ -30,6 +30,12 @@ export async function POST(
     const { userId } = await auth();
     if (!userId) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
 
+    const apiKey = process.env.GEMINI_API_KEY;
+    if (!apiKey) {
+      console.error("GEMINI_API_KEY is not defined in environment variables");
+      return NextResponse.json({ error: "Server configuration error: Gemini API key missing" }, { status: 500 });
+    }
+
     const p = await params;
     const deckId = p.deckId;
     
@@ -42,82 +48,57 @@ export async function POST(
     if (!file) return NextResponse.json({ error: "No file uploaded" }, { status: 400 });
     if (file.size > 10 * 1024 * 1024) return NextResponse.json({ error: "File too large (Max 10MB)" }, { status: 400 });
 
-    const arrayBuffer = await file.arrayBuffer();
-    const buffer = Buffer.from(arrayBuffer);
+    const buffer = Buffer.from(await file.arrayBuffer());
     
     // Parse PDF
     const pdfData = await pdfParse(buffer);
-    const rawText = pdfData.text.replace(/[\n\r]+/g, " ");
+    const rawText = (pdfData.text || "").replace(/[\n\r]+/g, " ").substring(0, 10000); // Limit context for speed
 
-    const textChunks = chunkText(rawText);
-    // Limit to first 3 chunks to prevent Vercel timeout/rate limits on Gemini free tier
-    // In a production app, we might use a background job/webhook here.
-    const chunksToProcess = textChunks.slice(0, 3);
+    if (!rawText.trim()) {
+      return NextResponse.json({ error: "PDF appears to be empty or unreadable text." }, { status: 400 });
+    }
 
-    const generatedCards = [];
+    const genAI = new GoogleGenerativeAI(apiKey);
     const model = genAI.getGenerativeModel({ model: "gemini-1.5-flash" });
 
-    for (const text of chunksToProcess) {
-      const prompt = `
-  You are a master educator creating high-quality flashcards from study material.
-  
-  Given the following text from a PDF, generate between 5 and 10 flashcards (per chunk).
-  
-  Rules for great flashcards:
-  - Cover key concepts, definitions, relationships, formulas, and important examples
-  - Front: a clear, specific question or prompt (not vague)
-  - Back: a concise but complete answer (1-3 sentences max)
-  - Do NOT create trivial or obvious cards
-  - Do NOT repeat the same concept with slightly different wording
-  - Include edge cases and nuanced distinctions where they exist
-  - Write as if a great teacher wrote these, not a bot
-  
-  Return ONLY a JSON array with no markdown, no preamble:
-  [{"front": "...", "back": "..."}, ...]
-  
-  Text:
-  ${text}
-  `;
+    // Single high-speed prompt to stay under 10s Hobby timeout
+    const prompt = `
+      You are a master educator. Generate 10-15 high-quality flashcards from this text study material.
+      
+      Rules:
+      - Front: Concrete question.
+      - Back: Concise answer.
+      - Return ONLY a JSON array: [{"front": "...", "back": "..."}, ...]
+      - No markdown, no preamble.
+      
+      Text:
+      ${rawText}
+    `;
 
-      try {
-        let responseText = "";
-        let retryCount = 0;
-        let success = false;
-        
-        while (!success && retryCount < 2) {
-          try {
-            const result = await model.generateContent(prompt);
-            responseText = result.response.text();
-            
-            // Clean markdown blocking (e.g. ```json ... ```)
-            responseText = responseText.replace(/```json\n?/g, "").replace(/```\n?/g, "").trim();
-            
-            const parsed = JSON.parse(responseText);
-            if (Array.isArray(parsed)) {
-              generatedCards.push(...parsed.filter(c => c.front && c.back));
-              success = true;
-            }
-          } catch (e) {
-            console.warn("JSON parse or generation failed, retrying...", e);
-            retryCount++;
-          }
-        }
-      } catch (e) {
-        console.error("Gemini API error during chunk processing:", e);
-      }
+    const result = await model.generateContent(prompt);
+    const responseText = result.response.text()
+      .replace(/```json\n?/g, "")
+      .replace(/```\n?/g, "")
+      .trim();
+
+    let generatedCards;
+    try {
+      generatedCards = JSON.parse(responseText);
+    } catch (e) {
+      console.error("Gemini failed to return valid JSON:", responseText);
+      return NextResponse.json({ error: "AI failed to generate a valid study deck." }, { status: 500 });
     }
 
-    if (generatedCards.length === 0) {
-      return NextResponse.json({ error: "Failed to generate any valid cards from this text." }, { status: 400 });
+    if (!Array.isArray(generatedCards) || generatedCards.length === 0) {
+      return NextResponse.json({ error: "No flashcards were generated." }, { status: 400 });
     }
 
-    // Insert cards and progress records
-    // Drizzle requires inserting in batches or one by one
+    // Insert cards and progress in a batch
     const newCards = await db.insert(cards).values(
-      generatedCards.map(c => ({
+      generatedCards.slice(0, 20).map(c => ({
         deckId,
-        front: String(c.front).trim(),
-        back: String(c.back).trim()
+        front: String(c.front).substring(0, 500),
+        back: String(c.back).substring(0, 500)
       }))
     ).returning();
 
@@ -125,17 +106,15 @@ export async function POST(
       newCards.map(c => ({
         userId,
         cardId: c.id,
-        // using defaults defined in schema
       }))
     );
 
-    // Update deck counts
     const newCount = (deck.cardCount ?? 0) + newCards.length;
     await db.update(decks).set({ cardCount: newCount }).where(eq(decks.id, deckId));
 
     return NextResponse.json({ deckId, cardCount: newCount, newCards: newCards.length });
-  } catch (error) {
-    console.error("Error processing PDF:", error);
-    return NextResponse.json({ error: "Failed to process PDF" }, { status: 500 });
+  } catch (error: any) {
+    console.error("Upload Error:", error);
+    return NextResponse.json({ error: error.message || "Failed to process PDF" }, { status: 500 });
   }
 }
