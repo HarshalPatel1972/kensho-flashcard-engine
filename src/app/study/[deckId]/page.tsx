@@ -148,7 +148,7 @@ export default function StudySessionPage() {
     <PageTransition>
       <div className="min-h-screen flex flex-col items-center p-4">
         <header className="w-full max-w-3xl mx-auto flex items-center justify-between py-6">
-          <Link href={`/dashboard/${deckId}`} className="text-sm border-b border-transparent hover:border-gold text-slate-400 hover:text-gold transition-colors pb-0.5 inline-flex">
+          <Link href={`/dashboard/${deckId}`} className="text-sm border-b border-transparent hover:border-gold text-secondary hover:text-gold transition-colors pb-0.5 inline-flex">
             ← Exit
           </Link>
           <UserButton />
@@ -156,7 +156,7 @@ export default function StudySessionPage() {
 
         <main className="flex-1 w-full max-w-3xl mx-auto flex flex-col justify-center pb-20">
           <div className="mb-8 space-y-3">
-            <div className="flex justify-between text-sm text-slate-400 font-medium">
+            <div className="flex justify-between text-sm text-secondary font-medium">
               <span>Card {currentIndex + 1} of {totalDue}</span>
               <span>{totalDue - currentIndex - 1} left</span>
             </div>

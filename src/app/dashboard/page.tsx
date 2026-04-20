@@ -97,8 +97,8 @@ export default async function DashboardPage({ searchParams }: { searchParams: Pr
       <div className="p-8 bg-red-500/10 border border-red-500/50 rounded-xl max-w-2xl mx-auto mt-20 text-center">
         <h2 className="text-xl font-bold text-red-500 mb-2">Database Connection Failed</h2>
         <p className="text-sm text-red-400 font-mono mb-4 text-left p-4 bg-red-950/30 rounded">{dbError}</p>
-        <p className="text-slate-300">It looks like the Neon database connection failed. Please ensure you visited <strong className="text-white">/api/migrate</strong> to create the tables, and verify your <strong>DATABASE_URL</strong> in Vercel.</p>
-        <p className="text-xs text-slate-500 mt-4">Current URL Prefix: {process.env.DATABASE_URL?.substring(0, 15) || "UNDEFINED"}</p>
+        <p className="text-primary">It looks like the Neon database connection failed. Please ensure you visited <strong className="text-primary">/api/migrate</strong> to create the tables, and verify your <strong>DATABASE_URL</strong> in Vercel.</p>
+        <p className="text-xs text-secondary mt-4">Current URL Prefix: {process.env.DATABASE_URL?.substring(0, 15) || "UNDEFINED"}</p>
       </div>
     );
   }
@@ -113,7 +113,7 @@ export default async function DashboardPage({ searchParams }: { searchParams: Pr
 
         {userDecks.length === 0 && !q ? (
           <div className="text-center py-20 border border-dashed border-border rounded-xl bg-surface/50">
-            <p className="text-slate-400 mb-6">
+            <p className="text-secondary mb-6">
               No decks yet. Upload a PDF to get started.
             </p>
             <Link

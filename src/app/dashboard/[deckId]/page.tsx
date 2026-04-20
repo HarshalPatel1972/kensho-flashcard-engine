@@ -66,16 +66,16 @@ export default async function DeckOverviewPage({ params }: { params: Promise<{ d
     <PageTransition>
       <div className="space-y-8 max-w-5xl mx-auto">
         <div>
-          <Link href="/dashboard" className="text-sm border-b border-transparent hover:border-gold text-slate-400 hover:text-gold transition-colors pb-0.5 inline-flex mb-4">
+          <Link href="/dashboard" className="text-sm border-b border-transparent hover:border-gold text-secondary hover:text-gold transition-colors pb-0.5 inline-flex mb-4">
             ← Back to Decks
           </Link>
           <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
             <div>
-              <h1 className="text-3xl font-medium tracking-tight text-white line-clamp-1">
+              <h1 className="text-3xl font-medium tracking-tight text-primary line-clamp-1">
                 {deck.title}
               </h1>
               {deck.description && (
-                <p className="text-slate-400 mt-2 line-clamp-2">{deck.description}</p>
+                <p className="text-secondary mt-2 line-clamp-2">{deck.description}</p>
               )}
             </div>
             {!isEmpty && (
@@ -85,7 +85,7 @@ export default async function DeckOverviewPage({ params }: { params: Promise<{ d
                   className={`inline-flex items-center justify-center rounded-md px-8 py-3 text-sm font-medium transition-colors ${
                     dueTodayCount > 0
                       ? "bg-gold text-black hover:bg-gold-hover shadow-lg shadow-gold/20"
-                      : "bg-surface border border-border text-slate-300 hover:bg-bg opacity-50 cursor-not-allowed pointer-events-none"
+                      : "bg-surface border border-border text-primary hover:bg-bg opacity-50 cursor-not-allowed pointer-events-none"
                   }`}
                   aria-disabled={dueTodayCount === 0}
                 >
@@ -100,14 +100,14 @@ export default async function DeckOverviewPage({ params }: { params: Promise<{ d
           <div className="py-12 px-6 rounded-2xl border border-border/40 bg-surface/30 backdrop-blur-sm">
             <div className="max-w-xl mx-auto space-y-8">
               <div className="text-center space-y-2">
-                <h2 className="text-2xl font-medium text-white">Fill this deck</h2>
-                <p className="text-slate-400">Upload a PDF to extract smart flashcards and start your session.</p>
+                <h2 className="text-2xl font-medium text-primary">Fill this deck</h2>
+                <p className="text-secondary">Upload a PDF to extract smart flashcards and start your session.</p>
               </div>
               <DeckDetailUpload deckId={deckId} />
               <div className="pt-4 flex items-center justify-center gap-6 opacity-30 grayscale saturate-0">
-                <span className="text-[10px] uppercase tracking-widest font-bold text-slate-400">PDF Reader</span>
-                <span className="text-[10px] uppercase tracking-widest font-bold text-slate-400">AI Extraction</span>
-                <span className="text-[10px] uppercase tracking-widest font-bold text-slate-400">Flashcards</span>
+                <span className="text-[10px] uppercase tracking-widest font-bold text-secondary">PDF Reader</span>
+                <span className="text-[10px] uppercase tracking-widest font-bold text-secondary">AI Extraction</span>
+                <span className="text-[10px] uppercase tracking-widest font-bold text-secondary">Flashcards</span>
               </div>
             </div>
           </div>
@@ -121,8 +121,8 @@ export default async function DeckOverviewPage({ params }: { params: Promise<{ d
                 { label: "Avg Ease", value: avgEase.toFixed(2) },
               ].map((stat, i) => (
                 <div key={i} className={`p-4 rounded-xl border ${stat.highlight ? "border-gold/30 bg-gold/5" : "border-border/50 bg-surface"}`}>
-                  <p className="text-sm text-slate-400 mb-1">{stat.label}</p>
-                  <p className={`text-2xl font-medium ${stat.highlight ? "text-gold" : "text-slate-100"}`}>
+                  <p className="text-sm text-secondary mb-1">{stat.label}</p>
+                  <p className={`text-2xl font-medium ${stat.highlight ? "text-gold" : "text-primary"}`}>
                     {stat.value}
                   </p>
                 </div>
@@ -135,26 +135,26 @@ export default async function DeckOverviewPage({ params }: { params: Promise<{ d
               <table className="w-full text-left border-collapse">
                 <thead>
                   <tr className="border-b border-border/50 bg-bg/50">
-                    <th className="py-3 px-6 text-sm font-medium text-slate-400 w-1/3">Front</th>
-                    <th className="py-3 px-6 text-sm font-medium text-slate-400 w-1/3">Back</th>
-                    <th className="py-3 px-6 text-sm font-medium text-slate-400">Status</th>
-                    <th className="py-3 px-6 text-sm font-medium text-slate-400 text-right">Next Review</th>
+                    <th className="py-3 px-6 text-sm font-medium text-secondary w-1/3">Front</th>
+                    <th className="py-3 px-6 text-sm font-medium text-secondary w-1/3">Back</th>
+                    <th className="py-3 px-6 text-sm font-medium text-secondary">Status</th>
+                    <th className="py-3 px-6 text-sm font-medium text-secondary text-right">Next Review</th>
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-border/20">
                   {deckCards.map((card) => (
                     <tr key={card.id} className="hover:bg-bg/40 transition-colors">
-                      <td className="py-4 px-6 text-sm text-slate-200 align-top">
+                      <td className="py-4 px-6 text-sm text-primary align-top">
                         <div className="line-clamp-2">{card.front}</div>
                       </td>
-                      <td className="py-4 px-6 text-sm text-slate-400 align-top">
+                      <td className="py-4 px-6 text-sm text-secondary align-top">
                         <div className="line-clamp-2">{card.back}</div>
                       </td>
                       <td className="py-4 px-6 align-top">
                         <span className={`inline-flex items-center px-2.5 py-1 rounded-full text-xs font-medium ${
                           card.status === "mastered" ? "bg-green-500/10 text-green-400 border border-green-500/20" :
                           card.status === "learning" ? "bg-amber-500/10 text-amber-500 border border-amber-500/20" :
-                          "bg-slate-800 text-slate-400 border border-slate-700"
+                          "bg-slate-800 text-secondary border border-slate-700"
                         }`}>
                           {card.status === "mastered" && (
                             <svg className="w-3 h-3 mr-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -164,7 +164,7 @@ export default async function DeckOverviewPage({ params }: { params: Promise<{ d
                           {card.status ? card.status.charAt(0).toUpperCase() + card.status.slice(1) : "New"}
                         </span>
                       </td>
-                      <td className="py-4 px-6 text-sm text-slate-400 text-right align-top whitespace-nowrap">
+                      <td className="py-4 px-6 text-sm text-secondary text-right align-top whitespace-nowrap">
                         {card.dueDate ? new Date(card.dueDate).toLocaleDateString() : "Pending"}
                       </td>
                     </tr>

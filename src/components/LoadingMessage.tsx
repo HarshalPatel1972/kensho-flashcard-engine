@@ -61,7 +61,7 @@ export function LoadingMessage({ messages, intervalMs = 3000, quote = false }: L
               animate={{ opacity: 1, y: 0 }}
               exit={shouldReduceMotion ? { opacity: 1 } : { opacity: 0, y: -8 }}
               transition={{ duration: 0.1 }}
-              className="text-slate-300 font-medium tracking-wide"
+              className="text-primary font-medium tracking-wide"
             >
               {messages[index]}
             </motion.p>
@@ -83,7 +83,7 @@ export function LoadingMessage({ messages, intervalMs = 3000, quote = false }: L
               animate={{ opacity: 1 }}
               exit={shouldReduceMotion ? { opacity: 1 } : { opacity: 0 }}
               transition={{ duration: 0.5 }}
-              className="text-xs text-slate-500 italic leading-relaxed"
+              className="text-xs text-secondary italic leading-relaxed"
             >
               "{QUOTES[quoteIndex]}"
             </motion.p>

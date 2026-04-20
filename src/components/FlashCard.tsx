@@ -33,10 +33,10 @@ export function FlashCard({ front, back, isFlipped, onFlip }: FlashCardProps) {
           className="absolute inset-0 bg-surface border border-border/50 rounded-2xl p-8 md:p-12 flex flex-col items-center justify-center text-center shadow-xl"
           style={{ backfaceVisibility: "hidden" }}
         >
-          <p className="text-2xl md:text-4xl text-slate-100 font-medium leading-relaxed">
+          <p className="text-2xl md:text-4xl text-primary font-medium leading-relaxed">
             {front}
           </p>
-          <p className="absolute bottom-6 text-sm text-slate-500 font-light tracking-wide">
+          <p className="absolute bottom-6 text-sm text-secondary font-light tracking-wide">
             Tap or press Space to reveal
           </p>
         </div>
@@ -49,7 +49,7 @@ export function FlashCard({ front, back, isFlipped, onFlip }: FlashCardProps) {
             transform: "rotateY(180deg)" 
           }}
         >
-          <p className="text-xl md:text-2xl text-slate-300 font-light leading-relaxed">
+          <p className="text-xl md:text-2xl text-primary font-light leading-relaxed">
             {back}
           </p>
         </div>

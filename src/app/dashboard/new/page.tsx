@@ -44,7 +44,7 @@ export default function NewDeckPage() {
     <div className="max-w-2xl mx-auto space-y-8 animate-in fade-in slide-in-from-bottom-4 duration-500">
       <div className="space-y-2">
         <h1 className="text-3xl font-medium tracking-tight">New Deck</h1>
-        <p className="text-slate-400">Create a deck and upload a PDF to extract smart flashcards.</p>
+        <p className="text-secondary">Create a deck and upload a PDF to extract smart flashcards.</p>
       </div>
 
       {!deckId ? (
@@ -53,25 +53,25 @@ export default function NewDeckPage() {
           className="space-y-6 bg-surface p-6 rounded-xl border border-border/50"
         >
           <div className="space-y-2">
-            <label htmlFor="title" className="text-sm font-medium text-slate-300">Deck Title</label>
+            <label htmlFor="title" className="text-sm font-medium text-primary">Deck Title</label>
             <input
               id="title"
               type="text"
               value={title}
               onChange={(e) => setTitle(e.target.value)}
               required
-              className="w-full bg-bg border border-border rounded-md px-4 py-2.5 text-slate-100 focus:outline-none focus:ring-1 focus:ring-gold focus:border-gold transition-colors"
+              className="w-full bg-bg border border-border rounded-md px-4 py-2.5 text-primary focus:outline-none focus:ring-1 focus:ring-gold focus:border-gold transition-colors"
               placeholder="e.g., Biology 101: Cell Structure"
             />
           </div>
           <div className="space-y-2">
-            <label htmlFor="description" className="text-sm font-medium text-slate-300">Description <span className="text-slate-500">(Optional)</span></label>
+            <label htmlFor="description" className="text-sm font-medium text-primary">Description <span className="text-secondary">(Optional)</span></label>
             <textarea
               id="description"
               value={description}
               onChange={(e) => setDescription(e.target.value)}
               rows={3}
-              className="w-full bg-bg border border-border rounded-md px-4 py-2.5 text-slate-100 focus:outline-none focus:ring-1 focus:ring-gold focus:border-gold transition-colors resize-none"
+              className="w-full bg-bg border border-border rounded-md px-4 py-2.5 text-primary focus:outline-none focus:ring-1 focus:ring-gold focus:border-gold transition-colors resize-none"
               placeholder="Study notes for midterm..."
             />
           </div>
@@ -101,12 +101,12 @@ export default function NewDeckPage() {
         <div className="space-y-6">
           <div className="bg-surface p-6 rounded-xl border border-border/50">
             <h2 className="text-xl font-medium mb-1">{title}</h2>
-            {description && <p className="text-slate-400 text-sm mb-4">{description}</p>}
+            {description && <p className="text-secondary text-sm mb-4">{description}</p>}
             <div className="mt-8">
               <UploadZone deckId={deckId} onSuccess={handleUploadSuccess} />
             </div>
           </div>
-          <p className="text-center text-sm text-slate-500">
+          <p className="text-center text-sm text-secondary">
             Gemini Flash reads the PDF text and generates structured flashcards optimized for recall.
           </p>
         </div>

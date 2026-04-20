@@ -137,11 +137,11 @@ export function UploadZone({ deckId, onSuccess }: UploadZoneProps) {
           </div>
         ) : (
           <label htmlFor="pdf-upload" className="flex flex-col items-center space-y-2 text-center p-6 cursor-pointer w-full h-full justify-center">
-            <svg className="w-10 h-10 text-slate-400 mb-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <svg className="w-10 h-10 text-secondary mb-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
             </svg>
-            <p className="text-lg text-slate-200">Drop your PDF here or click to upload</p>
-            <p className="text-sm text-slate-500">PDF up to 64MB supported</p>
+            <p className="text-lg text-primary">Drop your PDF here or click to upload</p>
+            <p className="text-sm text-secondary">PDF up to 64MB supported</p>
           </label>
         )}
       </div>

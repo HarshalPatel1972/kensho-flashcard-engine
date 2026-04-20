@@ -3,6 +3,7 @@ import { Toaster } from "sonner";
 import type { Metadata } from "next";
 import { Outfit } from "next/font/google";
 import "./globals.css";
+import { ThemeProvider } from "@/components/ThemeProvider";
 
 const outfit = Outfit({ subsets: ["latin"] });
 
@@ -22,19 +23,21 @@ export default function RootLayout({
         variables: { colorPrimary: "#f5a623" },
         elements: {
           card: "bg-surface border border-border/50",
-          headerTitle: "text-slate-100",
-          headerSubtitle: "text-slate-400",
-          formFieldLabel: "text-slate-300",
-          formFieldInput: "bg-bg border-border text-slate-100",
+          headerTitle: "text-primary",
+          headerSubtitle: "text-secondary",
+          formFieldLabel: "text-secondary",
+          formFieldInput: "bg-bg border-border text-primary",
         },
       }}
     >
-      <html lang="en" className="dark">
+      <html lang="en" suppressHydrationWarning>
         <body
-          className={`${outfit.className} bg-bg text-slate-100 antialiased min-h-screen selection:bg-gold/30 selection:text-gold`}
+          className={`${outfit.className} bg-bg text-primary antialiased min-h-screen selection:bg-gold/30 selection:text-gold`}
         >
-          {children}
-          <Toaster richColors position="top-right" />
+          <ThemeProvider attribute="class" defaultTheme="system" enableSystem>
+            {children}
+            <Toaster richColors position="top-right" />
+          </ThemeProvider>
         </body>
       </html>
     </ClerkProvider>

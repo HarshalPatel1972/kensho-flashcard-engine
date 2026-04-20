@@ -21,15 +21,15 @@ export default function Home() {
       <main className="flex flex-col items-center justify-center min-h-screen p-6 text-center">
         <div className="max-w-2xl space-y-8">
           <div className="space-y-3">
-            <h1 className="text-6xl md:text-8xl font-medium tracking-tight text-white">
+            <h1 className="text-6xl md:text-8xl font-medium tracking-tight text-primary">
               Kenshō
             </h1>
-            <p className="text-xl md:text-2xl font-light text-slate-400 tracking-wide italic">
+            <p className="text-xl md:text-2xl font-light text-secondary tracking-wide italic">
               See through the noise.
             </p>
           </div>
           
-          <p className="text-lg md:text-xl text-slate-300 max-w-lg mx-auto font-light leading-relaxed">
+          <p className="text-lg md:text-xl text-primary max-w-lg mx-auto font-light leading-relaxed">
             Turn any PDF into a smart study deck. 
             <br className="hidden md:block"/>
             Review what matters, when it matters.

@@ -69,7 +69,7 @@ export function DeckCard({ id, title, cardCount, masteredCount, dueTodayCount, l
           }`}
         >
           <div className="flex justify-between items-start mb-6">
-            <h3 className={`text-xl font-medium transition-colors pr-8 ${isEmpty ? "text-slate-400 group-hover:text-gold" : "text-slate-100 group-hover:text-gold"}`}>
+            <h3 className={`text-xl font-medium transition-colors pr-8 ${isEmpty ? "text-secondary group-hover:text-gold" : "text-primary group-hover:text-gold"}`}>
               {title}
             </h3>
           </div>
@@ -77,7 +77,7 @@ export function DeckCard({ id, title, cardCount, masteredCount, dueTodayCount, l
           <div className="space-y-5">
             <div className="space-y-2">
               <div className="flex justify-between text-[11px] uppercase tracking-widest font-bold">
-                <span className={isEmpty ? "text-slate-600" : "text-slate-400"}>
+                <span className={isEmpty ? "text-secondary" : "text-secondary"}>
                   {isEmpty ? "0 Cards" : `${masteredCount} / ${cardCount} Mastered`}
                 </span>
                 {!isEmpty && <span className="text-gold">{Math.round(progress)}%</span>}
@@ -107,13 +107,13 @@ export function DeckCard({ id, title, cardCount, masteredCount, dueTodayCount, l
                 <span className={`inline-flex items-center px-2.5 py-1 rounded-md text-[10px] font-bold uppercase tracking-tighter ${
                   dueTodayCount > 0 
                   ? "bg-amber-500/10 text-amber-500 border border-amber-500/20" 
-                  : "bg-slate-800/50 text-slate-500 border border-slate-700/50"
+                  : "bg-slate-800/50 text-secondary border border-slate-700/50"
                 }`}>
                   {dueTodayCount > 0 ? `${dueTodayCount} Due Now` : "Settled"}
                 </span>
               )}
               
-              <span className="text-[10px] uppercase tracking-widest text-slate-600 font-bold">
+              <span className="text-[10px] uppercase tracking-widest text-secondary font-bold">
                 {isEmpty ? "Empty" : lastStudiedAt ? new Date(lastStudiedAt).toLocaleDateString(undefined, { month: 'short', day: 'numeric' }) : "New"}
               </span>
             </div>
@@ -123,7 +123,7 @@ export function DeckCard({ id, title, cardCount, masteredCount, dueTodayCount, l
         <div className="absolute top-5 right-5" ref={menuRef}>
           <button 
             onClick={(e) => { e.preventDefault(); e.stopPropagation(); setShowMenu(!showMenu); }}
-            className="p-2 text-slate-500 hover:text-white transition-colors rounded-lg hover:bg-white/5"
+            className="p-2 text-secondary hover:text-primary transition-colors rounded-lg hover:bg-white/5"
             aria-label="More options"
           >
             <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 24 24"><path d="M12 8c1.1 0 2-.9 2-2s-.9-2-2-2-2 .9-2 2 .9 2 2 2zm0 2c-1.1 0-2 .9-2 2s.9 2 2 2 2-.9 2-2-.9-2-2-2zm0 6c-1.1 0-2 .9-2 2s.9 2 2 2 2-.9 2-2-.9-2-2-2z"/></svg>
@@ -168,21 +168,21 @@ export function DeckCard({ id, title, cardCount, masteredCount, dueTodayCount, l
               transition={{ duration: 0.15, ease: "easeOut" }}
               className="relative w-full max-w-sm bg-surface border border-border shadow-2xl rounded-2xl p-6"
             >
-              <h4 className="text-xl font-medium text-white mb-2">Delete this deck?</h4>
-              <p className="text-sm text-slate-400 mb-6 leading-relaxed">
-                This will permanently delete <strong className="text-slate-200">{title}</strong> and all <strong className="text-slate-200">{cardCount}</strong> cards. This cannot be undone.
+              <h4 className="text-xl font-medium text-primary mb-2">Delete this deck?</h4>
+              <p className="text-sm text-secondary mb-6 leading-relaxed">
+                This will permanently delete <strong className="text-primary">{title}</strong> and all <strong className="text-primary">{cardCount}</strong> cards. This cannot be undone.
               </p>
               <div className="flex gap-3">
                 <button 
                   onClick={() => setShowModal(false)}
-                  className="flex-1 px-4 py-2.5 rounded-lg border border-border text-sm font-medium text-slate-300 hover:bg-white/5 transition-colors"
+                  className="flex-1 px-4 py-2.5 rounded-lg border border-border text-sm font-medium text-primary hover:bg-white/5 transition-colors"
                   disabled={isDeleting}
                 >
                   Cancel
                 </button>
                 <button 
                   onClick={handleDelete}
-                  className="flex-1 px-4 py-2.5 rounded-lg bg-red-500 text-white text-sm font-medium hover:bg-red-600 transition-colors disabled:opacity-50"
+                  className="flex-1 px-4 py-2.5 rounded-lg bg-red-500 text-primary text-sm font-medium hover:bg-red-600 transition-colors disabled:opacity-50"
                   disabled={isDeleting}
                 >
                   {isDeleting ? "Deleting..." : "Delete"}

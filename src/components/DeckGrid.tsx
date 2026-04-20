@@ -43,7 +43,7 @@ export function DeckGrid({ initialDecks }: { initialDecks: Deck[] }) {
   if (decks.length === 0) {
     return (
       <div className="text-center py-20 border border-dashed border-border rounded-xl bg-surface/50">
-        <p className="text-slate-400 mb-6 font-light">
+        <p className="text-secondary mb-6 font-light">
           No decks yet. Upload a PDF to start your Kenshō journey.
         </p>
       </div>

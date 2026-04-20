@@ -73,14 +73,14 @@ export function StudyComplete({
         </svg>
       </div>
       <div>
-        <h2 className="text-4xl font-medium tracking-tight text-white mb-3">Session Complete</h2>
-        <p className="text-xl text-slate-400 font-light italic">Clarity achieved.</p>
+        <h2 className="text-4xl font-medium tracking-tight text-primary mb-3">Session Complete</h2>
+        <p className="text-xl text-secondary font-light italic">Clarity achieved.</p>
       </div>
       
       <div className="grid grid-cols-2 gap-4 w-full">
         <div className="p-6 rounded-xl border border-border/50 bg-surface">
-          <p className="text-sm text-slate-400 mb-2">Cards Reviewed</p>
-          <p className="text-3xl font-medium text-slate-100">
+          <p className="text-sm text-secondary mb-2">Cards Reviewed</p>
+          <p className="text-3xl font-medium text-primary">
             <Counter value={reviewed} />
           </p>
         </div>
@@ -113,7 +113,7 @@ export function StudyComplete({
               />
             </div>
           ) : (
-            <p className="text-slate-300 text-sm leading-relaxed italic">
+            <p className="text-primary text-sm leading-relaxed italic">
               "{coachNote}"
             </p>
           )}
@@ -123,7 +123,7 @@ export function StudyComplete({
       <div className="pt-6">
         <Link
           href={`/dashboard/${deckId}`}
-          className="inline-flex items-center justify-center rounded-md bg-surface border border-border px-8 py-3 text-sm font-medium text-slate-300 hover:text-white hover:border-gold transition-colors"
+          className="inline-flex items-center justify-center rounded-md bg-surface border border-border px-8 py-3 text-sm font-medium text-primary hover:text-primary hover:border-gold transition-colors"
         >
           Back to Deck
         </Link>
