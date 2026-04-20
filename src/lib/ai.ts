@@ -1,11 +1,9 @@
 import { GoogleGenerativeAI } from "@google/generative-ai";
 
 /**
- * Universal AI Engine with Multi-Provider Key Rotation and Model Fallback.
- * Tiers:
- * 1. Google Gemini (Multimodal Vision - Best for PDFs)
- * 2. DeepSeek (High Intelligence - Text Fallback)
- * 3. Groq (Ultra-speed - Text Fallback)
+ * Universal AI Engine v1.4
+ * Order: Groq -> DeepSeek -> Gemini
+ * Optimized for speed and multimodal PDF extraction.
  */
 
 type AIResult = {
@@ -24,8 +22,54 @@ export async function runUniversalAI(
 
   let lastError = null;
 
+  // --- TEXT-ONLY PATH (AI Coach / Non-PDF generation) ---
+  if (!pdfBase64) {
+    // 1. Groq (Ultra-speed)
+    if (groqKey) {
+      try {
+        console.log("[Universal AI] Trying Groq (Text)...");
+        const res = await fetch("https://api.groq.com/openai/v1/chat/completions", {
+          method: "POST",
+          headers: { "Content-Type": "application/json", "Authorization": `Bearer ${groqKey}` },
+          body: JSON.stringify({ 
+            model: "llama-3.1-70b-versatile", 
+            messages: [{ role: "user", content: prompt }],
+            response_format: { type: "json_object" }
+          })
+        });
+        const data = await res.json();
+        const text = data.choices[0].message.content.replace(/```json\n?/g, "").replace(/```\n?/g, "").trim();
+        if (text) return { text, provider: "groq", model: "llama-3.1-70b-versatile" };
+      } catch (e: any) {
+        console.warn("Groq text-only failed:", e.message);
+      }
+    }
+
+    // 2. DeepSeek (Intelligence)
+    if (deepseekKey) {
+      try {
+        console.log("[Universal AI] Trying DeepSeek (Text)...");
+        const res = await fetch("https://api.deepseek.com/chat/completions", {
+          method: "POST",
+          headers: { "Content-Type": "application/json", "Authorization": `Bearer ${deepseekKey}` },
+          body: JSON.stringify({ 
+            model: "deepseek-chat", 
+            messages: [{ role: "user", content: prompt }] 
+          })
+        });
+        const data = await res.json();
+        const text = data.choices[0].message.content.replace(/```json\n?/g, "").replace(/```\n?/g, "").trim();
+        if (text) return { text, provider: "deepseek", model: "deepseek-chat" };
+      } catch (e: any) {
+        console.warn("DeepSeek text-only failed:", e.message);
+      }
+    }
+  }
+
+  // --- PDF / MULTIMODAL PATH OR FALLBACK ---
   // PRIORITY 1: Google Gemini (Native PDF Support)
-  const geminiModels = ["gemini-2.5-flash", "gemini-flash-latest", "gemini-2.0-flash"];
+  // Re-checking Gemini with correct model names for reliability
+  const geminiModels = ["gemini-1.5-flash", "gemini-1.5-flash-latest"];
   for (const modelName of geminiModels) {
     for (const key of geminiKeys) {
       try {
@@ -51,16 +95,18 @@ export async function runUniversalAI(
     }
   }
 
-  // PRIORITY 2: DeepSeek / Groq (Text-only Fallback)
-  // If Gemini Vision worked but card gen failed, or if we need a text fallback.
+  // FINAL FALLBACK: If PDF was provided but Gemini generation failed, 
+  // try extraction-only then feed back to Groq/DeepSeek
   if (pdfBase64) {
     console.log("[Universal AI] Gemini generation failed. Attempting vision-to-text extraction fallback...");
-    // Attempt one quick text extraction from Gemini to feed into text-only models
     let extractedText = "";
     try {
       const genAI = new GoogleGenerativeAI(geminiKeys[0]);
-      const model = genAI.getGenerativeModel({ model: "gemini-2.5-flash" });
-      const result = await model.generateContent([{ inlineData: { data: pdfBase64, mimeType: "application/pdf" } }, "Extract all educational text from this PDF exactly as it appears. No preamble."]);
+      const model = genAI.getGenerativeModel({ model: "gemini-1.5-flash" });
+      const result = await model.generateContent([
+        { inlineData: { data: pdfBase64, mimeType: "application/pdf" } }, 
+        "Extract all educational text from this PDF exactly as it appears. No preamble."
+      ]);
       extractedText = result.response.text();
     } catch (e) {
       console.warn("PDF extraction failed, cannot fallback to text-only providers.");
@@ -68,32 +114,19 @@ export async function runUniversalAI(
 
     if (extractedText) {
       const textPrompt = `${prompt}\n\nHere is the material content:\n${extractedText}`;
-
-      // Try DeepSeek
-      if (deepseekKey) {
-        try {
-          console.log("[Universal AI] Trying DeepSeek Fallback...");
-          const res = await fetch("https://api.deepseek.com/chat/completions", {
-            method: "POST",
-            headers: { "Content-Type": "application/json", "Authorization": `Bearer ${deepseekKey}` },
-            body: JSON.stringify({ model: "deepseek-chat", messages: [{ role: "user", content: textPrompt }] })
-          });
-          const data = await res.json();
-          const text = data.choices[0].message.content.replace(/```json\n?/g, "").replace(/```\n?/g, "").trim();
-          if (text) return { text, provider: "deepseek", model: "deepseek-chat" };
-        } catch (e: any) {
-          console.warn("DeepSeek fallback failed:", e.message);
-        }
-      }
-
-      // Try Groq
+      
+      // Try Groq again with the extracted text
       if (groqKey) {
         try {
-          console.log("[Universal AI] Trying Groq Fallback...");
+          console.log("[Universal AI] Trying Groq Extraction Fallback...");
           const res = await fetch("https://api.groq.com/openai/v1/chat/completions", {
             method: "POST",
             headers: { "Content-Type": "application/json", "Authorization": `Bearer ${groqKey}` },
-            body: JSON.stringify({ model: "llama-3.1-70b-versatile", messages: [{ role: "user", content: textPrompt }] })
+            body: JSON.stringify({ 
+              model: "llama-3.1-70b-versatile", 
+              messages: [{ role: "user", content: textPrompt }],
+              response_format: { type: "json_object" }
+            })
           });
           const data = await res.json();
           const text = data.choices[0].message.content.replace(/```json\n?/g, "").replace(/```\n?/g, "").trim();
@@ -105,6 +138,5 @@ export async function runUniversalAI(
     }
   }
 
-  throw lastError || new Error("All AI providers (Google, DeepSeek, Groq) failed to generate a response.");
+  throw lastError || new Error("All AI providers (Groq, DeepSeek, Google) failed to generate a response.");
 }
-
