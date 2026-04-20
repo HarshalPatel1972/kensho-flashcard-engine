@@ -25,7 +25,7 @@ export default async function DashboardPage() {
   let dbError = null;
 
   try {
-    // Dynamic query to ensure counts are always accurate even if interrupted
+    // Standardized JOIN approach to ensure correct counts across all Postgres environments
     const decksResult = await db
       .select({
         id: decks.id,
@@ -33,16 +33,15 @@ export default async function DashboardPage() {
         description: decks.description,
         lastStudiedAt: decks.lastStudiedAt,
         createdAt: decks.createdAt,
-        cardCount: sql<number>`(SELECT COUNT(*) FROM ${cards} WHERE ${cards.deckId} = ${decks.id})`.mapWith(Number),
-        // A card is 'mastered' for the progress bar if it has been studied at least once (repetitions > 0)
-        masteredCount: sql<number>`(
-          SELECT COUNT(*) FROM ${cardProgress} 
-          WHERE ${cardProgress.cardId} IN (SELECT id FROM ${cards} WHERE ${cards.deckId} = ${decks.id})
-          AND ${cardProgress.repetitions} > 0
-        )`.mapWith(Number),
+        cardCount: sql<number>`count(distinct ${cards.id})`.mapWith(Number),
+        // Progress is defined by touch: if the card has been reviewed at least once
+        masteredCount: sql<number>`count(distinct case when ${cardProgress.lastReviewedAt} is not null then ${cards.id} end)`.mapWith(Number),
       })
       .from(decks)
+      .leftJoin(cards, eq(decks.id, cards.deckId))
+      .leftJoin(cardProgress, and(eq(cards.id, cardProgress.cardId), eq(cardProgress.userId, userId)))
       .where(eq(decks.userId, userId))
+      .groupBy(decks.id, decks.title, decks.description, decks.lastStudiedAt, decks.createdAt)
       .orderBy(decks.createdAt);
       
     userDecks = decksResult;

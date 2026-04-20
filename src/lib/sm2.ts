@@ -18,9 +18,8 @@ export function calculateNextReview(
   if (quality < 3) {
     repetitions = 0;
     interval = 1;
-  } else if (quality === 3) {
-    interval = 1;
-  } else if (quality === 4 || quality === 5) {
+  } else {
+    // Quality 3, 4, or 5 are all successful recalls
     if (repetitions === 0) {
       interval = 1;
     } else if (repetitions === 1) {
@@ -28,9 +27,15 @@ export function calculateNextReview(
     } else {
       interval = Math.round(interval * easeFactor);
     }
-    if (quality === 5) {
+    
+    if (quality === 3) {
+      // Quality 3 (Hard) keeps the interval short but still counts as a repetition
+      interval = Math.max(1, Math.round(interval * 0.8));
+    } else if (quality === 5) {
+      // Quality 5 (Easy) speeds up the interval
       interval = Math.round(interval * 1.3);
     }
+    
     repetitions += 1;
   }
 
