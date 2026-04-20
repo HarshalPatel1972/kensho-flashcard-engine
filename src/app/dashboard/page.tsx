@@ -8,6 +8,10 @@ import { DashboardSearch } from "@/components/DashboardSearch";
 import { DeckGrid } from "@/components/DeckGrid";
 import { PageTransition } from "@/components/PageTransition";
 
+export const metadata = {
+  title: "Your Decks — Kenshō",
+};
+
 export const dynamic = "force-dynamic";
 
 export default async function DashboardPage({ searchParams }: { searchParams: Promise<{ q?: string }> }) {

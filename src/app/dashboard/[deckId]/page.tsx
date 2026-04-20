@@ -11,6 +11,16 @@ import { DeckTitle } from "@/components/DeckTitle";
 
 export const dynamic = "force-dynamic";
 
+export async function generateMetadata({ params }: { params: Promise<{ deckId: string }> }) {
+  const { userId } = await auth();
+  if (!userId) return { title: "Kenshō" };
+  const p = await params;
+  const [deck] = await db.select().from(decks).where(and(eq(decks.id, p.deckId), eq(decks.userId, userId)));
+  return {
+    title: deck ? `${deck.title} — Kenshō` : "Deck — Kenshō",
+  };
+}
+
 export default async function DeckOverviewPage({ params }: { params: Promise<{ deckId: string }> }) {
   const { userId } = await auth();
   if (!userId) redirect("/sign-in");

@@ -8,8 +8,9 @@ import { ThemeProvider } from "@/components/ThemeProvider";
 const outfit = Outfit({ subsets: ["latin"] });
 
 export const metadata: Metadata = {
-  title: "Kenshō | See through the noise",
-  description: "Turn any PDF into a smart study deck. Review what matters, when it matters.",
+  title: "Kenshō — See through the noise",
+  description: "Turn any PDF into a smart, spaced-repetition study deck.",
+  icons: { icon: "/favicon.svg" }
 };
 
 export default function RootLayout({
