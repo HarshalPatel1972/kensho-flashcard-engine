@@ -1,15 +1,23 @@
 import { DeckCard } from "@/components/DeckCard";
 import { db } from "@/db";
-import { decks, cards, cardProgress } from "@/db/schema";
+import { decks, cards, cardProgress, users } from "@/db/schema";
 import { auth } from "@clerk/nextjs/server";
 import { eq, and, sql, lte } from "drizzle-orm";
 import Link from "next/link";
 import { redirect } from "next/navigation";
 
+export const dynamic = "force-dynamic";
+
 export default async function DashboardPage() {
   const { userId } = await auth();
   if (!userId) {
     redirect("/sign-in");
+  }
+
+  try {
+    await db.insert(users).values({ id: userId }).onConflictDoNothing();
+  } catch (error) {
+    console.error("Failed to upsert user. Database might be unreachable.", error);
   }
 
   const userDecks = await db
@@ -63,7 +71,7 @@ export default async function DashboardPage() {
               cardCount={deck.cardCount ?? 0}
               masteredCount={deck.masteredCount ?? 0}
               dueTodayCount={dueByDeck[deck.id] || 0}
-              lastStudiedAt={deck.lastStudiedAt}
+              lastStudiedAt={deck.lastStudiedAt ? deck.lastStudiedAt.toISOString() : null}
             />
           ))}
         </div>

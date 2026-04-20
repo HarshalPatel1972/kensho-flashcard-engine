@@ -10,7 +10,7 @@ type DeckCardProps = {
   cardCount: number;
   masteredCount: number;
   dueTodayCount: number;
-  lastStudiedAt: Date | null;
+  lastStudiedAt: string | null;
 };
 
 export function DeckCard({ id, title, cardCount, masteredCount, dueTodayCount, lastStudiedAt }: DeckCardProps) {
