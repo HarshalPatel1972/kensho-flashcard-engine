@@ -23,7 +23,12 @@ export async function POST(
     }
 
     const genAI = new GoogleGenerativeAI(apiKey);
-    const model = genAI.getGenerativeModel({ model: "gemini-1.5-flash" });
+    const modelsToTry = [
+      "gemini-2.5-flash",
+      "gemini-flash-latest",
+      "gemini-3-flash-preview",
+      "gemini-2.0-flash"
+    ];
 
     const prompt = `
       You are a learning coach analyzing a student's flashcard study session.
@@ -42,8 +47,24 @@ export async function POST(
       Return only the coaching text, no labels, no JSON.
     `;
 
-    const result = await model.generateContent(prompt);
-    const feedback = result.response.text().trim();
+    let feedback = "";
+    let lastError = null;
+
+    for (const modelName of modelsToTry) {
+      try {
+        const model = genAI.getGenerativeModel({ model: modelName });
+        const result = await model.generateContent(prompt);
+        feedback = result.response.text().trim();
+        if (feedback) break;
+      } catch (err: any) {
+        console.warn(`Coach model ${modelName} failed, trying next...`, err.message);
+        lastError = err;
+      }
+    }
+
+    if (!feedback) {
+      throw lastError || new Error("All AI models failed to provide coaching.");
+    }
 
     return NextResponse.json({ feedback });
   } catch (error) {
