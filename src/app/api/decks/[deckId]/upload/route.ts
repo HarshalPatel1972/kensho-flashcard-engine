@@ -36,7 +36,7 @@ export async function POST(
     const base64Pdf = buffer.toString("base64");
 
     const genAI = new GoogleGenerativeAI(apiKey);
-    const model = genAI.getGenerativeModel({ model: "gemini-1.5-flash" });
+    const model = genAI.getGenerativeModel({ model: "gemini-2.5-flash" });
 
     // Single high-speed prompt to stay under 10s Hobby timeout
     const prompt = `
