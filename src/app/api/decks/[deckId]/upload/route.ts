@@ -7,21 +7,6 @@ import { NextResponse } from "next/server";
 
 export const dynamic = "force-dynamic";
 
-function constructMultipartBody(buffer: Buffer, filename: string): Buffer {
-  const metadataPart = Buffer.from(
-    "--BOUNDARY\r\n" +
-    "Content-Type: application/json\r\n\r\n" +
-    JSON.stringify({ file: { display_name: filename } }) +
-    "\r\n"
-  );
-  const filePart = Buffer.from(
-    "--BOUNDARY\r\n" +
-    "Content-Type: application/pdf\r\n\r\n"
-  );
-  const closing = Buffer.from("\r\n--BOUNDARY--");
-  return Buffer.concat([metadataPart, filePart, buffer, closing]);
-}
-
 export async function POST(
   req: Request,
   { params }: { params: Promise<{ deckId: string }> }
@@ -37,36 +22,17 @@ export async function POST(
     const [deck] = await db.select().from(decks).where(and(eq(decks.id, deckId), eq(decks.userId, userId)));
     if (!deck) return NextResponse.json({ error: "Deck not found" }, { status: 404 });
 
-    // Step 1: Receive the PDF as FormData
-    const formData = await req.formData();
-    const file = formData.get("pdf") as File;
-    if (!file) return NextResponse.json({ error: "No PDF provided" }, { status: 400 });
+    // Step 1: Receive the PDF URL from UploadThing
+    const { fileUrl } = await req.json();
+    if (!fileUrl) return NextResponse.json({ error: "No PDF URL provided" }, { status: 400 });
 
-    const buffer = Buffer.from(await file.arrayBuffer());
+    // Step 2: Fetch the PDF as a buffer
+    const pdfResponse = await fetch(fileUrl);
+    if (!pdfResponse.ok) throw new Error("Failed to fetch PDF from UploadThing");
+    const arrayBuffer = await pdfResponse.arrayBuffer();
+    const buffer = Buffer.from(arrayBuffer);
 
-    // Step 2: Upload to Google Files API
-    const uploadResponse = await fetch(
-      "https://generativelanguage.googleapis.com/upload/v1beta/files",
-      {
-        method: "POST",
-        headers: {
-          "X-Goog-Upload-Protocol": "multipart",
-          "X-Goog-Api-Key": process.env.GEMINI_API_KEY!,
-          "Content-Type": `multipart/related; boundary=BOUNDARY`
-        },
-        body: new Blob([constructMultipartBody(buffer, file.name) as any])
-      }
-    );
-
-    if (!uploadResponse.ok) {
-      const errText = await uploadResponse.text();
-      throw new Error(`Google Files API upload failed: ${errText}`);
-    }
-
-    const { file: uploadedFile } = await uploadResponse.json();
-    const fileUri = uploadedFile.uri;
-
-    // Step 3: Pass fileUri to Gemini for card generation
+    // Step 3: Pass base64 data to Gemini for card generation
     const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY!);
     const model = genAI.getGenerativeModel({ model: "gemini-2.0-flash" });
 
@@ -82,28 +48,15 @@ export async function POST(
 
     const result = await model.generateContent([
       {
-        fileData: {
+        inlineData: {
           mimeType: "application/pdf",
-          fileUri: fileUri
+          data: buffer.toString("base64")
         }
       },
       { text: prompt }
     ]);
 
     const responseText = result.response.text();
-
-    // Step 4: Delete the file from Google after generation (cleanup)
-    try {
-      await fetch(
-        `https://generativelanguage.googleapis.com/v1beta/${uploadedFile.name}`,
-        {
-          method: "DELETE",
-          headers: { "X-Goog-Api-Key": process.env.GEMINI_API_KEY! }
-        }
-      );
-    } catch (e) {
-      console.warn("Failed to delete Gemini file:", uploadedFile.name);
-    }
 
     let generatedCards;
     try {
@@ -120,7 +73,7 @@ export async function POST(
       return NextResponse.json({ error: "No flashcards were generated." }, { status: 400 });
     }
 
-    // Step 5: Insert cards and progress
+    // Step 4: Insert cards and progress
     const newCards = await db.insert(cards).values(
       generatedCards.slice(0, 20).map(c => ({
         deckId,
