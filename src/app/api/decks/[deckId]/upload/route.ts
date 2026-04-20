@@ -5,6 +5,7 @@ import { GoogleGenerativeAI } from "@google/generative-ai";
 import { eq, and } from "drizzle-orm";
 import { NextResponse } from "next/server";
 import { runUniversalAI } from "@/lib/ai";
+import { del } from "@vercel/blob";
 
 export async function POST(
   req: Request,
@@ -21,13 +22,14 @@ export async function POST(
     const [deck] = await db.select().from(decks).where(and(eq(decks.id, deckId), eq(decks.userId, userId)));
     if (!deck) return NextResponse.json({ error: "Deck not found" }, { status: 404 });
 
-    const formData = await req.formData();
-    const file = formData.get("file") as File | null;
-    if (!file) return NextResponse.json({ error: "No file uploaded" }, { status: 400 });
-    if (file.size > 4 * 1024 * 1024) return NextResponse.json({ error: "File too large (Max 4MB for high-speed processing)" }, { status: 400 });
+    const body = await req.json();
+    const { blobUrl } = body;
+    if (!blobUrl) return NextResponse.json({ error: "No blob URL provided" }, { status: 400 });
 
-    const buffer = Buffer.from(await file.arrayBuffer());
-    const base64Pdf = buffer.toString("base64");
+    // Step 1: Fetch PDF from Vercel Blob
+    const response = await fetch(blobUrl);
+    const pdfBuffer = Buffer.from(await response.arrayBuffer());
+    const base64Pdf = pdfBuffer.toString("base64");
 
     // Single high-speed prompt to stay under 10s Hobby timeout
     const prompt = `
@@ -42,6 +44,13 @@ export async function POST(
 
     // Feature: Universal AI Failover Engine (Google -> DeepSeek -> Groq)
     const { text: responseText } = await runUniversalAI(prompt, base64Pdf);
+    
+    // Step 2: Clean up storage immediately
+    try {
+      await del(blobUrl);
+    } catch (e) {
+      console.warn("Failed to delete blob:", blobUrl);
+    }
 
     let generatedCards;
     try {
