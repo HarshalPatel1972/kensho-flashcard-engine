@@ -15,56 +15,59 @@ export function UploadZone({ deckId, onSuccess }: UploadZoneProps) {
   const [isHovering, setIsHovering] = useState(false);
   const [isGenerating, setIsGenerating] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [uploadedUrl, setUploadedUrl] = useState<string | null>(null);
   const [abortController, setAbortController] = useState<AbortController | null>(null);
+
+  const generateCards = async (fileUrl: string) => {
+    const controller = new AbortController();
+    setAbortController(controller);
+    setIsGenerating(true);
+    setError(null);
+
+    try {
+      const fetchRes = await fetch(`/api/decks/${deckId}/upload`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ fileUrl }),
+        signal: controller.signal,
+      });
+
+      if (!fetchRes.ok) {
+        const errorText = await fetchRes.text();
+        let errorMessage = "Generation failed";
+        try {
+          const errorJson = JSON.parse(errorText);
+          errorMessage = errorJson.error || errorMessage;
+        } catch {
+          errorMessage = `Server Error (${fetchRes.status}): ${errorText.substring(0, 50)}...`;
+        }
+        throw new Error(errorMessage);
+      }
+
+      toast.success("Deck created successfully!");
+      onSuccess();
+    } catch (err: any) {
+      if (err.name === 'AbortError') {
+        toast.info("Process cancelled");
+      } else {
+        setError(err.message);
+      }
+    } finally {
+      setIsGenerating(false);
+      setAbortController(null);
+    }
+  };
 
   const { startUpload, isUploading } = useUploadThing("pdfUploader", {
     signal: abortController?.signal,
     onClientUploadComplete: async (res) => {
-      const fileUrl = res?.[0]?.url;
-      if (!fileUrl) {
+      const url = res?.[0]?.url;
+      if (!url) {
         setError("Upload failed - no URL returned");
         return;
       }
-
-      const controller = new AbortController();
-      setAbortController(controller);
-      setIsGenerating(true);
-
-      try {
-        const fetchRes = await fetch(`/api/decks/${deckId}/upload`, {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ fileUrl }),
-          signal: controller.signal,
-        });
-
-        if (!fetchRes.ok) {
-          const errorText = await fetchRes.text();
-          let errorMessage = "Generation failed";
-          try {
-            const errorJson = JSON.parse(errorText);
-            errorMessage = errorJson.error || errorMessage;
-          } catch {
-            errorMessage = `Server Error (${fetchRes.status}): ${errorText.substring(0, 50)}...`;
-          }
-          throw new Error(errorMessage);
-        }
- 
-        const data = await fetchRes.json();
-        toast.success("Deck created successfully!");
-        onSuccess();
-      } catch (err: any) {
-        if (err.name === 'AbortError') {
-          // Cleanup deleted deck on abort
-          await fetch(`/api/decks/${deckId}`, { method: 'DELETE' });
-          toast.info("Card generation cancelled");
-        } else {
-          setError(err.message);
-          setIsGenerating(false);
-        }
-      } finally {
-        setAbortController(null);
-      }
+      setUploadedUrl(url);
+      await generateCards(url);
     },
     onUploadError: (error: Error) => {
       if (error.message !== "Upload aborted") {
@@ -78,8 +81,8 @@ export function UploadZone({ deckId, onSuccess }: UploadZoneProps) {
       setError("Please upload a PDF file.");
       return;
     }
-    
     setError(null);
+    setUploadedUrl(null);
     const controller = new AbortController();
     setAbortController(controller);
     await startUpload([file]);
@@ -89,9 +92,6 @@ export function UploadZone({ deckId, onSuccess }: UploadZoneProps) {
     if (abortController) {
       abortController.abort();
     }
-    setIsGenerating(false);
-    setAbortController(null);
-    toast.info("Process cancelled");
   };
 
   const handleDrop = useCallback((e: React.DragEvent) => {
@@ -112,7 +112,7 @@ export function UploadZone({ deckId, onSuccess }: UploadZoneProps) {
     <div className="w-full">
       <div
         className={cn(
-          "relative flex flex-col items-center justify-center w-full h-64 rounded-xl border-2 border-dashed transition-all overflow-hidden",
+          "relative flex flex-col items-center justify-center w-full min-h-64 rounded-xl border-2 border-dashed transition-all overflow-hidden",
           isHovering ? "border-gold bg-gold/5" : "border-border hover:border-gold/50 bg-surface/30",
           isLoading && "pointer-events-none opacity-80"
         )}
@@ -130,7 +130,7 @@ export function UploadZone({ deckId, onSuccess }: UploadZoneProps) {
         />
         
         {isLoading ? (
-          <div className="flex flex-col items-center space-y-4">
+          <div className="flex flex-col items-center space-y-4 p-8">
             <LoadingMessage 
               quote 
               messages={isUploading ? ["Uploading PDF to secure storage..."] : [
@@ -143,22 +143,41 @@ export function UploadZone({ deckId, onSuccess }: UploadZoneProps) {
             />
             <button
               onClick={(e) => { e.stopPropagation(); handleCancel(); }}
-              className="mt-2 text-sm text-red-500 hover:text-red-400 font-medium cursor-pointer pointer-events-auto transition-colors w-full sm:w-auto"
+              className="mt-2 text-sm text-red-500 hover:text-red-400 font-medium cursor-pointer pointer-events-auto transition-colors px-4 py-2"
             >
-              {isUploading ? "Cancel upload" : "Cancel generation"}
+              Cancel Process
             </button>
           </div>
+        ) : error && uploadedUrl ? (
+          <div className="flex flex-col items-center space-y-6 text-center p-8">
+            <div className="space-y-2">
+              <p className="text-red-500 font-medium">{error}</p>
+              <p className="text-sm text-secondary">The file is saved, but generation failed.</p>
+            </div>
+            <div className="flex flex-wrap items-center justify-center gap-4">
+              <button
+                onClick={() => generateCards(uploadedUrl)}
+                className="px-6 py-2.5 bg-gold text-black rounded-lg font-medium hover:bg-gold-hover transition-all shadow-lg shadow-gold/20"
+              >
+                Retry Generation
+              </button>
+              <label htmlFor="pdf-upload" className="px-6 py-2.5 bg-surface border border-border text-primary rounded-lg font-medium hover:bg-bg transition-all cursor-pointer">
+                Upload Different File
+              </label>
+            </div>
+          </div>
         ) : (
-          <label htmlFor="pdf-upload" className="flex flex-col items-center space-y-2 text-center p-6 cursor-pointer w-full h-full justify-center">
-            <svg className="w-10 h-10 text-secondary mb-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
-            </svg>
-            <p className="text-lg text-primary">Drop your PDF here or click to upload</p>
+          <label htmlFor="pdf-upload" className="flex flex-col items-center space-y-2 text-center p-12 cursor-pointer w-full h-full justify-center group">
+            <div className="w-12 h-12 rounded-full bg-gold/10 flex items-center justify-center mb-2 group-hover:scale-110 transition-transform">
+              <svg className="w-6 h-6 text-gold" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+              </svg>
+            </div>
+            <p className="text-lg text-primary font-medium">Drop your PDF here or click to upload</p>
             <p className="text-sm text-secondary">PDF up to 64MB supported</p>
           </label>
         )}
       </div>
-      {error && <p className="mt-3 text-sm text-red-500 font-medium text-center">{error}</p>}
     </div>
   );
 }
