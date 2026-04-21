@@ -92,11 +92,11 @@ export function NavSidebar() {
               onClick={() => playClick()}
               onMouseEnter={() => playHover()}
               className={cn(
-                "relative group flex items-center gap-4 px-4 py-3 rounded-full transition-all duration-200",
+                "relative group flex items-center gap-4 px-4 py-3 rounded-lg transition-all duration-200",
                 isActive ? "nav-item-active" : "text-secondary hover:bg-surface/50"
               )}
             >
-              <item.icon className={cn("w-5 h-5 shrink-0", isActive ? "text-gold" : "text-secondary")} />
+              <item.icon className={cn("w-5 h-5 shrink-0", isActive ? "text-primary" : "text-secondary")} />
               
               <div className="flex-1 overflow-hidden">
                 <AnimatePresence mode="wait">
