@@ -171,7 +171,7 @@ export default function StudyClient() {
     <PageTransition>
       <div className="min-h-screen flex flex-col items-center p-4">
         <header className="w-full max-w-3xl mx-auto flex items-center justify-between py-4 md:py-6">
-          <Link href={`/dashboard/${deckId}`} className="text-sm border-b border-transparent hover:border-gold text-secondary hover:text-gold transition-colors pb-0.5 inline-flex">
+          <Link href={`/dashboard/${deckId}`} className="px-4 py-2 text-sm btn-kensho-3d-secondary">
             ← Exit
           </Link>
           <div className="flex items-center gap-4">
@@ -210,9 +210,15 @@ export default function StudyClient() {
           </div>
         </main>
         <footer className="w-full max-w-3xl mx-auto py-8 text-center">
+          <Link
+          href={`/dashboard/${deckId}`}
+          className="px-8 py-3 text-sm btn-kensho-3d-secondary"
+        >
+          Back to Deck
+        </Link>
           <Link 
             href="/docs" 
-            className="text-xs text-secondary hover:text-gold transition-colors inline-flex items-center gap-1"
+            className="text-xs text-secondary hover:text-gold transition-colors inline-flex items-center gap-1 btn-kensho-3d-secondary px-4 py-2"
           >
             How Kenshō works 
             <span className="btn-arrow ml-1">

@@ -100,7 +100,7 @@ export default async function DeckOverviewPage({ params }: { params: Promise<{ d
     <PageTransition>
       <div className="space-y-12 max-w-5xl mx-auto pb-24 md:pb-8">
         <div>
-          <Link href="/dashboard" className="text-sm border-b border-transparent hover:border-gold text-secondary hover:text-gold transition-colors pb-0.5 inline-flex mb-4">
+          <Link href="/dashboard" className="px-4 py-2 text-sm btn-kensho-3d-secondary mb-4">
             ← Back to Decks
           </Link>
           <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">

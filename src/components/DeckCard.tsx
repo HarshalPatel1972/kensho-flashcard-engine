@@ -174,17 +174,22 @@ export function DeckCard({ id, title, cardCount, masteredCount, dueTodayCount, l
               <p className="text-sm text-secondary mb-6 leading-relaxed">
                 This will permanently delete <strong className="text-primary">{title}</strong> and all <strong className="text-primary">{cardCount}</strong> cards. This cannot be undone.
               </p>
-              <div className="flex gap-3">
+              <div className="flex gap-4">
                 <button 
                   onClick={() => setShowModal(false)}
-                  className="flex-1 px-4 py-2.5 rounded-lg border border-border text-sm font-medium text-primary hover:bg-white/5 transition-colors"
+                  className="flex-1 px-4 py-3 btn-kensho-3d-secondary"
                   disabled={isDeleting}
                 >
                   Cancel
                 </button>
                 <button 
                   onClick={() => { playError(); handleDelete(); }}
-                  className="flex-1 px-4 py-2.5 rounded-lg bg-red-500 text-primary text-sm font-medium hover:bg-red-600 transition-colors disabled:opacity-50"
+                  className="flex-1 px-4 py-3 bg-red-500 text-white font-bold btn-kensho-3d-item border-none active:translate-y-1"
+                  style={{
+                    backgroundColor: '#ef4444',
+                    boxShadow: '0 4px 0 0 #b91c1c',
+                    color: 'white'
+                  }}
                   disabled={isDeleting}
                 >
                   {isDeleting ? "Deleting..." : "Delete"}
