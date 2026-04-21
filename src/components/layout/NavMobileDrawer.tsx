@@ -6,7 +6,6 @@ import { usePathname } from "next/navigation";
 import { X, Home, Library, BookOpen, PlusCircle, Sparkles, Settings } from "lucide-react";
 import { useKenshoSounds } from "@/hooks/use-kensho-sounds";
 import { cn } from "@/lib/utils";
-import { useSettingsModal } from "@/hooks/use-settings-modal";
 
 interface NavMobileDrawerProps {
   isOpen: boolean;
