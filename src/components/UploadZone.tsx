@@ -162,9 +162,10 @@ export function UploadZone({ deckId, onSuccess }: UploadZoneProps) {
               quote 
               messages={isUploading ? ["Uploading PDF to secure storage..."] : [
                 "Reading your PDF...",
-                "Distilling the concepts...",
-                "Crafting your cards...",
-                "Sharpening the edges...",
+                "Breaking it into sections...",
+                "Processing each section...",
+                "Merging the best cards...",
+                "Removing duplicates...",
                 "Almost there..."
               ]} 
             />
