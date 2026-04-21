@@ -2,7 +2,8 @@ import { UserButton } from "@clerk/nextjs";
 import Link from "next/link";
 import { ReactNode } from "react";
 import { ThemeToggle } from "@/components/ThemeToggle";
-import { ArrowRight } from "lucide-react";
+import { ArrowRight, Settings } from "lucide-react";
+import { AppPreferences } from "@/components/settings/AppPreferences";
 
 export default function DashboardLayout({ children }: { children: ReactNode }) {
   return (
@@ -19,7 +20,28 @@ export default function DashboardLayout({ children }: { children: ReactNode }) {
           </div>
           <div className="flex items-center gap-4">
             <ThemeToggle />
-            <UserButton />
+            <UserButton
+              userProfileProps={{
+                appearance: {
+                  elements: {
+                    navbar: "hidden", // We can hide it if we want a more focused experience, but let's keep it standard
+                  }
+                },
+                children: (
+                  <>
+                    <UserButton.UserProfilePage label="account" />
+                    <UserButton.UserProfilePage label="security" />
+                    <UserButton.UserProfilePage
+                      label="Settings"
+                      url="settings"
+                      labelIcon={<Settings size={16} />}
+                    >
+                      <AppPreferences />
+                    </UserButton.UserProfilePage>
+                  </>
+                )
+              }}
+            />
           </div>
         </div>
       </header>

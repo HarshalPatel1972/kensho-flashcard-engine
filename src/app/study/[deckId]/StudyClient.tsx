@@ -12,6 +12,9 @@ import { LoadingMessage } from "@/components/LoadingMessage";
 import { PageTransition } from "@/components/PageTransition";
 import { ThemeToggle } from "@/components/ThemeToggle";
 import { ErrorState } from "@/components/ErrorState";
+import { useKenshoSounds } from "@/hooks/use-kensho-sounds";
+import { Settings } from "lucide-react";
+import { AppPreferences } from "@/components/settings/AppPreferences";
 
 type StudyCard = {
   id: string;
@@ -37,6 +40,7 @@ export default function StudyClient() {
   const [isComplete, setIsComplete] = useState(false);
   const [totalDue, setTotalDue] = useState(0);
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const { playClick, playFlip, playSuccess, playError } = useKenshoSounds();
 
   useEffect(() => {
     const fetchCards = async () => {
@@ -57,8 +61,11 @@ export default function StudyClient() {
   }, [deckId]);
 
   const handleFlip = useCallback(() => {
-    if (!isFlipped && !isSubmitting) setIsFlipped(true);
-  }, [isFlipped, isSubmitting]);
+    if (!isFlipped && !isSubmitting) {
+      playFlip();
+      setIsFlipped(true);
+    }
+  }, [isFlipped, isSubmitting, playFlip]);
 
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
@@ -101,11 +108,13 @@ export default function StudyClient() {
       }
 
       setIsFlipped(false);
+      playClick();
       
       setTimeout(() => {
         if (currentIndex < cards.length - 1) {
           setCurrentIndex((prev) => prev + 1);
         } else {
+          playSuccess();
           setIsComplete(true);
         }
         setIsSubmitting(false);
@@ -167,7 +176,23 @@ export default function StudyClient() {
           </Link>
           <div className="flex items-center gap-4">
             <ThemeToggle />
-            <UserButton />
+            <UserButton
+              userProfileProps={{
+                children: (
+                  <>
+                    <UserButton.UserProfilePage label="account" />
+                    <UserButton.UserProfilePage label="security" />
+                    <UserButton.UserProfilePage
+                      label="Settings"
+                      url="settings"
+                      labelIcon={<Settings size={16} />}
+                    >
+                      <AppPreferences />
+                    </UserButton.UserProfilePage>
+                  </>
+                )
+              }}
+            />
           </div>
         </header>
 
