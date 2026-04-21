@@ -70,6 +70,7 @@ export function DeckGrid({ initialDecks }: { initialDecks: Deck[] }) {
             initial="hidden"
             animate="visible"
             exit="exit"
+            className="h-full"
           >
             <DeckCard
               {...deck}

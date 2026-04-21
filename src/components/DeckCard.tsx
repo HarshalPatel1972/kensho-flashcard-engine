@@ -61,10 +61,10 @@ export function DeckCard({ id, title, cardCount, masteredCount, dueTodayCount, l
 
   return (
     <>
-      <div className="group relative">
+      <div className="group relative h-full">
         <Link 
           href={`/dashboard/${id}`}
-          className={`block p-6 rounded-2xl border transition-all relative overflow-hidden card-lifted ${
+          className={`flex flex-col h-full p-6 rounded-2xl border transition-all relative overflow-hidden card-lifted ${
             isEmpty 
               ? "bg-surface/20 border-border/40 border-dashed hover:border-gold/40" 
               : "bg-surface border-border/50 hover:border-gold/50"
@@ -76,7 +76,7 @@ export function DeckCard({ id, title, cardCount, masteredCount, dueTodayCount, l
             </h3>
           </div>
 
-          <div className="space-y-5">
+          <div className="flex-1 flex flex-col justify-between space-y-5">
             <div className="space-y-2">
               <div className="flex justify-between text-[11px] uppercase tracking-widest font-bold">
                 <span className={isEmpty ? "text-secondary" : "text-secondary"}>
