@@ -18,6 +18,11 @@ export function UploadZone({ deckId, onSuccess }: UploadZoneProps) {
   const [uploadedUrl, setUploadedUrl] = useState<string | null>(null);
   const [abortController, setAbortController] = useState<AbortController | null>(null);
 
+  const resetFileInput = () => {
+    const input = document.getElementById("pdf-upload") as HTMLInputElement | null;
+    if (input) input.value = "";
+  };
+
   const generateCards = async (fileUrl: string) => {
     const controller = new AbortController();
     setAbortController(controller);
@@ -45,6 +50,7 @@ export function UploadZone({ deckId, onSuccess }: UploadZoneProps) {
       }
 
       toast.success("Deck created successfully!");
+      resetFileInput();
       onSuccess();
     } catch (err: any) {
       if (err.name === 'AbortError') {
@@ -52,6 +58,7 @@ export function UploadZone({ deckId, onSuccess }: UploadZoneProps) {
       } else {
         setError(err.message);
       }
+      resetFileInput();
     } finally {
       setIsGenerating(false);
       setAbortController(null);
@@ -64,6 +71,7 @@ export function UploadZone({ deckId, onSuccess }: UploadZoneProps) {
       const url = res?.[0]?.url;
       if (!url) {
         setError("Upload failed - no URL returned");
+        resetFileInput();
         return;
       }
       setUploadedUrl(url);
@@ -73,6 +81,7 @@ export function UploadZone({ deckId, onSuccess }: UploadZoneProps) {
       if (error.message !== "Upload aborted") {
         setError(`Upload failed: ${error.message}`);
       }
+      resetFileInput();
     },
   });
 
@@ -92,6 +101,7 @@ export function UploadZone({ deckId, onSuccess }: UploadZoneProps) {
     if (abortController) {
       abortController.abort();
     }
+    resetFileInput();
   };
 
   const handleDrop = useCallback((e: React.DragEvent) => {
@@ -124,6 +134,7 @@ export function UploadZone({ deckId, onSuccess }: UploadZoneProps) {
           type="file" 
           accept="application/pdf" 
           onChange={handleChange} 
+          onClick={(e) => { (e.target as HTMLInputElement).value = ""; }}
           className="hidden" 
           id="pdf-upload"
           disabled={isLoading}
