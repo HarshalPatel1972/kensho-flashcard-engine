@@ -5,9 +5,16 @@ import { useRouter } from "next/navigation";
 import { UploadZone } from "@/components/UploadZone";
 import { LoadingMessage } from "@/components/LoadingMessage";
 import { ErrorState } from "@/components/ErrorState";
-import { ArrowRight, Info } from "lucide-react";
+import { ArrowRight, Info, Loader2 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { toast } from "sonner";
+import { useEffect, useRef } from "react";
+import * as pdfjsLib from "pdfjs-dist/legacy/build/pdf";
+
+// Client-side worker config
+if (typeof window !== "undefined") {
+  pdfjsLib.GlobalWorkerOptions.workerSrc = `//cdnjs.cloudflare.com/ajax/libs/pdf.js/${pdfjsLib.version}/pdf.worker.min.js`;
+}
 
 type UploadStep = "upload" | "select-pages" | "generating";
 
@@ -22,8 +29,14 @@ export default function NewDeckClient() {
   // Flow State
   const [step, setStep] = useState<UploadStep>("upload");
   const [pdfUrl, setPdfUrl] = useState<string | null>(null);
+  const [pdfFile, setPdfFile] = useState<File | null>(null);
   const [totalPages, setTotalPages] = useState(0);
-  const [selectedPages, setSelectedPages] = useState<number[]>([]);
+  const [fromPage, setFromPage] = useState(1);
+  const [toPage, setToPage] = useState(1);
+  const [thumbnails, setThumbnails] = useState<Record<number, string>>({});
+  const [isRenderingThumbnails, setIsRenderingThumbnails] = useState(false);
+  const selectedPages = Array.from({ length: toPage - fromPage + 1 }, (_, i) => fromPage + i);
+
   const [isProcessingInfo, setIsProcessingInfo] = useState(false);
   const [abortController, setAbortController] = useState<AbortController | null>(null);
 
@@ -60,12 +73,8 @@ export default function NewDeckClient() {
       
       const count = data.totalPages;
       setTotalPages(count);
-      
-      if (count > 20) {
-        setError(`This PDF has ${count} pages. Current AI models cannot process more than 20 pages. Please upload a shorter document or select specific pages.`);
-        return;
-      }
-      
+      setFromPage(1);
+      setToPage(Math.min(4, count));
       setStep("select-pages");
       setError(null);
     } catch (err: any) {
@@ -75,21 +84,56 @@ export default function NewDeckClient() {
     }
   };
 
-  const togglePage = (page: number) => {
-    setSelectedPages(prev => 
-      prev.includes(page) ? prev.filter(p => p !== page) : [...prev, page]
-    );
+  // Thumbnail Rendering Logic
+  useEffect(() => {
+    if (step !== "select-pages" || !pdfFile || totalPages === 0) return;
+
+    const renderRange = async () => {
+      setIsRenderingThumbnails(true);
+      try {
+        const arrayBuffer = await pdfFile.arrayBuffer();
+        const pdf = await pdfjsLib.getDocument({ data: arrayBuffer }).promise;
+        const newThumbs: Record<number, string> = { ...thumbnails };
+        
+        // Only render the pages currently in the selected range that aren't already cached
+        const pagesToRender = selectedPages.filter(p => !newThumbs[p]);
+        
+        for (const pageNum of pagesToRender) {
+          try {
+            const page = await pdf.getPage(pageNum);
+            const viewport = page.getViewport({ scale: 0.2 });
+            const canvas = document.createElement("canvas");
+            const context = canvas.getContext("2d");
+            if (!context) continue;
+
+            canvas.height = viewport.height;
+            canvas.width = viewport.width;
+
+            await page.render({ canvasContext: context, viewport }).promise;
+            newThumbs[pageNum] = canvas.toDataURL();
+          } catch (e) {
+            console.error(`Failed to render thumbnail for page ${pageNum}`, e);
+          }
+        }
+        setThumbnails(newThumbs);
+      } catch (err) {
+        console.error("Thumbnail rendering error:", err);
+      } finally {
+        setIsRenderingThumbnails(false);
+      }
+    };
+
+    const timer = setTimeout(renderRange, 300);
+    return () => clearTimeout(timer);
+  }, [fromPage, toPage, pdfFile, totalPages, step]);
+
+  const quickSelect = (type: "first4" | "first10" | "all") => {
+    setFromPage(1);
+    if (type === "first4") setToPage(Math.min(4, totalPages));
+    if (type === "first10") setToPage(Math.min(10, totalPages));
+    if (type === "all") setToPage(Math.min(20, totalPages));
   };
 
-  const selectAll = () => {
-    const pages = Array.from({ length: Math.min(totalPages, 20) }, (_, i) => i + 1);
-    setSelectedPages(pages);
-    if (totalPages > 20) {
-      toast.info("Only the first 20 pages will be processed");
-    }
-  };
-
-  const clearSelection = () => setSelectedPages([]);
 
   const startGeneration = async () => {
     if (!deckId || !pdfUrl || selectedPages.length === 0) return;
@@ -250,75 +294,110 @@ export default function NewDeckClient() {
         </form>
       ) : step === "select-pages" ? (
         <div className="space-y-8 animate-in fade-in slide-in-from-right-4 duration-500">
-          {totalPages > 4 && (
-            <div className="flex items-start gap-3 p-4 rounded-lg bg-amber-50 dark:bg-amber-900/20 border-l-4 border-amber-500">
-              <Info className="w-5 h-5 text-amber-600 dark:text-amber-400 shrink-0 mt-0.5" />
-              <p className="text-sm text-amber-800 dark:text-amber-200 leading-relaxed">
-                This PDF has {totalPages} pages. Kenshō will sample the key lines from each selected page to stay within AI model limits.
-              </p>
-            </div>
-          )}
+          <div className="bg-surface p-6 rounded-2xl border border-border/50 space-y-6">
+             <div className="grid grid-cols-2 gap-6">
+                <div className="space-y-2">
+                  <label className="text-xs uppercase tracking-widest text-secondary font-bold">From Page</label>
+                  <input 
+                    type="number" 
+                    min={1} 
+                    max={totalPages}
+                    value={fromPage}
+                    onChange={(e) => setFromPage(Math.max(1, parseInt(e.target.value) || 1))}
+                    className="w-full bg-bg border border-border rounded-xl px-4 py-3 text-lg font-medium focus:ring-2 focus:ring-gold outline-none transition-all"
+                  />
+                </div>
+                <div className="space-y-2">
+                  <label className="text-xs uppercase tracking-widest text-secondary font-bold">To Page</label>
+                  <input 
+                    type="number" 
+                    min={fromPage} 
+                    max={totalPages}
+                    value={toPage}
+                    onChange={(e) => setToPage(Math.max(fromPage, parseInt(e.target.value) || fromPage))}
+                    className="w-full bg-bg border border-border rounded-xl px-4 py-3 text-lg font-medium focus:ring-2 focus:ring-gold outline-none transition-all"
+                  />
+                </div>
+             </div>
 
-          <div className="flex items-center justify-between gap-4">
-            <div className="flex gap-2">
-              <button 
-                onClick={selectAll}
-                className="text-xs px-3 py-1.5 rounded-md border border-border hover:border-gold hover:text-gold transition-colors"
-              >
-                Select all pages
-              </button>
-              <button 
-                onClick={clearSelection}
-                className="text-xs px-3 py-1.5 rounded-md border border-border hover:text-secondary transition-colors"
-              >
-                Clear selection
-              </button>
-            </div>
-            <p className="text-sm font-medium text-gold">
-              {selectedPages.length} pages selected
-            </p>
+             <div className="flex flex-wrap gap-2">
+                <button 
+                  onClick={() => quickSelect("first4")}
+                  className="px-3 py-1.5 rounded-full border border-border text-xs text-secondary hover:border-gold hover:text-gold transition-all"
+                >
+                  First 4 pages
+                </button>
+                <button 
+                  onClick={() => quickSelect("first10")}
+                  className="px-3 py-1.5 rounded-full border border-border text-xs text-secondary hover:border-gold hover:text-gold transition-all"
+                >
+                  First 10 pages
+                </button>
+                <button 
+                  onClick={() => quickSelect("all")}
+                  className="px-3 py-1.5 rounded-full border border-border text-xs text-secondary hover:border-gold hover:text-gold transition-all"
+                >
+                  All (Cap 20)
+                </button>
+                {totalPages > 20 && <span className="text-[10px] text-secondary/60 flex items-center ml-1 italic">Note: Capped at 20</span>}
+             </div>
+
+             {/* Thumbnail Strip */}
+             <div className="space-y-2">
+                <label className="text-[10px] uppercase tracking-widest text-secondary/60 font-bold">Preview Strip</label>
+                <div className="flex overflow-x-auto gap-3 pb-4 scrollbar-hide pt-1 min-h-[120px]">
+                   {selectedPages.map(p => (
+                      <div key={p} className="flex-shrink-0 group">
+                         <div className={cn(
+                            "w-20 aspect-[3/4] rounded-lg border-2 bg-bg overflow-hidden flex items-center justify-center transition-all",
+                            "border-gold shadow-[0_0_12px_rgba(245,166,35,0.2)]"
+                         )}>
+                            {thumbnails[p] ? (
+                               <img src={thumbnails[p]} alt={`Page ${p}`} className="w-full h-full object-cover" />
+                            ) : (
+                               <div className="flex flex-col items-center justify-center space-y-1">
+                                  {isRenderingThumbnails ? <Loader2 className="w-4 h-4 animate-spin text-gold/40" /> : <span className="text-secondary/40 text-xs">{p}</span>}
+                               </div>
+                            )}
+                         </div>
+                         <p className="text-[10px] text-center mt-1 text-secondary font-medium">Page {p}</p>
+                      </div>
+                   ))}
+                </div>
+             </div>
           </div>
 
-          <div className="grid grid-cols-5 md:grid-cols-10 gap-2">
-            {Array.from({ length: totalPages }, (_, i) => i + 1).map(pageNum => (
-              <button
-                key={pageNum}
-                disabled={selectedPages.length >= 20 && !selectedPages.includes(pageNum)}
-                onClick={() => togglePage(pageNum)}
-                className={cn(
-                  "aspect-square flex items-center justify-center rounded-lg border text-sm font-medium transition-all disabled:opacity-30",
-                  selectedPages.includes(pageNum) 
-                    ? "bg-gold text-black border-gold shadow-lg shadow-gold/20" 
-                    : "border-border hover:border-gold/50 text-secondary"
-                )}
-              >
-                {pageNum}
-              </button>
-            ))}
-          </div>
-
-          <div className="pt-8">
+          <div className="pt-4 space-y-6">
             <div className="flex flex-col items-center gap-4">
-              {selectedPages.length > 20 && (
-                <div className="px-3 py-1 rounded-full bg-red-500/10 text-red-500 text-[10px] uppercase tracking-widest font-bold">
-                  20 page maximum — please deselect some pages
+              {toPage - fromPage + 1 > 20 && (
+                <div className="px-4 py-2 rounded-xl bg-red-500/10 border border-red-500/20 text-red-500 text-xs font-medium animate-in fade-in zoom-in duration-300">
+                  Maximum 20 pages allowed. Please narrow your range.
                 </div>
               )}
-              {selectedPages.length === 0 && (
-                <p className="text-xs text-secondary italic">Select at least one page to continue</p>
-              )}
               
-              <button
-                onClick={startGeneration}
-                disabled={selectedPages.length === 0 || selectedPages.length > 20}
-                className="w-full inline-flex items-center justify-center rounded-xl bg-gold px-8 py-4 text-lg font-bold text-black hover:bg-gold-hover transition-all hover:scale-[1.02] active:scale-[0.98] shadow-xl shadow-gold/20 disabled:opacity-50 disabled:scale-100 disabled:pointer-events-none"
-              >
-                Create Flashcards <ArrowRight className="ml-2 w-5 h-5" />
-              </button>
+              <div className="text-center">
+                <p className="text-xs text-secondary mb-4">
+                  {toPage - fromPage + 1} pages selected · AI will process 
+                  <span className="text-primary font-medium ml-1">
+                    {toPage - fromPage + 1 <= 4 ? "full content" : "key lines per page"}
+                  </span>
+                </p>
+
+                <button
+                  onClick={startGeneration}
+                  disabled={toPage - fromPage + 1 === 0 || toPage - fromPage + 1 > 20}
+                  className="w-full md:w-auto min-w-[280px] inline-flex items-center justify-center rounded-xl bg-[#f5a623] px-10 py-5 text-xl font-bold text-black hover:bg-[#f5a623]/90 hover:scale-[1.02] active:scale-[0.98] transition-all shadow-gold-glow disabled:opacity-50 disabled:scale-100 disabled:pointer-events-none"
+                >
+                  Create Flashcards 
+                  <span className="btn-arrow ml-2">
+                    <ArrowRight size={24} />
+                  </span>
+                </button>
+              </div>
               
               <button 
                 onClick={() => { setStep("upload"); setPdfUrl(null); }}
-                className="text-sm text-secondary hover:text-primary transition-colors"
+                className="text-sm text-secondary hover:text-primary transition-colors mt-2"
               >
                 Change PDF
               </button>
@@ -339,6 +418,7 @@ export default function NewDeckClient() {
                 <UploadZone 
                   deckId={deckId} 
                   onUploadComplete={handleUploadComplete}
+                  onFileSelected={setPdfFile}
                   onCancel={() => { setDeckId(null); setStep("upload"); }}
                 />
               )}

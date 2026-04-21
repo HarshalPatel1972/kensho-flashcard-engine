@@ -10,11 +10,12 @@ type UploadZoneProps = {
   deckId: string;
   onSuccess?: () => void;
   onUploadComplete?: (url: string) => void;
+  onFileSelected?: (file: File) => void;
   onCancel: () => void;
   skipDeleteOnCancel?: boolean;
 };
 
-export function UploadZone({ deckId, onSuccess, onUploadComplete, onCancel, skipDeleteOnCancel }: UploadZoneProps) {
+export function UploadZone({ deckId, onSuccess, onUploadComplete, onFileSelected, onCancel, skipDeleteOnCancel }: UploadZoneProps) {
   const [isHovering, setIsHovering] = useState(false);
   const [isGenerating, setIsGenerating] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -102,6 +103,7 @@ export function UploadZone({ deckId, onSuccess, onUploadComplete, onCancel, skip
     }
     setError(null);
     setUploadedUrl(null);
+    onFileSelected?.(file);
     const controller = new AbortController();
     setAbortController(controller);
     await startUpload([file]);
