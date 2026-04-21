@@ -84,13 +84,12 @@
 .nav-item-active::after {
   content: '';
   position: absolute;
-  right: 0;
+  right: 6px;
   top: 25%;
   height: 50%;
   width: 3px;
   background: var(--gold);
   border-radius: 99px;
-  box-shadow: -1px 0 8px var(--gold);
 }
 
 /* --- BUTTONS & ANIMATIONS --- */

@@ -39,7 +39,7 @@ export function NavTopBar({ title = "Dashboard", onMenuClick }: NavTopBarProps) 
             <UserButton
               appearance={{
                 elements: {
-                  avatarBox: "w-10 h-10 rounded-xl border-2 border-border/50 hover:border-gold/50 transition-colors shadow-sm",
+                  avatarBox: "w-12 h-12 rounded-xl border-2 border-border/50 hover:border-gold/50 transition-colors shadow-sm",
                   card: "bg-surface border border-border/50 backdrop-blur-xl",
                 }
               }}

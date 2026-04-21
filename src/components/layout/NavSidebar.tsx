@@ -63,7 +63,7 @@ export function NavSidebar() {
           className="flex items-center gap-3 hover:opacity-80 transition-opacity"
           onMouseEnter={() => playHover()}
         >
-          <div className="w-10 h-10 rounded-xl overflow-hidden shadow-gold-glow shrink-0 border border-gold/20">
+          <div className="w-10 h-10 rounded-xl overflow-hidden shrink-0 border border-gold/20">
             <img src="/favicon.svg" alt="Kenshō Logo" className="w-full h-full object-cover" />
           </div>
           <AnimatePresence mode="wait">
