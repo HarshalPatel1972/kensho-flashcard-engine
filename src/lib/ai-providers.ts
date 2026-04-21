@@ -27,21 +27,6 @@ export async function generateWithFallback(
     call: (model: string) => Promise<string>;
   }[] = [
     {
-      name: "groq",
-      tiers: ["llama-3.1-8b-instant", "llama-3.3-70b-versatile"],
-      timeout: 10000,
-      call: async (modelId) => {
-        const groq = new Groq({ apiKey: process.env.GROQ_API_KEY! });
-        const completion = await groq.chat.completions.create({
-          messages: [{ role: "user", content: prompt }],
-          model: modelId,
-          max_tokens: maxTokens,
-          temperature: 0.3
-        });
-        return completion.choices[0]?.message?.content || "";
-      }
-    },
-    {
       name: "gemini",
       tiers: ["gemma-4-31b-it"],
       timeout: 30000,
@@ -50,33 +35,6 @@ export async function generateWithFallback(
         const model = genAI.getGenerativeModel({ model: modelId });
         const result = await model.generateContent(prompt);
         return result.response.text();
-      }
-    },
-    {
-      name: "huggingface",
-      tiers: ["mistralai/Mistral-7B-Instruct-v0.3", "Qwen/Qwen2.5-72B-Instruct"],
-      timeout: 12000,
-      call: async (modelId) => {
-        const response = await fetch(
-          `https://api-inference.huggingface.co/models/${modelId}/v1/chat/completions`,
-          {
-            method: "POST",
-            headers: {
-              Authorization: `Bearer ${process.env.HUGGING_FACE_API_KEY || process.env.HUGGINGFACE_API_KEY!}`,
-              "Content-Type": "application/json"
-            },
-            body: JSON.stringify({
-              model: modelId,
-              messages: [{ role: "user", content: prompt }],
-              max_tokens: maxTokens,
-              temperature: 0.3,
-              stream: false
-            })
-          }
-        );
-        if (!response.ok) throw new Error(`HF status: ${response.status}`);
-        const data = await response.json();
-        return data.choices?.[0]?.message?.content || "";
       }
     }
   ];
