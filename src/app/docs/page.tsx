@@ -3,8 +3,11 @@
 import Link from "next/link";
 import { PageTransition } from "@/components/PageTransition";
 import { ArrowLeft } from "lucide-react";
+import { useAuth } from "@clerk/nextjs";
 
 export default function DocsPage() {
+  const { isSignedIn } = useAuth();
+
   return (
     <PageTransition>
       <div className="min-h-screen bg-bg text-primary selection:bg-gold selection:text-black">
@@ -12,11 +15,11 @@ export default function DocsPage() {
           
           <header className="space-y-4">
             <Link 
-              href="/dashboard" 
+              href={isSignedIn ? "/dashboard" : "/"} 
               className="inline-flex items-center text-sm text-secondary hover:text-gold transition-colors group"
             >
               <ArrowLeft className="w-4 h-4 mr-2 group-hover:-translate-x-1 transition-transform" />
-              Back to Dashboard
+              {isSignedIn ? "Back to Dashboard" : "Back to Home"}
             </Link>
             <h1 className="text-4xl md:text-5xl font-medium tracking-tight mt-8">
               Kenshō Documentation
@@ -159,12 +162,13 @@ export default function DocsPage() {
 
           <footer className="pt-16 border-t border-border/30 text-center">
             <Link
-              href="/dashboard"
-              className="inline-flex items-center justify-center rounded-xl bg-gold px-10 py-4 text-xl font-bold text-black transition-all hover:bg-gold-hover hover:scale-105 active:scale-95 shadow-2xl shadow-gold/40"
+              href={isSignedIn ? "/dashboard" : "/"}
+              className="inline-flex items-center justify-center rounded-xl bg-gold px-10 py-4 text-xl font-bold text-black transition-all hover:bg-gold-hover hover:scale-105 active:scale-95 shadow-gold-glow"
             >
-              Back to Dashboard
+              {isSignedIn ? "Back to Dashboard" : "Back to Home"}
             </Link>
           </footer>
+
         </div>
       </div>
     </PageTransition>

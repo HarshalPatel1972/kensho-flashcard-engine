@@ -7,7 +7,7 @@ import { RatingButtons } from "@/components/RatingButtons";
 import { ProgressBar } from "@/components/ProgressBar";
 import { StudyComplete } from "@/components/StudyComplete";
 import Link from "next/link";
-import { UserButton } from "@clerk/nextjs";
+import { UserButton, useAuth } from "@clerk/nextjs";
 import { LoadingMessage } from "@/components/LoadingMessage";
 import { PageTransition } from "@/components/PageTransition";
 import { ThemeToggle } from "@/components/ThemeToggle";
@@ -190,6 +190,19 @@ export default function StudyClient() {
             <RatingButtons onRate={handleRate} disabled={isSubmitting || !isFlipped} />
           </div>
         </main>
+        <footer className="w-full max-w-3xl mx-auto py-8 text-center">
+          <Link 
+            href="/docs" 
+            className="text-xs text-secondary hover:text-gold transition-colors inline-flex items-center gap-1"
+          >
+            How Kenshō works 
+            <span className="btn-arrow ml-1">
+              <svg className="w-3 h-3" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M14 5l7 7m0 0l-7 7m7-7H3" />
+              </svg>
+            </span>
+          </Link>
+        </footer>
       </div>
     </PageTransition>
   );
