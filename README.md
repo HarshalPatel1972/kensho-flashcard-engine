@@ -11,7 +11,7 @@ graph TD
     User([User]) -->|Uploads PDF| UT[UploadThing S3]
     UT -->|URL| API[Kenshō API /Next.js]
     
-    subgraph "Ingestion Engine"
+    subgraph "Ingestion Engine (Railway)"
     API -->|Attempt Proxy| GO[Go Backend /High-Perf]
     API -->|Fallback| Local[Node.js Local Processor]
     Local --> PDF[PDF.js Extraction]
@@ -73,8 +73,8 @@ Relative dates improve cognitive ease during study sessions.
 A significant part of Kenshō’s development involved navigating the "messy reality" of deploying AI at scale.
 
 ### The Vercel Timeout Barrier
-- **Failing**: Processing large PDFs in a single serverless function caused frequent timeouts.
-- **Fixed**: Implemented a "Hybrid Ingestion" model. The API attempts to proxy to a persistent Go-based backend; if unreachable, it falls back to a chunked-processing architecture where the client manages ingestion state across multiple short-lived API calls.
+- **Failing**: Processing large PDFs in a single serverless function caused frequent timeouts (Vercel's 10s limit).
+- **Fixed**: Implemented a **Distributed Deployment** strategy. The client-facing app lives on **Vercel**, while the heavy ingestion is proxied to a persistent **Go-based backend on Railway**. This ensures zero-timeout extraction and high-concurrency processing.
 
 ### The UI Over-Engineering Trap
 - **Failing**: Attempting to move settings to a dedicated route (`/dashboard/settings`) added URL bloat and broke the "workstation" feel.
@@ -109,11 +109,10 @@ HUGGING_FACE_API_KEY=...
 KENSHO_BACKEND_URL=https://...
 ```
 
-### Installation
-```bash
-npm install
-npm run dev
-```
+### Deployment
+- **Frontend/Edge**: [Vercel](https://vercel.com)
+- **High-Performance Ingestion**: [Railway](https://railway.app) (Docker-based Go Backend)
+- **Database**: [Neon](https://neon.tech) (Serverless PostgreSQL)
 
 ---
 
