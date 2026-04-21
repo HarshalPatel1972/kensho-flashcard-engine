@@ -53,7 +53,7 @@ export default async function DashboardPage({ searchParams }: { searchParams: Pr
         lastStudiedAt: decks.lastStudiedAt,
         createdAt: decks.createdAt,
         cardCount: sql<number>`count(distinct ${cards.id})`.mapWith(Number),
-        masteredCount: sql<number>`count(distinct case when ${cardProgress.lastReviewedAt} is not null then ${cards.id} end)`.mapWith(Number),
+        masteredCount: sql<number>`count(distinct case when ${cardProgress.status} = 'mastered' then ${cards.id} end)`.mapWith(Number),
       })
       .from(decks)
       .leftJoin(cards, eq(decks.id, cards.deckId))
