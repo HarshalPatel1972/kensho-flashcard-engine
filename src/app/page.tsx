@@ -134,7 +134,7 @@ export default function Home() {
           >
             <Link
               href="/dashboard"
-              className="inline-flex items-center justify-center gap-2 rounded-xl bg-gold px-10 py-4 text-xl font-bold text-black transition-all hover:scale-105 active:scale-95 shadow-gold-glow border-2 border-transparent focus:ring-2 focus:ring-gold focus:ring-offset-2 focus:outline-none"
+              className="inline-flex items-center justify-center gap-2 rounded-xl px-10 py-5 text-xl font-bold transition-all hover:scale-105 active:scale-95 shadow-gold-glow btn-kensho-3d"
             >
               Start learning 
               <span className="btn-arrow">

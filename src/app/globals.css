@@ -83,6 +83,40 @@ a:hover .btn-arrow {
   box-shadow: 0 0 18px color-mix(in srgb, var(--gold), transparent 65%);
 }
 
+/* --- TACTILE 3D BUTTONS --- */
+.btn-kensho-3d {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 9999px;
+  background-color: var(--gold) !important;
+  color: black !important;
+  font-weight: 700 !important;
+  box-shadow: 0 5px 0 0 color-mix(in srgb, var(--gold), black 30%) !important;
+  transition: all 0.1s ease !important;
+  border: none !important;
+  outline: none !important;
+  cursor: pointer;
+}
+
+.btn-kensho-3d:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 6px 0 0 color-mix(in srgb, var(--gold), black 30%) !important;
+}
+
+.btn-kensho-3d:active {
+  transform: translateY(3px);
+  box-shadow: 0 2px 0 0 color-mix(in srgb, var(--gold), black 30%) !important;
+}
+
+.btn-kensho-3d:disabled {
+  opacity: 0.5;
+  transform: none;
+  box-shadow: none !important;
+  cursor: not-allowed;
+}
+
 @keyframes pulse-gold {
   0%, 100% { box-shadow: 0 0 0 0 color-mix(in srgb, var(--gold), transparent 60%); }
   50% { box-shadow: 0 0 0 12px color-mix(in srgb, var(--gold), transparent 100%); }

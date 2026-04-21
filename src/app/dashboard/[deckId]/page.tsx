@@ -114,10 +114,8 @@ export default async function DeckOverviewPage({ params }: { params: Promise<{ d
               <div className="fixed md:static bottom-0 left-0 w-full md:w-auto p-4 md:p-0 bg-bg/80 md:bg-transparent backdrop-blur-md md:backdrop-blur-none border-t md:border-t-0 border-border z-40">
                 <Link
                   href={`/study/${deckId}`}
-                  className={`inline-flex items-center justify-center rounded-xl px-8 py-3 text-lg font-semibold transition-all w-full md:w-auto ${
-                    dueTodayCount > 0
-                      ? "bg-gold text-black hover:scale-[1.02] active:scale-[0.98] shadow-gold-glow border-2 border-transparent focus:ring-2 focus:ring-gold focus:ring-offset-2 focus:outline-none"
-                      : "bg-surface border border-border text-primary opacity-50 cursor-not-allowed pointer-events-none"
+                  className={`inline-flex items-center justify-center rounded-xl px-8 py-4 text-lg font-bold transition-all w-full md:w-auto btn-kensho-3d ${
+                    dueTodayCount === 0 && "opacity-50 cursor-not-allowed pointer-events-none"
                   }`}
                   aria-disabled={dueTodayCount === 0}
                 >
