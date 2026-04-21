@@ -74,6 +74,15 @@ export default function Home() {
   return (
     <PageTransition>
       <main className="relative flex flex-col items-center justify-center min-h-screen p-6 text-center overflow-hidden">
+        <nav className="absolute top-0 right-0 p-6 z-20">
+          <Link 
+            href="/docs" 
+            className="text-sm font-medium text-secondary hover:text-gold transition-colors border-b border-transparent hover:border-gold pb-0.5"
+          >
+            Docs
+          </Link>
+        </nav>
+
         {/* Background subtle texture */}
         <div 
           className="absolute inset-0 pointer-events-none z-0"
