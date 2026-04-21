@@ -98,7 +98,7 @@ export default async function DeckOverviewPage({ params }: { params: Promise<{ d
 
   return (
     <PageTransition>
-      <div className="space-y-8 max-w-5xl mx-auto pb-24 md:pb-8">
+      <div className="space-y-12 max-w-5xl mx-auto pb-24 md:pb-8">
         <div>
           <Link href="/dashboard" className="text-sm border-b border-transparent hover:border-gold text-secondary hover:text-gold transition-colors pb-0.5 inline-flex mb-4">
             ← Back to Decks
@@ -114,16 +114,19 @@ export default async function DeckOverviewPage({ params }: { params: Promise<{ d
               <div className="fixed md:static bottom-0 left-0 w-full md:w-auto p-4 md:p-0 bg-bg/80 md:bg-transparent backdrop-blur-md md:backdrop-blur-none border-t md:border-t-0 border-border z-40">
                 <Link
                   href={`/study/${deckId}`}
-                  className={`inline-flex items-center justify-center rounded-xl px-8 py-3 text-lg font-semibold transition-all w-full md:w-auto shadow-xl ${
+                  className={`inline-flex items-center justify-center rounded-xl px-8 py-3 text-lg font-semibold transition-all w-full md:w-auto ${
                     dueTodayCount > 0
-                      ? "bg-[#f5a623] text-black hover:bg-[#f5a623]/90 hover:scale-[1.02] active:scale-[0.98] shadow-[#f5a623]/30 border-2 border-transparent focus:ring-2 focus:ring-[#f5a623] focus:ring-offset-2 focus:outline-none"
+                      ? "bg-[#f5a623] text-black hover:bg-[#f5a623]/90 hover:scale-[1.02] active:scale-[0.98] shadow-gold-glow border-2 border-transparent focus:ring-2 focus:ring-[#f5a623] focus:ring-offset-2 focus:outline-none"
                       : "bg-surface border border-border text-primary opacity-50 cursor-not-allowed pointer-events-none"
                   }`}
                   aria-disabled={dueTodayCount === 0}
                 >
                   {dueTodayCount > 0 ? (
                     <span className="flex items-center gap-2">
-                      Study Now <ArrowRight size={18} />
+                      Study Now 
+                      <span className="btn-arrow">
+                        <ArrowRight size={18} />
+                      </span>
                     </span>
                   ) : "No cards due"}
                 </Link>
@@ -156,7 +159,7 @@ export default async function DeckOverviewPage({ params }: { params: Promise<{ d
                 { label: "Due Today", value: dueTodayCount, highlight: dueTodayCount > 0 },
                 { label: "Avg Ease", value: avgEase.toFixed(2) },
               ].map((stat, i) => (
-                <div key={i} className={`p-4 rounded-xl border ${stat.highlight ? "border-gold/30 bg-gold/5" : "border-border/50 bg-surface"}`}>
+                <div key={i} className={`p-4 rounded-xl border card-lifted ${stat.highlight ? "border-gold/30 bg-gold/5" : "border-border/50 bg-surface"}`}>
                   <p className="text-sm text-secondary mb-1">{stat.label}</p>
                   <p className={`text-2xl font-medium ${stat.highlight ? "text-gold" : "text-primary"}`}>
                     {stat.value}
@@ -165,13 +168,15 @@ export default async function DeckOverviewPage({ params }: { params: Promise<{ d
               ))}
             </div>
 
-            {weakCards.length > 0 && <WeakCards cards={weakCards} />}
+            <div className="mb-6">
+              {weakCards.length > 0 && <WeakCards cards={weakCards} />}
+            </div>
 
-            <div className="bg-surface rounded-xl border border-border/50 shadow-2xl shadow-black/20 overflow-hidden">
+            <div className="bg-surface rounded-xl border border-border/50 shadow-sm overflow-hidden card-lifted mb-8">
               <div className="overflow-x-auto">
                 <table className="w-full text-left border-collapse">
                   <thead>
-                    <tr className="border-b border-border/50 bg-bg/50">
+                    <tr className="border-b border-border/50 bg-bg/50 light:bg-[#f9f9f9]">
                       <th className="py-3 px-4 md:px-6 text-sm font-medium text-secondary w-full md:w-1/3">Front</th>
                       <th className="py-3 px-4 md:px-6 text-sm font-medium text-secondary hidden md:table-cell w-1/3">Back</th>
                       <th className="py-3 px-4 md:px-6 text-sm font-medium text-secondary">Status</th>

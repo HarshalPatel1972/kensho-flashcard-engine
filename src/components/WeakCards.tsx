@@ -25,7 +25,7 @@ export function WeakCards({ cards }: { cards: WeakCard[] }) {
             initial={shouldReduceMotion ? { opacity: 1, x: 0 } : { opacity: 0, x: -16 }}
             animate={{ opacity: 1, x: 0 }}
             transition={{ duration: 0.35, delay: shouldReduceMotion ? 0 : index * 0.08 }}
-            className="p-5 bg-surface border-l-4 border-gold rounded-r-xl border-y border-r border-border/40 shadow-xl shadow-black/20"
+            className="p-5 bg-surface dark:bg-surface border-l-4 border-gold rounded-r-xl border-y border-r border-border/40 shadow-sm light:bg-[#fffbeb] light:border-[#fde68a] card-lifted"
           >
             <p className="text-sm text-primary font-medium mb-3 line-clamp-3">{card.front}</p>
             <div className="flex items-center justify-between mt-auto">
