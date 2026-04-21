@@ -39,10 +39,6 @@ func ExtractTextFromPages(url string, targetPages []int) (*ExtractionResult, err
 
 	for _, pageNum := range targetPages {
 		p := r.Page(pageNum)
-		if p.V == nil {
-			continue
-		}
-
 		content, err := p.GetPlainText(nil)
 		if err != nil {
 			continue

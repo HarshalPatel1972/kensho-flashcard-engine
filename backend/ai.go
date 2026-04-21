@@ -4,7 +4,6 @@ import (
 	"context"
 	"encoding/json"
 	"errors"
-	"fmt"
 	"log"
 	"os"
 	"regexp"
@@ -128,16 +127,18 @@ func GenerateFlashcards(ctx context.Context, text string, requestedIndex int) ([
 
 	// 1. Groq
 	if key := os.Getenv("GROQ_API_KEY"); key != "" {
-		client := openai.NewClientWithConfig(openai.DefaultConfig(key))
-		client.Config.BaseURL = "https://api.groq.com/openai/v1"
+		config := openai.DefaultConfig(key)
+		config.BaseURL = "https://api.groq.com/openai/v1"
+		client := openai.NewClientWithConfig(config)
 		p := &GroqProvider{client: client, model: "llama-3.3-70b-versatile"}
 		providers = append(providers, providerEntry{name: "groq", call: func() (string, error) { return p.Generate(ctx, prompt) }})
 	}
 
 	// 2. DeepSeek (via OpenAI endpoint)
 	if key := os.Getenv("DEEPSEEK_API_KEY"); key != "" {
-		client := openai.NewClientWithConfig(openai.DefaultConfig(key))
-		client.Config.BaseURL = "https://api.deepseek.com/v1"
+		config := openai.DefaultConfig(key)
+		config.BaseURL = "https://api.deepseek.com/v1"
+		client := openai.NewClientWithConfig(config)
 		p := &GroqProvider{client: client, model: "deepseek-chat"}
 		providers = append(providers, providerEntry{name: "deepseek", call: func() (string, error) { return p.Generate(ctx, prompt) }})
 	}

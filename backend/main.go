@@ -22,7 +22,6 @@ func main() {
 
 	// Production CORS Policy
 	r.Use(func(c *gin.Context) {
-		origin := c.Request.Header.Get("Origin")
 		// In production, you can set an ALLOWED_ORIGIN env var to lock this down
 		allowedOrigin := os.Getenv("ALLOWED_ORIGIN")
 		if allowedOrigin == "" || allowedOrigin == "*" {
