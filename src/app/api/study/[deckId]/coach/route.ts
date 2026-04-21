@@ -1,7 +1,6 @@
 import { auth } from "@clerk/nextjs/server";
-import { GoogleGenerativeAI } from "@google/generative-ai";
 import { NextResponse } from "next/server";
-import { runUniversalAI } from "@/lib/ai";
+import { generateWithFallback } from "@/lib/ai-providers";
 
 export const dynamic = "force-dynamic";
 
@@ -37,9 +36,9 @@ export async function POST(
       Return only the coaching text, no labels, no JSON.
     `;
 
-    const { text: feedback } = await runUniversalAI(prompt);
+    const result = await generateWithFallback(prompt, 300);
 
-    return NextResponse.json({ feedback });
+    return NextResponse.json({ feedback: result.text });
   } catch (error) {
     console.error("Coaching API Error:", error);
     return NextResponse.json({ error: "Failed to generate coaching note" }, { status: 500 });
