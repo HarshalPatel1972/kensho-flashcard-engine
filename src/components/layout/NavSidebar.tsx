@@ -18,7 +18,6 @@ import { cn } from "@/lib/utils";
 
 const NAV_ITEMS = [
   { icon: Home, label: "Home", href: "/dashboard" },
-  { icon: Library, label: "Decks", href: "/dashboard" },
   { icon: BookOpen, label: "Docs", href: "/docs" },
 ];
 
@@ -58,14 +57,14 @@ export function NavSidebar() {
       </button>
 
       {/* Logo Section */}
-      <div className="h-20 flex items-center px-6 overflow-hidden">
+      <div className="h-24 flex items-center px-6 overflow-hidden">
         <Link 
           href="/dashboard" 
           className="flex items-center gap-3 hover:opacity-80 transition-opacity"
           onMouseEnter={() => playHover()}
         >
-          <div className="w-10 h-10 rounded-xl bg-gold flex items-center justify-center shadow-gold-glow shrink-0">
-            <Sparkles className="w-6 h-6 text-black fill-black" />
+          <div className="w-10 h-10 rounded-xl overflow-hidden shadow-gold-glow shrink-0 border border-gold/20">
+            <img src="/favicon.svg" alt="Kenshō Logo" className="w-full h-full object-cover" />
           </div>
           <AnimatePresence mode="wait">
             {!isCollapsed && (
@@ -83,7 +82,7 @@ export function NavSidebar() {
       </div>
 
       {/* Nav Items */}
-      <nav className="flex-1 px-4 py-8 space-y-2">
+      <nav className="flex-1 px-4 py-8 space-y-3">
         {NAV_ITEMS.map((item) => {
           const isActive = pathname === item.href;
           return (
@@ -93,7 +92,7 @@ export function NavSidebar() {
               onClick={() => playClick()}
               onMouseEnter={() => playHover()}
               className={cn(
-                "relative group flex items-center gap-4 px-4 py-3.5 rounded-xl transition-all duration-200 overflow-hidden",
+                "relative group flex items-center gap-4 px-4 py-3 rounded-full transition-all duration-200 overflow-hidden",
                 isActive ? "nav-item-active" : "text-secondary hover:bg-surface/50"
               )}
             >
@@ -119,14 +118,14 @@ export function NavSidebar() {
           );
         })}
 
-        <div className="pt-8 mt-8 border-t border-border/30">
+        <div className="pt-6 mt-6 border-t border-border/30">
           <Link
             href="/dashboard/new"
             onClick={() => playClick()}
             onMouseEnter={() => playHover()}
             className={cn(
-              "flex items-center gap-4 px-4 py-3.5 rounded-xl transition-all duration-200",
-              "bg-gold/5 text-gold hover:bg-gold/10 border border-gold/10"
+              "flex items-center gap-4 px-4 py-3 rounded-full transition-all duration-200",
+              "bg-gold text-black shadow-gold-glow hover:bg-gold-hover"
             )}
           >
             <PlusCircle className="w-5 h-5 shrink-0" />

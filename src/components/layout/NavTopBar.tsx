@@ -11,7 +11,7 @@ interface NavTopBarProps {
   onMenuClick?: () => void;
 }
 
-export function NavTopBar({ title = "Kenshō Dashboard", onMenuClick }: NavTopBarProps) {
+export function NavTopBar({ title = "Dashboard", onMenuClick }: NavTopBarProps) {
   const { playHover } = useKenshoSounds();
   const { isSignedIn } = useAuth();
 
