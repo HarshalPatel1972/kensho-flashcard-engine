@@ -178,7 +178,7 @@ export default function DocsPage() {
           <footer className="pt-16 border-t border-border/30 text-center">
             <Link
               href={isSignedIn ? "/dashboard" : "/"}
-              className="inline-flex items-center justify-center rounded-xl bg-gold px-10 py-4 text-xl font-bold text-black transition-all hover:bg-gold-hover hover:scale-105 active:scale-95 shadow-gold-glow"
+              className="inline-flex items-center justify-center rounded-xl bg-gold px-10 py-4 text-xl font-bold text-black btn-kensho-3d"
             >
               {isSignedIn ? "Back to Dashboard" : "Back to Home"}
             </Link>
