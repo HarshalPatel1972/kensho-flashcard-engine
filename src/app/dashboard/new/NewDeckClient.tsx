@@ -377,7 +377,7 @@ export default function NewDeckClient() {
               id="title"
               type="text"
               value={title}
-              onChange={(e) => setTitle(e.target.value)}
+              onChange={(e) => { setTitle(e.target.value); playType(); }}
               required
               className="w-full bg-bg border border-border rounded-md px-4 py-2.5 text-primary focus:outline-none focus:ring-1 focus:ring-gold focus:border-gold transition-colors"
               placeholder="e.g., Biology 101: Cell Structure"
@@ -388,7 +388,7 @@ export default function NewDeckClient() {
             <textarea
               id="description"
               value={description}
-              onChange={(e) => setDescription(e.target.value)}
+              onChange={(e) => { setDescription(e.target.value); playType(); }}
               rows={3}
               className="w-full bg-bg border border-border rounded-md px-4 py-2.5 text-primary focus:outline-none focus:ring-1 focus:ring-gold focus:border-gold transition-colors resize-none"
               placeholder="Study notes for midterm..."
@@ -433,7 +433,7 @@ export default function NewDeckClient() {
                     <input 
                       type="text" 
                       value={rangeInput}
-                      onChange={(e) => setRangeInput(e.target.value)}
+                      onChange={(e) => { setRangeInput(e.target.value); playType(); }}
                       placeholder="e.g. 1-5, 8, 11-13"
                       className="w-full bg-bg border border-border rounded-xl px-4 py-3 text-lg font-medium focus:ring-2 focus:ring-gold outline-none transition-all"
                       autoFocus
@@ -509,7 +509,7 @@ export default function NewDeckClient() {
                 <button
                   onClick={startGeneration}
                   disabled={selectedPages.length === 0 || selectedPages.length > 20}
-                  className="w-full md:w-auto min-w-[280px] inline-flex items-center justify-center rounded-xl bg-[#f5a623] px-10 py-5 text-xl font-bold text-black hover:bg-[#f5a623]/90 hover:scale-[1.02] active:scale-[0.98] transition-all shadow-gold-glow disabled:opacity-50 disabled:scale-100 disabled:pointer-events-none"
+                  className="inline-flex items-center justify-center gap-2 rounded-xl bg-gold px-10 py-4 text-xl font-bold text-black transition-all hover:scale-105 active:scale-95 shadow-gold-glow border-2 border-transparent focus:ring-2 focus:ring-gold focus:ring-offset-2 focus:outline-none"
                 >
                   Create Flashcards 
                   <span className="btn-arrow ml-2">
@@ -519,7 +519,7 @@ export default function NewDeckClient() {
               </div>
               
               <button 
-                onClick={() => { setStep("upload"); setPdfUrl(null); }}
+                onClick={() => { playClick(); setStep("upload"); setPdfUrl(null); }}
                 className="text-sm text-secondary hover:text-primary transition-colors mt-2"
               >
                 Change PDF
@@ -601,8 +601,8 @@ function PageModeSelect({ value, onChange }: { value: "all" | "custom", onChange
                 className={cn(
                   "w-full text-left px-4 py-2.5 text-sm transition-colors",
                   value === mode 
-                    ? "bg-gold text-black font-bold" 
-                    : "text-primary hover:bg-gold/10 hover:text-gold"
+                    ? "bg-gold/10 text-gold border border-gold/20" 
+                    : "bg-slate-800/50 text-secondary border border-slate-700/50 hover:text-gold"
                 )}
               >
                 {mode === "all" ? "All" : "Custom"}

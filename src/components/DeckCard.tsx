@@ -108,7 +108,7 @@ export function DeckCard({ id, title, cardCount, masteredCount, dueTodayCount, l
               ) : (
                 <span className={`inline-flex items-center px-2.5 py-1 rounded-md text-[10px] font-bold uppercase tracking-tighter ${
                   dueTodayCount > 0 
-                  ? "bg-amber-500/10 text-amber-500 border border-amber-500/20" 
+                  ? "bg-gold/10 text-gold border border-gold/20" 
                   : "bg-slate-800/50 text-secondary border border-slate-700/50"
                 }`}>
                   {dueTodayCount > 0 ? `${dueTodayCount} Due Now` : "All caught up"}

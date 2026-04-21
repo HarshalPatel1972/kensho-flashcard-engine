@@ -2,6 +2,7 @@
 
 import { useEffect } from "react";
 import { motion, useReducedMotion } from "framer-motion";
+import { useKenshoSounds } from "@/hooks/use-kensho-sounds";
 
 type RatingButtonsProps = {
   onRate: (quality: number) => void;
@@ -10,20 +11,25 @@ type RatingButtonsProps = {
 
 export function RatingButtons({ onRate, disabled }: RatingButtonsProps) {
   const shouldReduceMotion = useReducedMotion();
+  const { playClick } = useKenshoSounds();
 
   useEffect(() => {
     if (disabled) return;
     const handleKeyDown = (e: KeyboardEvent) => {
-      switch (e.key) {
-        case "1": onRate(0); break;
-        case "2": onRate(3); break;
-        case "3": onRate(4); break;
-        case "4": onRate(5); break;
+      const keys = ["1", "2", "3", "4"];
+      if (keys.includes(e.key)) {
+        playClick();
+        switch (e.key) {
+          case "1": onRate(0); break;
+          case "2": onRate(3); break;
+          case "3": onRate(4); break;
+          case "4": onRate(5); break;
+        }
       }
     };
     window.addEventListener("keydown", handleKeyDown);
     return () => window.removeEventListener("keydown", handleKeyDown);
-  }, [onRate, disabled]);
+  }, [onRate, disabled, playClick]);
 
   const buttons = [
     { label: "Again", key: "1", value: 0, color: "text-red-500 border-red-500/20 hover:bg-[#ef4444] hover:border-[#ef4444] hover:text-white active:bg-[#dc2626] active:border-[#dc2626] active:text-white" },

@@ -2,11 +2,13 @@
 
 import { useEffect, useState } from "react";
 import { useSearchParams, useRouter, usePathname } from "next/navigation";
+import { useKenshoSounds } from "@/hooks/use-kensho-sounds";
 
 export function DashboardSearch() {
   const searchParams = useSearchParams();
   const pathname = usePathname();
   const { replace } = useRouter();
+  const { playType } = useKenshoSounds();
   
   const [term, setTerm] = useState(searchParams.get("q")?.toString() || "");
 
@@ -36,7 +38,10 @@ export function DashboardSearch() {
         placeholder="Search titles or card content..."
         className="block w-full pl-10 pr-3 py-2.5 bg-surface border border-border/50 rounded-lg text-primary placeholder-slate-500 focus:outline-none focus:ring-1 focus:ring-gold focus:border-gold transition-colors sm:text-sm"
         value={term}
-        onChange={(e) => setTerm(e.target.value)}
+        onChange={(e) => {
+          setTerm(e.target.value);
+          playType();
+        }}
       />
     </div>
   );

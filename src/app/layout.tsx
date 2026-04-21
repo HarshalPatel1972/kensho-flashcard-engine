@@ -22,7 +22,7 @@ export default function RootLayout({
   return (
     <ClerkProvider
       appearance={{
-        variables: { colorPrimary: "#f5a623" },
+        variables: { colorPrimary: "var(--gold)" },
         elements: {
           card: "bg-surface border border-border/50",
           headerTitle: "text-primary",
@@ -34,7 +34,7 @@ export default function RootLayout({
     >
       <html lang="en" suppressHydrationWarning>
         <body
-          className={`${outfit.className} bg-bg text-primary antialiased min-h-screen selection:bg-gold/30 selection:text-gold`}
+          className={`${outfit.className} bg-bg text-primary antialiased min-h-screen selection:bg-gold selection:text-black`}
         >
           <ThemeProvider attribute="class" defaultTheme="system" enableSystem>
             <SettingsProvider>

@@ -4,6 +4,7 @@ import { useState, useRef, useEffect } from "react";
 import { Pencil } from "lucide-react";
 import { toast } from "sonner";
 import { useRouter } from "next/navigation";
+import { useKenshoSounds } from "@/hooks/use-kensho-sounds";
 
 type DeckTitleProps = {
   deckId: string;
@@ -16,6 +17,7 @@ export function DeckTitle({ deckId, initialTitle }: DeckTitleProps) {
   const [inputValue, setInputValue] = useState(initialTitle);
   const inputRef = useRef<HTMLInputElement>(null);
   const router = useRouter();
+  const { playClick, playType } = useKenshoSounds();
 
   useEffect(() => {
     if (isEditing) {
@@ -74,7 +76,7 @@ export function DeckTitle({ deckId, initialTitle }: DeckTitleProps) {
         ref={inputRef}
         type="text"
         value={inputValue}
-        onChange={(e) => setInputValue(e.target.value)}
+        onChange={(e) => { setInputValue(e.target.value); playType(); }}
         onBlur={handleSave}
         onKeyDown={handleKeyDown}
         className="text-3xl font-medium tracking-tight text-primary bg-bg border-b-2 border-gold outline-none w-full max-w-2xl py-1"
@@ -86,7 +88,7 @@ export function DeckTitle({ deckId, initialTitle }: DeckTitleProps) {
   return (
     <div 
       className="group flex items-center gap-2 cursor-pointer"
-      onClick={() => setIsEditing(true)}
+      onClick={() => { playClick(); setIsEditing(true); }}
     >
       <h1 className="text-3xl font-medium tracking-tight text-primary line-clamp-1 group-hover:text-gold transition-colors">
         {title}

@@ -116,7 +116,7 @@ export default async function DeckOverviewPage({ params }: { params: Promise<{ d
                   href={`/study/${deckId}`}
                   className={`inline-flex items-center justify-center rounded-xl px-8 py-3 text-lg font-semibold transition-all w-full md:w-auto ${
                     dueTodayCount > 0
-                      ? "bg-[#f5a623] text-black hover:bg-[#f5a623]/90 hover:scale-[1.02] active:scale-[0.98] shadow-gold-glow border-2 border-transparent focus:ring-2 focus:ring-[#f5a623] focus:ring-offset-2 focus:outline-none"
+                      ? "bg-gold text-black hover:scale-[1.02] active:scale-[0.98] shadow-gold-glow border-2 border-transparent focus:ring-2 focus:ring-gold focus:ring-offset-2 focus:outline-none"
                       : "bg-surface border border-border text-primary opacity-50 cursor-not-allowed pointer-events-none"
                   }`}
                   aria-disabled={dueTodayCount === 0}
@@ -194,8 +194,8 @@ export default async function DeckOverviewPage({ params }: { params: Promise<{ d
                         </td>
                         <td className="py-4 px-4 md:px-6 align-top">
                           <span className={`inline-flex items-center px-2.5 py-1 rounded-full text-xs font-medium ${
-                            card.status === "mastered" ? "bg-green-500/10 text-green-400 border border-green-500/20" :
-                            card.status === "learning" ? "bg-amber-500/10 text-amber-500 border border-amber-500/20" :
+                            card.status === "mastered" ? "bg-emerald-500/10 text-emerald-400 border border-emerald-500/20" :
+                            card.status === "learning" ? "bg-gold/10 text-gold border border-gold/20" :
                             "bg-surface border border-border text-secondary"
                           }`}>
                             {card.status === "mastered" && (
