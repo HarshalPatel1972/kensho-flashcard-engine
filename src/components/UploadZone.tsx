@@ -162,10 +162,8 @@ export function UploadZone({ deckId, onSuccess }: UploadZoneProps) {
               quote 
               messages={isUploading ? ["Uploading PDF to secure storage..."] : [
                 "Reading your PDF...",
-                "Breaking it into sections...",
-                "Processing each section...",
-                "Merging the best cards...",
-                "Removing duplicates...",
+                "Extracting core concepts...",
+                "Crafting your cards...",
                 "Almost there..."
               ]} 
             />
@@ -203,7 +201,8 @@ export function UploadZone({ deckId, onSuccess }: UploadZoneProps) {
               </svg>
             </div>
             <p className="text-lg text-primary font-medium">Drop your PDF here or click to upload</p>
-            <p className="text-sm text-secondary">PDF up to 64MB supported</p>
+            <p className="text-sm text-secondary">Cards are generated from the core concepts of your PDF</p>
+            <p className="text-xs text-secondary/70 mt-1">Best results with focused, text-based PDFs</p>
           </label>
         )}
       </div>
