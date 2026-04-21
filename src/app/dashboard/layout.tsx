@@ -7,49 +7,43 @@ import { ThemeToggle } from "@/components/ThemeToggle";
 import { ArrowRight, Settings } from "lucide-react";
 import { AppPreferences } from "@/components/settings/AppPreferences";
 
+import { NavSidebar } from "@/components/layout/NavSidebar";
+import { NavTopBar } from "@/components/layout/NavTopBar";
+import { useState } from "react";
+
 export default function DashboardLayout({ children }: { children: ReactNode }) {
+  const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
+
   return (
-    <div className="min-h-screen flex flex-col">
-      <header className="border-b border-border/50 bg-bg/95 backdrop-blur sticky top-0 z-50">
-        <div className="container mx-auto px-4 h-16 flex items-center justify-between max-w-5xl">
-          <div className="flex items-center gap-6">
-            <Link href="/dashboard" className="text-xl font-medium tracking-tight text-primary hover:opacity-80 transition-opacity">
-              Kenshō
-            </Link>
-            <Link href="/docs" className="px-3 py-1.5 text-sm btn-kensho-3d-secondary">
-              Docs
-            </Link>
-          </div>
-          <div className="flex items-center gap-4">
-            <ThemeToggle />
-            <UserButton>
-              <UserButton.UserProfilePage label="account" />
-              <UserButton.UserProfilePage label="security" />
-              <UserButton.UserProfilePage
-                label="Settings"
-                url="settings"
-                labelIcon={<Settings size={16} />}
+    <div className="flex h-screen overflow-hidden bg-bg">
+      {/* Sidebar - Desktop Only (Fixed) */}
+      <NavSidebar />
+
+      {/* Main Viewport */}
+      <div className="flex-1 flex flex-col min-w-0 relative">
+        <NavTopBar onMenuClick={() => setIsMobileMenuOpen(true)} />
+        
+        <main className="flex-1 overflow-y-auto px-4 md:px-8 py-8">
+          <div className="max-w-5xl mx-auto">
+            {children}
+            
+            <div className="mt-20 pb-12 text-center">
+              <Link 
+                href="/docs" 
+                className="px-6 py-3 text-sm btn-kensho-3d-secondary inline-flex items-center gap-1"
               >
-                <AppPreferences />
-              </UserButton.UserProfilePage>
-            </UserButton>
+                How Kenshō works 
+                <span className="btn-arrow ml-1">
+                  <ArrowRight size={14} />
+                </span>
+              </Link>
+            </div>
           </div>
-        </div>
-      </header>
-      <main className="flex-1 container mx-auto px-4 py-8 max-w-5xl">
-        {children}
-        <div className="mt-20 pb-12 text-center">
-          <Link 
-            href="/docs" 
-            className="px-4 py-2 text-xs btn-kensho-3d-secondary inline-flex items-center gap-1"
-          >
-            How Kenshō works 
-            <span className="btn-arrow">
-              <ArrowRight size={12} />
-            </span>
-          </Link>
-        </div>
-      </main>
+        </main>
+      </div>
+
+      {/* Mobile Sidebar Overlay (Mobile Drawer TBD or simple toggle) */}
+      {/* ... Add Mobile Drawer implementation if needed ... */}
     </div>
   );
 }

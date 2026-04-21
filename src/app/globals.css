@@ -64,6 +64,36 @@
   }
 }
 
+/* --- SIDEBAR & LAYOUT --- */
+:root {
+  --sidebar-width-expanded: 260px;
+  --sidebar-width-collapsed: 84px;
+}
+
+.sidebar-glass {
+  background: color-mix(in srgb, var(--surface), transparent 40%);
+  backdrop-filter: blur(20px) saturate(180%);
+  border-right: 1px solid color-mix(in srgb, var(--border), transparent 50%);
+}
+
+.nav-item-active {
+  background: color-mix(in srgb, var(--gold), transparent 92%);
+  color: var(--gold) !important;
+}
+
+.nav-item-active::after {
+  content: '';
+  position: absolute;
+  right: 0;
+  top: 15%;
+  height: 70%;
+  width: 4px;
+  background: var(--gold);
+  border-radius: 4px 0 0 4px;
+  box-shadow: -2px 0 10px var(--gold);
+}
+精
+
 /* --- BUTTONS & ANIMATIONS --- */
 .btn-arrow {
   display: inline-flex;
