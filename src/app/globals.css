@@ -1,11 +1,13 @@
 @import "tailwindcss";
 
 @theme {
-  --color-gold: var(--accent);
-  --color-gold-hover: #e09618;
+  --color-gold: var(--gold);
+  --color-gold-hover: var(--gold-hover);
   --color-bg: var(--background);
   --color-surface: var(--surface);
   --color-border: var(--border);
+  --color-primary: var(--foreground);
+  --color-secondary: var(--secondary);
 }
 
 /* --- CARD REFINEMENTS (LIGHT MODE) --- */
@@ -42,11 +44,12 @@
 
 .dark {
   --background: #0a0a0a;
+  --foreground: #ffffff;
   --surface: #141414;
-  --text-primary: #ffffff;
-  --text-secondary: #a3a3a3;
-  --accent: #f5a623;
+  --secondary: #a3a3a3;
   --border: #262626;
+  --gold: #f5a623;
+  --gold-hover: #e49512;
 }
 
 @layer utilities {

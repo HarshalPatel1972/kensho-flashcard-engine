@@ -7,7 +7,7 @@ export function ProgressBar({ current, total }: { current: number; total: number
   const shouldReduceMotion = useReducedMotion();
 
   return (
-    <div className="w-full h-1.5 bg-surface rounded-full overflow-hidden border border-border/30">
+    <div className="w-full h-1.5 bg-zinc-200 dark:bg-zinc-800 rounded-full overflow-hidden">
       <motion.div 
         className="h-full bg-gold"
         style={{ minWidth: "8px" }}
