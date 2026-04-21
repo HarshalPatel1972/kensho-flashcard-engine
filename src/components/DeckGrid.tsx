@@ -40,16 +40,28 @@ export function DeckGrid({ initialDecks }: { initialDecks: Deck[] }) {
   const shouldReduceMotion = useReducedMotion();
 
   useEffect(() => {
-    // Instant local filter based on search term
-    if (!q) {
-      setDecks(initialDecks);
+    // Initial load from URL
+    if (q) {
+      setDecks(initialDecks.filter(d => d.title.toLowerCase().includes(q)));
     } else {
-      const filtered = initialDecks.filter(d => 
-        d.title.toLowerCase().includes(q)
-      );
-      setDecks(filtered);
+      setDecks(initialDecks);
     }
-  }, [q, initialDecks]);
+
+    // Listen for instant search signals
+    const handleSearch = (e: any) => {
+      const term = e.detail.toLowerCase();
+      if (!term) {
+        setDecks(initialDecks);
+      } else {
+        setDecks(initialDecks.filter(d => 
+          d.title.toLowerCase().includes(term)
+        ));
+      }
+    };
+
+    window.addEventListener("kensho:search", handleSearch);
+    return () => window.removeEventListener("kensho:search", handleSearch);
+  }, [initialDecks, q]);
 
   const handleDelete = (id: string) => {
     setDecks((prev) => prev.filter((d) => d.id !== id));

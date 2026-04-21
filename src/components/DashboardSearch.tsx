@@ -14,17 +14,21 @@ export function DashboardSearch() {
 
   useEffect(() => {
     const handler = setTimeout(() => {
-      const params = new URLSearchParams(searchParams);
+      // Sync URL without triggering Next.js server re-render
+      const url = new URL(window.location.href);
       if (term) {
-        params.set("q", term);
+        url.searchParams.set("q", term);
       } else {
-        params.delete("q");
+        url.searchParams.delete("q");
       }
-      replace(`${pathname}?${params.toString()}`, { scroll: false });
-    }, 150);
+      window.history.replaceState(null, "", url.toString());
+      
+      // Signal to DeckGrid
+      window.dispatchEvent(new CustomEvent("kensho:search", { detail: term }));
+    }, 50); // Faster debounce for local filtering
 
     return () => clearTimeout(handler);
-  }, [term, searchParams, pathname, replace]);
+  }, [term]);
 
   return (
     <div className="relative max-w-md w-full">
