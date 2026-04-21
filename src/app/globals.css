@@ -87,9 +87,9 @@
   right: 0;
   top: 0;
   height: 100%;
-  width: 6px;
+  width: 3px;
   background: var(--gold);
-  border-radius: 6px 4px 4px 6px;
+  border-radius: 4px 4px 4px 4px;
 }
 
 /* --- BUTTONS & ANIMATIONS --- */
