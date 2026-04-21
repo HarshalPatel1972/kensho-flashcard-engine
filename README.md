@@ -2,30 +2,46 @@
 
 Kenshō is a high-fidelity web application built for the **Cuemath AI Builder Challenge**. It transforms static PDF study materials into comprehensive, practice-ready flashcard decks using a resilient, multi-model AI pipeline and a human-centric spaced repetition system.
 
-## 🏗️ Architecture
+## 🏗️ Technical Architecture
 
-Kenshō is built with a modern, serverless-first stack designed for high throughput and premium user experience.
+Kenshō utilizes a **Hybrid-Distributed** architecture designed to bypass the constraints of serverless environments (like Vercel's 10-second timeout) while ensuring high availability.
 
 ```mermaid
 graph TD
-    A[PDF Upload] -->|UploadThing| B(Serverless API)
-    B --> C{Text Extraction}
-    C --> D[Chunking Engine]
-    D --> E[AI Handover Protocol]
-    E --> F[Groq / Gemini / Mistral]
-    F --> G[JSON Recovery Parser]
-    G --> H[(Neon DB / Drizzle)]
-    H --> I[Dashboard / Study UI]
+    User([User]) -->|Uploads PDF| UT[UploadThing S3]
+    UT -->|URL| API[Kenshō API /Next.js]
+    
+    subgraph "Ingestion Engine"
+    API -->|Attempt Proxy| GO[Go Backend /High-Perf]
+    API -->|Fallback| Local[Node.js Local Processor]
+    Local --> PDF[PDF.js Extraction]
+    PDF --> Chunk[Semantic Chunking]
+    end
+    
+    subgraph "AI Handover Protocol"
+    GO --> AI
+    Chunk --> AI{Multi-Model Chain}
+    AI -->|1| Groq[Groq Llama 3.3]
+    AI -->|2| DS[DeepSeek V3]
+    AI -->|3| Gem[Gemini 1.5 Flash]
+    AI -->|4| Mist[Mistral 7B]
+    end
+    
+    subgraph "Persistence & UX"
+    AI -->|Recovery| Parser[JSON Recovery Parser]
+    Parser --> DB[(Neon Serverless DB)]
+    DB --> DASH[Dashboard / Framer Motion]
+    end
 ```
 
 ### Tech Stack
-- **Framework**: Next.js 15+ (App Router, Turbopack)
-- **Auth**: Clerk (Native Modal Architecture)
+- **Framework**: Next.js 16 (App Router, Turbopack)
+- **Auth**: Clerk (Native Modal integration for high-fidelity UX)
 - **Database**: Neon (Serverless PostgreSQL)
 - **ORM**: Drizzle ORM
 - **Styling**: Tailwind CSS 4, Framer Motion
 - **Storage**: UploadThing
-- **AD Intelligence**: Groq (Llama 3.3), Google Generative AI (Gemini 1.5), Mistral 7B (Inference)
+- **AD Intelligence**: Groq (Llama 3.3), DeepSeek V3, Google Generative AI (Gemini 1.5), Mistral 7B (Hugging Face)
 
 ---
 
@@ -39,15 +55,16 @@ Unlike "shallow" generators, Kenshō uses a specific "Master Educator" prompting
 - Edge cases and common pitfalls
 
 ### 2. The AI Handover Protocol
-To bypass the 10-second serverless timeout window on Vercel and handle API rate limits, Kenshō uses a custom **Multi-Model Handover Protocol**:
-- **Chunking**: Large PDFs are split into semantic chunks.
-- **Failover Chain**: The system attempts generation with **Groq** (for speed). If it fails or times out, it hands the chunk to **Gemini** or **Mistral** automatically.
+To bypass the 10-second serverless timeout window on Vercel and handle intermittent API downtime, Kenshō uses a custom **Multi-Model Handover Protocol**:
+- **Semantic Chunking**: Large PDFs are split into digestible segments.
+- **Failover Chain**: The system attempts generation with **Groq** (Ultra-fast). In the event of a rate limit or timeout, it automatically hands the task to **DeepSeek**, **Gemini**, or **Mistral**.
+- **Execution Buffer**: Implements a dedicated 1.5s timeout buffer inside the 10s Vercel window to ensure clean failures and stateful client-side retries.
 
 ### 3. Human-Centric Scheduling
 Relative dates improve cognitive ease during study sessions.
 - **Natural Language**: Review dates are displayed as "Today", "Tomorrow", or "Yesterday".
-- **Absolute Clarity**: Future dates are standardized to a clean "Day Month Year" format (e.g., 12 May 2026).
-- **Visual Urgency**: Overdue cards are automatically highlighted to prioritize the study backlog.
+- **Absolute Clarity**: Future dates are standardized to a clean "Day Month Year" format (e.g., 12 Mar 2026).
+- **Visual Urgency**: Overdue cards are automatically highlighted in red to prioritize the study backlog.
 
 ---
 
@@ -56,16 +73,16 @@ Relative dates improve cognitive ease during study sessions.
 A significant part of Kenshō’s development involved navigating the "messy reality" of deploying AI at scale.
 
 ### The Vercel Timeout Barrier
-- **Failing**: Processing 50+ pages of PDF text in a single 10-second Vercel function window caused frequent timeouts.
-- **Fixed**: Moved to a chunked-processing architecture where the client manages the state of the ingestion, allowing multiple short-lived API calls to build a massive deck progressively.
+- **Failing**: Processing large PDFs in a single serverless function caused frequent timeouts.
+- **Fixed**: Implemented a "Hybrid Ingestion" model. The API attempts to proxy to a persistent Go-based backend; if unreachable, it falls back to a chunked-processing architecture where the client manages ingestion state across multiple short-lived API calls.
 
 ### The UI Over-Engineering Trap
-- **Failing**: Early versions attempted to build a custom route-based settings system. This added URL complexity and felt "un-native" compared to the core auth flow.
-- **Fixed**: Ripped out custom routing and re-integrated with the **Clerk-native modal architecture**. This ensured a "Zero-Overhead" feel where settings are instantly accessible without changing the application state.
+- **Failing**: Attempting to move settings to a dedicated route (`/dashboard/settings`) added URL bloat and broke the "workstation" feel.
+- **Fixed**: Ripped out custom routing and re-integrated the **Clerk-native modal architecture**. This restored the "Zero-Overhead" feel where settings appear instantly as an overlay, maintaining the user's context.
 
-### The PDF Parsing Dependency Conflict
-- **Failing**: Certain heavy PDF libraries (like `pdf-lib` or native `canvas` dependencies) caused compilation errors in the serverless environment.
-- **Fixed**: Abstracted the parsing logic to use lightweight, serverless-friendly libraries (`pdfjs-dist` and `pdf2json`) with specific build-time exclusions for problematic Node.js primitives.
+### The AI Reliability Challenge
+- **Failing**: Single-provider dependency (like Hugging Face) led to 404s and 503s during peak times.
+- **Fixed**: Built a custom provider abstraction that supports 4 distinct AI engines. If any engine fails, the system provides a "Handover" index to the client, allowing the user to resume with a fresh provider.
 
 ---
 
@@ -84,9 +101,12 @@ UPLOADTHING_SECRET=...
 UPLOADTHING_APP_ID=...
 
 GROQ_API_KEY=...
-GEMINI_API_KEY=...
 DEEPSEEK_API_KEY=...
+GEMINI_API_KEY=...
 HUGGING_FACE_API_KEY=...
+
+# OPTIONAL: Persistent Go backend for high-performance extraction
+KENSHO_BACKEND_URL=https://...
 ```
 
 ### Installation
