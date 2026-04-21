@@ -3,7 +3,7 @@ import { cards, cardProgress, decks } from "@/db/schema";
 import { auth } from "@clerk/nextjs/server";
 import { eq, and } from "drizzle-orm";
 import { NextResponse } from "next/server";
-import { extractTextFromPDF } from "@/lib/pdf-extract";
+import { extractTextFromPages } from "@/lib/pdf-extract";
 import { generateCardsFromText } from "@/lib/generate-cards";
 
 export const dynamic = "force-dynamic";
@@ -20,26 +20,37 @@ export async function POST(req: Request, { params }: { params: Promise<{ deckId:
     const [deck] = await db.select().from(decks).where(and(eq(decks.id, deckId), eq(decks.userId, userId)));
     if (!deck) return NextResponse.json({ error: "Deck not found" }, { status: 404 });
 
-    const { fileUrl } = await req.json();
-    const pdfResponse = await fetch(fileUrl, { signal });
+    const { pdfUrl, selectedPages } = await req.json();
+    
+    // Step 1: Fetch PDF buffer
+    const pdfResponse = await fetch(pdfUrl, { signal });
     const buffer = Buffer.from(await pdfResponse.arrayBuffer());
 
-    // Step 2: Extract text
-    const text = await extractTextFromPDF(buffer);
-    const wordCount = text.split(/\s+/).length;
-    console.log(`[PDFExtract] Extracted ${text.length} chars (~${wordCount} words) from deck ${deckId}`);
-    
-    if (text.length < 100) {
+    // Step 2: Extract text using smart extraction
+    const extraction = await extractTextFromPages(buffer, selectedPages);
+
+    // Handle blocked case
+    if (extraction.extractionMethod === "blocked") {
+      await db.delete(decks).where(eq(decks.id, deckId));
       return NextResponse.json(
-        { error: "PDF appears to be image-based or empty. Please use a text PDF." },
+        { error: extraction.message },
         { status: 422 }
       );
     }
 
-    // Step 3: Generate cards via chunked pipeline
+    // Handle empty extraction
+    if (!extraction.text || extraction.text.length < 50) {
+      await db.delete(decks).where(eq(decks.id, deckId));
+      return NextResponse.json(
+        { error: "Could not extract text from selected pages. PDF may be image-based or empty." },
+        { status: 422 }
+      );
+    }
+
+    // Step 3: Generate cards
     let result: { cards: any[]; provider: string } = { cards: [], provider: "" };
     try {
-      result = await generateCardsFromText(text);
+      result = await generateCardsFromText(extraction.text);
     } catch (error: any) {
       if (error.message === "ALL_PROVIDERS_FAILED") {
         return NextResponse.json(
@@ -47,7 +58,7 @@ export async function POST(req: Request, { params }: { params: Promise<{ deckId:
           { status: 503 }
         );
       }
-      if (error.message === "NO_CARDS_GENERATED" || error.message === "TOO_MANY_CHUNK_FAILURES") {
+      if (error.message === "NO_CARDS_GENERATED") {
         return NextResponse.json(
           { error: "Could not extract study content from this PDF." },
           { status: 422 }
@@ -91,7 +102,6 @@ export async function POST(req: Request, { params }: { params: Promise<{ deckId:
       return NextResponse.json({ cancelled: true }, { status: 499 });
     }
     console.error("Upload error:", err);
-    // Sanitize DB or other unknown technical errors
     const message = err.message || "An unexpected error occurred.";
     const isSafeMessage = message.includes("AI engines") || message.includes("AI output") || message.includes("Unauthorized") || message.includes("not found");
     return NextResponse.json({ error: isSafeMessage ? message : "Servers are currently experiencing heavy load. Please try again." }, { status: 500 });
