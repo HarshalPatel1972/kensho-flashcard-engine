@@ -71,12 +71,10 @@ function parseCardsFromResponse(text: string): Card[] {
 export async function generateCardsFromText(
   text: string
 ): Promise<{ cards: Card[], provider: string }> {
+  // Text is already correctly sized by extractTextFromPages
+  // No slice needed here
   
-  // Hard limit — Use first 10,000 words to cover significant document depth
-  const words = text.split(/\s+/);
-  const safeText = words.slice(0, 10000).join(" ");
-  
-  const prompt = CARD_GENERATION_PROMPT(safeText)
+  const prompt = CARD_GENERATION_PROMPT(text)
   const result = await generateWithFallback(prompt, 800)
   const cards = parseCardsFromResponse(result.text)
   
