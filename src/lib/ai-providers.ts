@@ -15,7 +15,7 @@ export interface AIResult {
   provider: Provider;
 }
 
-// Single text generation with tiered fallback chain
+// Single text generation with tiered fallback chain (Optimized Apr 2026 Fleet)
 export async function generateWithFallback(
   prompt: string,
   maxTokens: number = 1000
@@ -27,9 +27,24 @@ export async function generateWithFallback(
     call: (model: string) => Promise<string>;
   }[] = [
     {
+      name: "groq",
+      tiers: ["llama-3.3-70b-versatile", "llama-3.1-8b-instant"],
+      timeout: 10000,
+      call: async (modelId) => {
+        const groq = new Groq({ apiKey: process.env.GROQ_API_KEY! });
+        const completion = await groq.chat.completions.create({
+          messages: [{ role: "user", content: prompt }],
+          model: modelId,
+          max_tokens: maxTokens,
+          temperature: 0.3
+        });
+        return completion.choices[0]?.message?.content || "";
+      }
+    },
+    {
       name: "gemini",
-      tiers: ["gemini-2.5-flash"],
-      timeout: 20000,
+      tiers: ["gemini-2.5-flash", "gemma-4-31b-it"],
+      timeout: 30000,
       call: async (modelId) => {
         const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY!);
         const model = genAI.getGenerativeModel({ model: modelId });
