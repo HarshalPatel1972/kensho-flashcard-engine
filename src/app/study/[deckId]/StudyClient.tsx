@@ -176,23 +176,17 @@ export default function StudyClient() {
           </Link>
           <div className="flex items-center gap-4">
             <ThemeToggle />
-            <UserButton
-              userProfileProps={{
-                children: (
-                  <>
-                    <UserButton.UserProfilePage label="account" />
-                    <UserButton.UserProfilePage label="security" />
-                    <UserButton.UserProfilePage
-                      label="Settings"
-                      url="settings"
-                      labelIcon={<Settings size={16} />}
-                    >
-                      <AppPreferences />
-                    </UserButton.UserProfilePage>
-                  </>
-                )
-              }}
-            />
+            <UserButton>
+              <UserButton.UserProfilePage label="account" />
+              <UserButton.UserProfilePage label="security" />
+              <UserButton.UserProfilePage
+                label="Settings"
+                url="settings"
+                labelIcon={<Settings size={16} />}
+              >
+                <AppPreferences />
+              </UserButton.UserProfilePage>
+            </UserButton>
           </div>
         </header>
 

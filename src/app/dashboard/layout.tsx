@@ -20,28 +20,17 @@ export default function DashboardLayout({ children }: { children: ReactNode }) {
           </div>
           <div className="flex items-center gap-4">
             <ThemeToggle />
-            <UserButton
-              userProfileProps={{
-                appearance: {
-                  elements: {
-                    navbar: "hidden", // We can hide it if we want a more focused experience, but let's keep it standard
-                  }
-                },
-                children: (
-                  <>
-                    <UserButton.UserProfilePage label="account" />
-                    <UserButton.UserProfilePage label="security" />
-                    <UserButton.UserProfilePage
-                      label="Settings"
-                      url="settings"
-                      labelIcon={<Settings size={16} />}
-                    >
-                      <AppPreferences />
-                    </UserButton.UserProfilePage>
-                  </>
-                )
-              }}
-            />
+            <UserButton>
+              <UserButton.UserProfilePage label="account" />
+              <UserButton.UserProfilePage label="security" />
+              <UserButton.UserProfilePage
+                label="Settings"
+                url="settings"
+                labelIcon={<Settings size={16} />}
+              >
+                <AppPreferences />
+              </UserButton.UserProfilePage>
+            </UserButton>
           </div>
         </div>
       </header>
