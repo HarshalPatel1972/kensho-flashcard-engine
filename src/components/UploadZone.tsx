@@ -56,7 +56,7 @@ export function UploadZone({ deckId, onSuccess, onUploadComplete, onCancel, skip
       
       toast.success(`Deck created! ${count} cards via ${displayProvider}`);
       resetFileInput();
-      onSuccess();
+      onSuccess?.();
     } catch (err: any) {
       if (err.name === 'AbortError') {
         toast.info("Process cancelled");
