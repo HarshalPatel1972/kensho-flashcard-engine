@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from "react";
 import { DeckCard } from "./DeckCard";
+import { useSearchParams } from "next/navigation";
 import { motion, useReducedMotion, AnimatePresence, Variants } from "framer-motion";
 
 type Deck = {
@@ -33,12 +34,22 @@ const itemVariants: Variants = {
 };
 
 export function DeckGrid({ initialDecks }: { initialDecks: Deck[] }) {
+  const searchParams = useSearchParams();
+  const q = searchParams.get("q")?.toLowerCase() || "";
   const [decks, setDecks] = useState(initialDecks);
   const shouldReduceMotion = useReducedMotion();
 
   useEffect(() => {
-    setDecks(initialDecks);
-  }, [initialDecks]);
+    // Instant local filter based on search term
+    if (!q) {
+      setDecks(initialDecks);
+    } else {
+      const filtered = initialDecks.filter(d => 
+        d.title.toLowerCase().includes(q)
+      );
+      setDecks(filtered);
+    }
+  }, [q, initialDecks]);
 
   const handleDelete = (id: string) => {
     setDecks((prev) => prev.filter((d) => d.id !== id));

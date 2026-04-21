@@ -21,7 +21,7 @@ export function DashboardSearch() {
         params.delete("q");
       }
       replace(`${pathname}?${params.toString()}`, { scroll: false });
-    }, 300);
+    }, 150);
 
     return () => clearTimeout(handler);
   }, [term, searchParams, pathname, replace]);

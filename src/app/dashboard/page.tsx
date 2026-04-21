@@ -59,12 +59,7 @@ export default async function DashboardPage({ searchParams }: { searchParams: Pr
       .leftJoin(cards, eq(decks.id, cards.deckId))
       .leftJoin(cardProgress, and(eq(cards.id, cardProgress.cardId), eq(cardProgress.userId, userId)))
       .where(
-        and(
-          eq(decks.userId, userId),
-          searchTerm 
-            ? ilike(decks.title, searchTerm)
-            : undefined
-        )
+        eq(decks.userId, userId)
       )
       .groupBy(decks.id, decks.title, decks.description, decks.lastStudiedAt, decks.createdAt)
       .orderBy(decks.createdAt);
