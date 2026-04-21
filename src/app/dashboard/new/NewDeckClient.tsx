@@ -58,6 +58,7 @@ export default function NewDeckClient() {
   const [totalPages, setTotalPages] = useState(0);
   const [pageMode, setPageMode] = useState<"all" | "custom">("all");
   const [rangeInput, setRangeInput] = useState("");
+  const [thumbnails, setThumbnails] = useState<Record<number, string>>({});
   const [isRenderingThumbnails, setIsRenderingThumbnails] = useState(false);
   const renderingBusyRef = useRef(false);
   const thumbnailsRef = useRef<Record<number, string>>({});
