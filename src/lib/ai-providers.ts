@@ -23,7 +23,7 @@ export async function generateWithFallback(
   // Try Gemini first
   try {
     const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY!);
-    const model = genAI.getGenerativeModel({ model: "gemini-1.5-flash" });
+    const model = genAI.getGenerativeModel({ model: "gemini-2.5-flash-lite" });
     const result = await Promise.race([
       model.generateContent(prompt),
       new Promise((_, reject) => 
@@ -45,7 +45,7 @@ export async function generateWithFallback(
     const completion = await Promise.race([
       groq.chat.completions.create({
         messages: [{ role: "user", content: prompt }],
-        model: "llama3-8b-8192",
+        model: "llama-3.1-8b-instant",
         max_tokens: maxTokens,
         temperature: 0.3
       }),
@@ -66,7 +66,7 @@ export async function generateWithFallback(
   try {
     const response = await Promise.race([
       fetch(
-        "https://api-inference.huggingface.co/models/mistralai/Mistral-7B-Instruct-v0.3",
+        "https://api-inference.huggingface.co/models/mistralai/Mistral-7B-Instruct-v0.3/v1/chat/completions",
         {
           method: "POST",
           headers: {
@@ -74,12 +74,11 @@ export async function generateWithFallback(
             "Content-Type": "application/json"
           },
           body: JSON.stringify({
-            inputs: prompt,
-            parameters: {
-              max_new_tokens: maxTokens,
-              temperature: 0.3,
-              return_full_text: false
-            }
+            model: "mistralai/Mistral-7B-Instruct-v0.3",
+            messages: [{ role: "user", content: prompt }],
+            max_tokens: maxTokens,
+            temperature: 0.3,
+            stream: false
           })
         }
       ),
@@ -88,10 +87,13 @@ export async function generateWithFallback(
       )
     ]) as any;
     
+    if (!response.ok) {
+      throw new Error(`HF status: ${response.status}`);
+    }
+    
     const data = await response.json();
-    const text = Array.isArray(data) 
-      ? data[0]?.generated_text 
-      : data?.generated_text;
+    const text = data.choices ? data.choices[0]?.message?.content : null;
+    
     if (text && text.length > 10) {
       return { text, provider: "huggingface" };
     }
