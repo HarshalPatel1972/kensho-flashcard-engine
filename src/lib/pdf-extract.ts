@@ -7,8 +7,14 @@ export async function extractTextFromPDF(buffer: Buffer): Promise<string> {
       try {
         const text = pdfData.Pages
           .flatMap((page: any) => page.Texts)
-          .map((textObj: any) => decodeURIComponent(textObj.R[0].T))
-          .join(" ")
+          .map((textObj: any) => {
+            try {
+              return decodeURIComponent(textObj.R[0].T);
+            } catch (e) {
+              return textObj.R[0].T; // Fallback to raw text if decoding fails
+            }
+          })
+          .join("\n")
           .replace(/\s+/g, " ")
           .trim();
         resolve(text);

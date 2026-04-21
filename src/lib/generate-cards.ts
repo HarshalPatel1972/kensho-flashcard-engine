@@ -47,14 +47,19 @@ function parseCardsFromResponse(text: string): Card[] {
     if (!jsonMatch) return [];
     
     const parsed = JSON.parse(jsonMatch[0]);
-    return parsed.filter((card: any) => 
-      card.front && 
-      card.back && 
-      typeof card.front === "string" && 
-      typeof card.back === "string" &&
-      card.front.length > 5 &&
-      card.back.length > 5
+    const cards = parsed.map((card: any) => ({
+      front: String(card.front || card.question || card.q || "").trim(),
+      back: String(card.back || card.answer || card.a || "").trim()
+    })).filter((card: any) => 
+      card.front.length > 1 &&
+      card.back.length > 1
     );
+
+    if (cards.length === 0 && text.length > 0) {
+      console.log("AI returned JSON but no valid cards found. Raw response snippet:", text.substring(0, 500));
+    }
+    
+    return cards;
   } catch {
     return [];
   }
@@ -66,14 +71,15 @@ export async function generateCardsFromText(
   text: string
 ): Promise<Card[]> {
   
-  // Hard limit — free models handle this reliably every time
-  const safeText = text.slice(0, 1500).trim()
+  // Balanced limit — covers enough context without hitting free tier timeouts
+  const safeText = text.slice(0, 6000).trim()
   
   const prompt = CARD_GENERATION_PROMPT(safeText)
   const result = await generateWithFallback(prompt, 800)
   const cards = parseCardsFromResponse(result.text)
   
   if (cards.length === 0) {
+    console.error("NO_CARDS_GENERATED. AI Provider:", result.provider, "Response length:", result.text.length);
     throw new Error("NO_CARDS_GENERATED")
   }
   
