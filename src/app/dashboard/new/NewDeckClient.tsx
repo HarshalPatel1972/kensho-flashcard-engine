@@ -5,7 +5,7 @@ import { useRouter } from "next/navigation";
 import { UploadZone } from "@/components/UploadZone";
 import { LoadingMessage } from "@/components/LoadingMessage";
 import { ErrorState } from "@/components/ErrorState";
-import { ArrowRight, ChevronRight, Info } from "lucide-react";
+import { ArrowRight, Info } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { toast } from "sonner";
 
@@ -67,6 +67,7 @@ export default function NewDeckClient() {
       }
       
       setStep("select-pages");
+      setError(null);
     } catch (err: any) {
       setError(err.message);
     } finally {
@@ -125,55 +126,77 @@ export default function NewDeckClient() {
   const handleCancel = () => {
     if (abortController) abortController.abort();
     setStep("select-pages");
+    setError(null);
   };
 
+  // Step Header Logic
+  const renderHeader = () => (
+    <div className="space-y-2">
+      <h1 className="text-3xl font-medium tracking-tight">New Deck</h1>
+      <p className="text-secondary">
+        {step === "upload" && "Create a deck and upload a PDF to extract smart flashcards."}
+        {step === "select-pages" && "Choose exactly which pages you want to turn into study cards."}
+        {step === "generating" && "Our AI engine is currently reading your material."}
+      </p>
+    </div>
+  );
+
+  // STEP: GENERATING
   if (step === "generating") {
     return (
-      <div className="flex flex-col items-center justify-center min-h-[60vh] space-y-8">
-        <LoadingMessage 
-          messages={[
-            "Reading your selected pages...",
-            "Extracting core concepts...",
-            "Crafting your flashcards...",
-            "Polishing the cards...",
-            "Almost there..."
-          ]}
-          quote={true}
-        />
-        <button
-          onClick={handleCancel}
-          className="text-sm text-red-500 hover:text-red-400 font-medium transition-colors cursor-pointer"
-        >
-          Cancel Generation
-        </button>
+      <div className="max-w-2xl mx-auto space-y-8 animate-in fade-in duration-500">
+        {renderHeader()}
+        <div className="flex flex-col items-center justify-center min-h-[40vh] space-y-12">
+          {!error ? (
+            <>
+              <LoadingMessage 
+                messages={[
+                  "Reading your selected pages...",
+                  "Extracting core concepts...",
+                  "Crafting your flashcards...",
+                  "Polishing the cards...",
+                  "Almost there..."
+                ]}
+                quote={true}
+              />
+              <button
+                onClick={handleCancel}
+                className="text-sm text-red-500 hover:text-red-400 font-medium transition-colors cursor-pointer"
+              >
+                Cancel Generation
+              </button>
+            </>
+          ) : (
+            <div className="w-full space-y-8">
+              <ErrorState 
+                title="Generation Failed"
+                message={error}
+                onRetry={startGeneration}
+              />
+              <div className="flex justify-center gap-4">
+                <button 
+                  onClick={startGeneration}
+                  className="px-8 py-3 bg-gold text-black rounded-xl font-bold hover:bg-gold-hover transition-all hover:scale-105 active:scale-95 shadow-xl shadow-gold/20"
+                >
+                  Try Again
+                </button>
+                <button 
+                  onClick={() => { setStep("select-pages"); setError(null); }}
+                  className="px-8 py-3 bg-surface border border-border text-primary rounded-xl font-medium hover:bg-bg transition-all"
+                >
+                  Back to selection
+                </button>
+              </div>
+            </div>
+          )}
+        </div>
       </div>
     );
   }
 
-  if (error && step === "generating") {
-     return (
-       <div className="max-w-2xl mx-auto py-12 text-center space-y-6">
-         <ErrorState 
-           title="Generation Failed"
-           message={error}
-           onRetry={() => setStep("select-pages")}
-         />
-         <button 
-           onClick={() => setStep("select-pages")}
-           className="text-sm border-b border-border hover:border-gold transition-colors"
-         >
-           Back to selection
-         </button>
-       </div>
-     );
-  }
-
   return (
     <div className="max-w-2xl mx-auto space-y-8 animate-in fade-in slide-in-from-bottom-4 duration-500">
-      <div className="space-y-2">
-        <h1 className="text-3xl font-medium tracking-tight">New Deck</h1>
-        <p className="text-secondary">Create a deck and select exactly which pages you want to study.</p>
-      </div>
+      {renderHeader()}
 
       {!deckId ? (
         <form 
@@ -227,15 +250,10 @@ export default function NewDeckClient() {
         </form>
       ) : step === "select-pages" ? (
         <div className="space-y-8 animate-in fade-in slide-in-from-right-4 duration-500">
-          <div className="space-y-2">
-            <h2 className="text-2xl font-medium">Choose pages to study</h2>
-            <p className="text-secondary">Select the pages you want to turn into flashcards</p>
-          </div>
-
           {totalPages > 4 && (
             <div className="flex items-start gap-3 p-4 rounded-lg bg-amber-50 dark:bg-amber-900/20 border-l-4 border-amber-500">
               <Info className="w-5 h-5 text-amber-600 dark:text-amber-400 shrink-0 mt-0.5" />
-              <p className="text-sm text-amber-800 dark:text-amber-200">
+              <p className="text-sm text-amber-800 dark:text-amber-200 leading-relaxed">
                 This PDF has {totalPages} pages. Kenshō will sample the key lines from each selected page to stay within AI model limits.
               </p>
             </div>
@@ -299,7 +317,7 @@ export default function NewDeckClient() {
               </button>
               
               <button 
-                onClick={() => setStep("upload")}
+                onClick={() => { setStep("upload"); setPdfUrl(null); }}
                 className="text-sm text-secondary hover:text-primary transition-colors"
               >
                 Change PDF
@@ -321,14 +339,14 @@ export default function NewDeckClient() {
                 <UploadZone 
                   deckId={deckId} 
                   onUploadComplete={handleUploadComplete}
-                  onCancel={() => setStep("upload")}
+                  onCancel={() => { setDeckId(null); setStep("upload"); }}
                 />
               )}
             </div>
           </div>
           {error && <p className="text-sm text-red-500 font-medium text-center">{error}</p>}
-          <p className="text-center text-sm text-secondary">
-             Step 1: Upload your material. We'll handle the parsing.
+          <p className="text-center text-sm text-secondary italic">
+             Step 1: Upload your material. We'll extract the structure.
           </p>
         </div>
       )}

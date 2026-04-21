@@ -211,6 +211,12 @@ export function UploadZone({ deckId, onSuccess, onUploadComplete, onCancel, skip
             </div>
             <p className="text-lg text-primary font-medium">Drop your PDF here or click to upload</p>
             <p className="text-sm text-secondary">Cards are generated from the core concepts of your PDF</p>
+            <div className="flex flex-col items-center space-y-1 mt-2">
+              <p className="text-[10px] uppercase tracking-widest text-secondary/60 font-bold">PDF Guidelines</p>
+              <p className="text-[11px] text-secondary/70">
+                1–4 pages: full content · 5–20 pages: key lines · 20+ pages: not supported
+              </p>
+            </div>
             {activeProvider && (
               <div className="mt-4 px-3 py-1 rounded-full bg-gold/5 border border-gold/20 flex items-center space-x-2">
                 <div className="w-1.5 h-1.5 rounded-full bg-gold animate-pulse" />
