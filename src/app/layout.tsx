@@ -4,6 +4,7 @@ import type { Metadata } from "next";
 import { Outfit } from "next/font/google";
 import "./globals.css";
 import { ThemeProvider } from "@/components/ThemeProvider";
+import { SettingsProvider } from "@/providers/SettingsProvider";
 
 const outfit = Outfit({ subsets: ["latin"] });
 
@@ -36,8 +37,10 @@ export default function RootLayout({
           className={`${outfit.className} bg-bg text-primary antialiased min-h-screen selection:bg-gold/30 selection:text-gold`}
         >
           <ThemeProvider attribute="class" defaultTheme="system" enableSystem>
-            {children}
-            <Toaster richColors position="top-right" />
+            <SettingsProvider>
+              {children}
+              <Toaster richColors position="top-right" />
+            </SettingsProvider>
           </ThemeProvider>
         </body>
       </html>
