@@ -6,6 +6,7 @@ import { useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
 import { PageTransition } from "@/components/PageTransition";
 import { motion, useReducedMotion } from "framer-motion";
+import { ArrowRight } from "lucide-react";
 
 export default function Home() {
   const { userId, isLoaded } = useAuth();
@@ -124,12 +125,9 @@ export default function Home() {
           >
             <Link
               href="/sign-up"
-              className="inline-flex items-center justify-center rounded-full bg-gold px-8 py-4 text-base font-medium text-black transition-all hover:bg-gold-hover hover:scale-105 active:scale-95 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-gold focus-visible:ring-offset-2 focus-visible:ring-offset-bg"
-              style={!prefersReducedMotion ? {
-                animation: "pulse-glow 2.5s ease-in-out infinite 1.2s both"
-              } : {}}
+              className="inline-flex items-center justify-center gap-2 rounded-xl bg-[#f5a623] px-10 py-4 text-xl font-bold text-black transition-all hover:bg-[#f5a623]/90 hover:scale-105 active:scale-95 shadow-2xl shadow-[#f5a623]/40 border-2 border-transparent focus:ring-2 focus:ring-[#f5a623] focus:ring-offset-2 focus:outline-none"
             >
-              Start learning
+              Start learning <ArrowRight size={22} />
             </Link>
           </motion.div>
         </div>

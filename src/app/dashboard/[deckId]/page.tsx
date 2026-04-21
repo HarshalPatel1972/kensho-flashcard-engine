@@ -3,6 +3,7 @@ import { decks, cards, cardProgress } from "@/db/schema";
 import { auth } from "@clerk/nextjs/server";
 import { eq, and, asc } from "drizzle-orm";
 import Link from "next/link";
+import { ArrowRight } from "lucide-react";
 import { notFound, redirect } from "next/navigation";
 import { PageTransition } from "@/components/PageTransition";
 import { WeakCards } from "@/components/WeakCards";
@@ -113,14 +114,18 @@ export default async function DeckOverviewPage({ params }: { params: Promise<{ d
               <div className="fixed md:static bottom-0 left-0 w-full md:w-auto p-4 md:p-0 bg-bg/80 md:bg-transparent backdrop-blur-md md:backdrop-blur-none border-t md:border-t-0 border-border z-40">
                 <Link
                   href={`/study/${deckId}`}
-                  className={`inline-flex items-center justify-center rounded-md px-8 py-3 text-sm font-medium transition-colors w-full md:w-auto ${
+                  className={`inline-flex items-center justify-center rounded-xl px-8 py-3 text-lg font-semibold transition-all w-full md:w-auto shadow-xl ${
                     dueTodayCount > 0
-                      ? "bg-gold text-black hover:bg-gold-hover shadow-lg shadow-gold/20"
-                      : "bg-surface border border-border text-primary hover:bg-bg opacity-50 cursor-not-allowed pointer-events-none"
+                      ? "bg-[#f5a623] text-black hover:bg-[#f5a623]/90 hover:scale-[1.02] active:scale-[0.98] shadow-[#f5a623]/30 border-2 border-transparent focus:ring-2 focus:ring-[#f5a623] focus:ring-offset-2 focus:outline-none"
+                      : "bg-surface border border-border text-primary opacity-50 cursor-not-allowed pointer-events-none"
                   }`}
                   aria-disabled={dueTodayCount === 0}
                 >
-                  {dueTodayCount > 0 ? "Study Now" : "No cards due"}
+                  {dueTodayCount > 0 ? (
+                    <span className="flex items-center gap-2">
+                      Study Now <ArrowRight size={18} />
+                    </span>
+                  ) : "No cards due"}
                 </Link>
               </div>
             )}
