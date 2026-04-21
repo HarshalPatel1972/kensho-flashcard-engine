@@ -1,4 +1,4 @@
-import { GoogleGenerativeAI } from "@google/generative-ai";
+import { GoogleGenerativeAI, HarmCategory, HarmBlockThreshold } from "@google/generative-ai";
 import Groq from "groq-sdk";
 
 // Conservative chunk sizes per provider (real-world free tier limits)
@@ -33,10 +33,13 @@ export async function generateWithFallback(
       call: async (modelId) => {
         const groq = new Groq({ apiKey: process.env.GROQ_API_KEY! });
         const completion = await groq.chat.completions.create({
-          messages: [{ role: "user", content: prompt }],
+          messages: [
+            { role: "system", content: "You are a professional educational assistant. Return ONLY valid JSON arrays." },
+            { role: "user", content: prompt }
+          ],
           model: modelId,
           max_tokens: maxTokens,
-          temperature: 0.3
+          temperature: 0.1 // Lowered for more consistent JSON
         });
         return completion.choices[0]?.message?.content || "";
       }
@@ -44,10 +47,18 @@ export async function generateWithFallback(
     {
       name: "gemini",
       tiers: ["gemini-2.5-flash", "gemma-4-31b-it"],
-      timeout: 30000,
+      timeout: 25000, // Balanced for Vercel
       call: async (modelId) => {
         const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY!);
-        const model = genAI.getGenerativeModel({ model: modelId });
+        const model = genAI.getGenerativeModel({ 
+          model: modelId,
+          safetySettings: [
+            { category: HarmCategory.HARM_CATEGORY_HARASSMENT, threshold: HarmBlockThreshold.BLOCK_NONE },
+            { category: HarmCategory.HARM_CATEGORY_HATE_SPEECH, threshold: HarmBlockThreshold.BLOCK_NONE },
+            { category: HarmCategory.HARM_CATEGORY_SEXUALLY_EXPLICIT, threshold: HarmBlockThreshold.BLOCK_NONE },
+            { category: HarmCategory.HARM_CATEGORY_DANGEROUS_CONTENT, threshold: HarmBlockThreshold.BLOCK_NONE },
+          ]
+        });
         const result = await model.generateContent(prompt);
         return result.response.text();
       }
@@ -69,7 +80,8 @@ export async function generateWithFallback(
           return { text, provider: provider.name };
         }
       } catch (e: any) {
-        console.log(`${provider.name} (${modelId}) failed:`, e.message || e);
+        // CRITICAL: Log the actual error for Vercel troubleshooting
+        console.error(`[AI ERROR] ${provider.name} (${modelId}) failed:`, e.message || e);
       }
     }
   }
