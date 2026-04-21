@@ -175,7 +175,6 @@ export default function StudyClient() {
           <div className="mb-8 space-y-3">
             <div className="flex justify-between text-sm text-secondary font-medium">
               <span>Card {currentIndex + 1} of {totalDue}</span>
-              <span>{totalDue - currentIndex - 1} left</span>
             </div>
             <ProgressBar current={currentIndex} total={totalDue} />
           </div>
