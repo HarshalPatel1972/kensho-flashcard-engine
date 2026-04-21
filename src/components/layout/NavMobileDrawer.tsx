@@ -22,7 +22,6 @@ const NAV_ITEMS = [
 export function NavMobileDrawer({ isOpen, onClose }: NavMobileDrawerProps) {
   const pathname = usePathname();
   const { playClick } = useKenshoSounds();
-  const { open: openSettings } = useSettingsModal();
 
   return (
     <AnimatePresence>
@@ -84,17 +83,20 @@ export function NavMobileDrawer({ isOpen, onClose }: NavMobileDrawerProps) {
             </nav>
 
             <div className="p-4 border-t border-border/30">
-              <button
+              <Link
+                href="/dashboard/settings"
                 onClick={() => {
                   playClick();
                   onClose();
-                  openSettings();
                 }}
-                className="w-full flex items-center gap-4 px-5 py-4 rounded-full text-secondary hover:bg-surface/50 transition-all"
+                className={cn(
+                  "w-full flex items-center gap-4 px-5 py-4 rounded-full transition-all",
+                  pathname === "/dashboard/settings" ? "nav-item-active font-bold" : "text-secondary hover:bg-surface/50"
+                )}
               >
                 <Settings className="w-5 h-5" />
                 <span className="font-medium">Preferences</span>
-              </button>
+              </Link>
             </div>
           </motion.div>
         </>
