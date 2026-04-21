@@ -17,13 +17,12 @@ interface NavMobileDrawerProps {
 
 const NAV_ITEMS = [
   { icon: Home, label: "Home", href: "/dashboard" },
-  { icon: Library, label: "Decks", href: "/dashboard" },
   { icon: BookOpen, label: "Docs", href: "/docs" },
 ];
 
 export function NavMobileDrawer({ isOpen, onClose }: NavMobileDrawerProps) {
   const pathname = usePathname();
-  const { playClick } = useKenshoSounds();
+  const { playClick, playHover } = useKenshoSounds();
   const { open: openSettings } = useSettingsModal();
 
   return (
@@ -49,10 +48,10 @@ export function NavMobileDrawer({ isOpen, onClose }: NavMobileDrawerProps) {
           >
             <div className="h-20 flex items-center justify-between px-6 border-b border-border/40">
               <div className="flex items-center gap-3">
-                <div className="w-8 h-8 rounded-lg bg-gold flex items-center justify-center shadow-gold-glow">
-                  <Sparkles className="w-5 h-5 text-black fill-black" />
+                <div className="w-8 h-8 rounded-lg overflow-hidden shrink-0 border border-gold/20">
+                  <img src="/favicon.svg" alt="Kenshō Logo" className="w-full h-full object-cover" />
                 </div>
-                <span className="font-bold tracking-tight">Kenshō</span>
+                <span className="font-bold tracking-tight text-primary">Kenshō</span>
               </div>
               <button 
                 onClick={onClose}
@@ -62,7 +61,7 @@ export function NavMobileDrawer({ isOpen, onClose }: NavMobileDrawerProps) {
               </button>
             </div>
 
-            <nav className="flex-1 px-4 py-8 space-y-2">
+            <nav className="flex-1 px-4 py-8 space-y-3">
               {NAV_ITEMS.map((item) => {
                 const isActive = pathname === item.href;
                 return (
@@ -73,13 +72,14 @@ export function NavMobileDrawer({ isOpen, onClose }: NavMobileDrawerProps) {
                       playClick();
                       onClose();
                     }}
+                    onMouseEnter={() => playHover()}
                     className={cn(
                       "relative flex items-center gap-4 px-5 py-4 rounded-lg transition-all duration-200",
-                      isActive ? "nav-item-active font-bold" : "text-secondary hover:bg-surface/50"
+                      isActive ? "nav-item-active" : "text-secondary hover:bg-surface/50"
                     )}
                   >
-                    <item.icon className="w-5 h-5" />
-                    <span>{item.label}</span>
+                    <item.icon className={cn("w-5 h-5 shrink-0", isActive ? "text-primary" : "text-secondary")} />
+                    <span className={cn("font-medium", isActive && "font-bold")}>{item.label}</span>
                   </Link>
                 );
               })}
@@ -92,9 +92,10 @@ export function NavMobileDrawer({ isOpen, onClose }: NavMobileDrawerProps) {
                   onClose();
                   openSettings();
                 }}
-                className="w-full flex items-center gap-4 px-5 py-4 rounded-full text-secondary hover:bg-surface/50 transition-all"
+                onMouseEnter={() => playHover()}
+                className="w-full flex items-center gap-4 px-5 py-4 rounded-full text-secondary hover:bg-surface/50 transition-all duration-200"
               >
-                <Settings className="w-5 h-5" />
+                <Settings className="w-5 h-5 shrink-0" />
                 <span className="font-medium">Preferences</span>
               </button>
             </div>
