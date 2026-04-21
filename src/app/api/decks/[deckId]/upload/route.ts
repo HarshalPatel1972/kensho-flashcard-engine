@@ -146,24 +146,30 @@ export async function POST(req: Request, { params }: { params: Promise<{ deckId:
       throw new Error("AI output was invalid. Please retry.");
     }
 
-    const newCards = await db.insert(cards).values(
-      cardsData.slice(0, 30).map((c: any) => ({
-        deckId,
-        front: String(c.front || c.question || "").substring(0, 500),
-        back: String(c.back || c.answer || "").substring(0, 500)
-      })).filter((c: any) => c.front && c.back)
-    ).returning();
+    const cardsToInsert = cardsData.slice(0, 30).map((c: any) => ({
+      deckId,
+      front: String(c.front || c.question || "").substring(0, 500),
+      back: String(c.back || c.answer || "").substring(0, 500)
+    })).filter((c: any) => c.front && c.back);
 
-    await db.insert(cardProgress).values(newCards.map(c => ({ userId, cardId: c.id })));
-    await db.update(decks).set({ cardCount: (deck.cardCount ?? 0) + newCards.length }).where(eq(decks.id, deckId));
-
-    return NextResponse.json({ success: true, newCards: newCards.length });
-  } catch (err: any) {
-    if (err.name === 'AbortError') {
-
-      if (deckId) {
-        await db.delete(decks).where(eq(decks.id, deckId));
+    await db.transaction(async (tx) => {
+      if (cardsToInsert.length > 0) {
+        const newCards = await tx.insert(cards).values(cardsToInsert).returning();
+        await tx.insert(cardProgress).values(newCards.map(c => ({ userId, cardId: c.id })));
       }
+      await tx.update(decks).set({ cardCount: (deck.cardCount ?? 0) + cardsToInsert.length }).where(eq(decks.id, deckId));
+    });
+
+    return NextResponse.json({ success: true, newCards: cardsToInsert.length });
+  } catch (err: any) {
+    if (deckId) {
+      try {
+        await db.delete(decks).where(eq(decks.id, deckId));
+      } catch (cleanupError) {
+        console.error("Cleanup failed:", cleanupError);
+      }
+    }
+    if (err.name === 'AbortError') {
       return NextResponse.json({ cancelled: true }, { status: 499 });
     }
     console.error("Upload error:", err);
