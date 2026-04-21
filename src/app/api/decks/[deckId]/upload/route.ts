@@ -20,7 +20,7 @@ export async function POST(req: Request, { params }: { params: Promise<{ deckId:
     const [deck] = await db.select().from(decks).where(and(eq(decks.id, deckId), eq(decks.userId, userId)));
     if (!deck) return NextResponse.json({ error: "Deck not found" }, { status: 404 });
 
-    const { pdfUrl, selectedPages } = await req.json();
+    const { pdfUrl, selectedPages, providerIndex = 0 } = await req.json();
     
     // Step 1: Fetch PDF buffer
     const pdfResponse = await fetch(pdfUrl, { signal });
@@ -48,13 +48,23 @@ export async function POST(req: Request, { params }: { params: Promise<{ deckId:
     }
 
     // Step 3: Generate cards
-    let result: { cards: any[]; provider: string } = { cards: [], provider: "" };
+    let result: { cards: any[]; provider: string; providerIndex: number; nextIndex: number | null } = { 
+      cards: [], 
+      provider: "", 
+      providerIndex: 0, 
+      nextIndex: null 
+    };
     try {
-      result = await generateCardsFromText(extraction.text);
+      result = await generateCardsFromText(extraction.text, providerIndex);
     } catch (error: any) {
-      if (error.message === "ALL_PROVIDERS_FAILED") {
+      if (error.message === "PROVIDER_FAILED") {
+        const nextIndex = providerIndex + 1; // Basic fallback logic if library didn't provide one
         return NextResponse.json(
-          { error: "All AI providers are busy. Please try again in a minute." },
+          { 
+            error: "Current AI system is busy.", 
+            nextIndex: nextIndex < 4 ? nextIndex : null,
+            providerIndex 
+          },
           { status: 503 }
         );
       }

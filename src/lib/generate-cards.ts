@@ -91,10 +91,11 @@ function normalizeCards(rawArray: any[]): Card[] {
 
 
 export async function generateCardsFromText(
-  text: string
-): Promise<{ cards: Card[], provider: string }> {
+  text: string,
+  providerIndex: number = 0
+): Promise<{ cards: Card[], provider: string, providerIndex: number, nextIndex: number | null }> {
   const prompt = CARD_GENERATION_PROMPT(text)
-  const result = await generateWithFallback(prompt, 2048)
+  const result = await generateWithFallback(prompt, providerIndex, 2048)
   const cards = parseCardsFromResponse(result.text)
   
   if (cards.length === 0) {
@@ -102,5 +103,10 @@ export async function generateCardsFromText(
     throw new Error("NO_CARDS_GENERATED")
   }
   
-  return { cards, provider: result.provider }
+  return { 
+    cards, 
+    provider: result.provider, 
+    providerIndex: result.providerIndex,
+    nextIndex: result.nextIndex 
+  }
 }

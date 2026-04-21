@@ -1,47 +1,48 @@
 import { GoogleGenerativeAI, HarmCategory, HarmBlockThreshold } from "@google/generative-ai";
 import Groq from "groq-sdk";
 
-// Conservative chunk sizes per provider (real-world free tier limits)
 export const PROVIDER_CHUNK_SIZES = {
-  gemini: 1500,
-  groq: 1000,
-  huggingface: 800
+  gemini: 2000,
+  groq: 1200,
+  huggingface: 1000,
+  deepseek: 2000
 } as const;
 
-type Provider = "gemini" | "groq" | "huggingface";
+export type Provider = "groq" | "deepseek" | "gemini" | "huggingface";
 
 export interface AIResult {
   text: string;
   provider: Provider;
+  providerIndex: number;
+  nextIndex: number | null;
 }
 
-// Single text generation with tiered fallback chain (Optimized Apr 2026 Fleet)
+export const PROVIDER_DISPLAY_NAMES: Record<Provider, string> = {
+  groq: "Llama 3.3 (Ultra Fast)",
+  deepseek: "DeepSeek v3 (High Precision)",
+  gemini: "Gemini 1.5 (Large Context)",
+  huggingface: "Mistral 7B (Backup Engine)"
+};
+
 export async function generateWithFallback(
   prompt: string,
+  requestedIndex: number = 0,
   maxTokens: number = 2048
 ): Promise<AIResult> {
-  // Debug Log for Keys
-  console.log(`[AI-Status] Keys: Groq=${!!process.env.GROQ_API_KEY}, Gemini=${!!process.env.GEMINI_API_KEY}`);
-
   const providers: {
     name: Provider;
-    tiers: string[];
-    timeout: number;
-    call: (model: string, temp: number) => Promise<string>;
+    call: (temp: number) => Promise<string>;
   }[] = [
     {
       name: "groq",
-      tiers: ["llama-3.3-70b-versatile", "llama-3.1-8b-instant"],
-      timeout: 30000, // Increased to 30s
-      call: async (modelId, temp) => {
-        if (!process.env.GROQ_API_KEY) throw new Error("GROQ_API_KEY_MISSING");
+      call: async (temp) => {
         const groq = new Groq({ apiKey: process.env.GROQ_API_KEY });
         const completion = await groq.chat.completions.create({
           messages: [
-            { role: "system", content: "You are an educational assistant. Return ONLY JSON arrays. No preamble. No markdown blocks." },
+            { role: "system", content: "You are an educational assistant. Return ONLY JSON arrays. No preamble. No markdown code blocks." },
             { role: "user", content: prompt }
           ],
-          model: modelId,
+          model: "llama-3.3-70b-versatile",
           max_tokens: maxTokens,
           temperature: temp
         });
@@ -49,56 +50,92 @@ export async function generateWithFallback(
       }
     },
     {
-      name: "gemini",
-      tiers: ["gemini-1.5-flash", "gemini-1.5-pro"],
-      timeout: 45000, // Increased to 45s
-      call: async (modelId, temp) => {
-        if (!process.env.GEMINI_API_KEY) throw new Error("GEMINI_API_KEY_MISSING");
-        const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY);
-        const model = genAI.getGenerativeModel({ 
-          model: modelId,
-          generationConfig: {
-            temperature: temp,
-            maxOutputTokens: maxTokens,
+      name: "deepseek",
+      call: async (temp) => {
+        const response = await fetch("https://api.deepseek.com/v1/chat/completions", {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            "Authorization": `Bearer ${process.env.DEEPSEEK_API_KEY}`
           },
-          safetySettings: [
-            { category: HarmCategory.HARM_CATEGORY_HARASSMENT, threshold: HarmBlockThreshold.BLOCK_NONE },
-            { category: HarmCategory.HARM_CATEGORY_HATE_SPEECH, threshold: HarmBlockThreshold.BLOCK_NONE },
-            { category: HarmCategory.HARM_CATEGORY_SEXUALLY_EXPLICIT, threshold: HarmBlockThreshold.BLOCK_NONE },
-            { category: HarmCategory.HARM_CATEGORY_DANGEROUS_CONTENT, threshold: HarmBlockThreshold.BLOCK_NONE },
-          ]
+          body: JSON.stringify({
+            model: "deepseek-chat",
+            messages: [
+              { role: "system", content: "Return ONLY JSON arrays. No preamble." },
+              { role: "user", content: prompt }
+            ],
+            temperature: temp,
+            max_tokens: maxTokens
+          })
         });
-        const result = await model.generateContent(prompt);
+        const data = await response.json();
+        return data.choices?.[0]?.message?.content || "";
+      }
+    },
+    {
+      name: "gemini",
+      call: async (temp) => {
+        const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY!);
+        const model = genAI.getGenerativeModel({ model: "gemini-1.5-flash" });
+        const result = await model.generateContent({
+          contents: [{ role: "user", parts: [{ text: prompt }] }],
+          generationConfig: { temperature: temp, maxOutputTokens: maxTokens }
+        });
         return result.response.text();
+      }
+    },
+    {
+      name: "huggingface",
+      call: async (temp) => {
+        const response = await fetch("https://api-inference.huggingface.co/models/mistralai/Mistral-7B-Instruct-v0.3", {
+          method: "POST",
+          headers: {
+            "Authorization": `Bearer ${process.env.HUGGING_FACE_API_KEY}`,
+            "Content-Type": "application/json"
+          },
+          body: JSON.stringify({
+            inputs: `<s>[INST] ${prompt} [/INST]`,
+            parameters: { max_new_tokens: maxTokens, temperature: temp }
+          })
+        });
+        const data = await response.json();
+        return Array.isArray(data) ? data[0].generated_text : data.generated_text || "";
       }
     }
   ];
 
-  for (const provider of providers) {
-    for (const modelId of provider.tiers) {
-      // Robustness: Try each model twice before falling back
-      for (let attempt = 1; attempt <= 2; attempt++) {
-        try {
-          const temp = attempt === 1 ? 0.1 : 0.4; // Slightly more creative on retry
-          console.log(`[AI] Trying ${provider.name} (${modelId}) - Attempt ${attempt}/2...`);
-          
-          const text = await Promise.race([
-            provider.call(modelId, temp),
-            new Promise<string>((_, reject) =>
-              setTimeout(() => reject(new Error(`${provider.name} timeout`)), provider.timeout)
-            )
-          ]);
+  // Logic: Each request focuses on ONE provider (and maybe its fallback)
+  // to stay within Vercel's 10s window.
+  const index = Math.min(requestedIndex, providers.length - 1);
+  const provider = providers[index];
+  const nextIndex = index + 1 < providers.length ? index + 1 : null;
 
-          if (text && text.trim().length > 20) {
-            return { text, provider: provider.name };
-          }
-        } catch (e: any) {
-          console.error(`[AI ERROR] ${provider.name} (${modelId}) attempt ${attempt} failed:`, e.message || e);
-          if (attempt === 2) continue; // Move to next model
+  try {
+    console.log(`[AI-Handover] Targeted Provider: ${provider.name} (Index ${index})`);
+    
+    // We only try the targeted provider 1-2 times here.
+    // If it fails, we return a 503 so the client can try the NEXT index.
+    for (let attempt = 1; attempt <= 2; attempt++) {
+      try {
+        const temp = attempt === 1 ? 0.1 : 0.4;
+        const text = await Promise.race([
+          provider.call(temp),
+          new Promise<string>((_, reject) =>
+            setTimeout(() => reject(new Error("Vercel Window Buffer Timeout")), 8500)
+          )
+        ]);
+
+        if (text && text.trim().length > 20) {
+          return { text, provider: provider.name, providerIndex: index, nextIndex };
         }
+      } catch (e) {
+        if (attempt === 2) throw e;
       }
     }
+  } catch (err: any) {
+    console.error(`[AI ERROR] Provider ${provider.name} failed:`, err.message);
+    throw new Error("PROVIDER_FAILED");
   }
 
-  throw new Error("ALL_PROVIDERS_FAILED");
+  throw new Error("PROVIDER_FAILED");
 }

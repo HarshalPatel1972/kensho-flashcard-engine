@@ -168,6 +168,9 @@ export default function NewDeckClient() {
   };
 
 
+  const [providerIndex, setProviderIndex] = useState(0);
+  const [canRetryNext, setCanRetryNext] = useState(false);
+
   const startGeneration = async () => {
     if (!deckId || !pdfUrl || selectedPages.length === 0) return;
     
@@ -180,14 +183,22 @@ export default function NewDeckClient() {
       const res = await fetch(`/api/decks/${deckId}/upload`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ pdfUrl, selectedPages }),
+        body: JSON.stringify({ pdfUrl, selectedPages, providerIndex }),
         signal: controller.signal
       });
 
       const data = await res.json();
-      if (!res.ok) throw new Error(data.error || "Generation failed");
+      if (!res.ok) {
+        if (res.status === 503 && data.nextIndex !== undefined) {
+          setProviderIndex(data.nextIndex);
+          setCanRetryNext(data.nextIndex !== null);
+          throw new Error(data.error || "System is busy");
+        }
+        throw new Error(data.error || "Generation failed");
+      }
 
       toast.success("Flashcards generated!");
+      setProviderIndex(0); // Reset for next time
       router.push(`/dashboard/${deckId}`);
       router.refresh();
     } catch (err: any) {
@@ -220,6 +231,13 @@ export default function NewDeckClient() {
 
   // STEP: GENERATING
   if (step === "generating") {
+    const engineNames = [
+      "Groq Llama 3.3",
+      "DeepSeek v3 Pro",
+      "Gemini 1.5 Flash",
+      "Mistral 7B Backup"
+    ];
+
     return (
       <div className="max-w-2xl mx-auto space-y-8 animate-in fade-in duration-500">
         {renderHeader()}
@@ -228,10 +246,10 @@ export default function NewDeckClient() {
             <>
               <LoadingMessage 
                 messages={[
+                  `Using ${engineNames[providerIndex] || "AI Engine"}...`,
                   "Reading your selected pages...",
                   "Extracting core concepts...",
                   "Crafting your flashcards...",
-                  "Polishing the cards...",
                   "Almost there..."
                 ]}
                 quote={true}
@@ -246,19 +264,22 @@ export default function NewDeckClient() {
           ) : (
             <div className="w-full space-y-8">
               <ErrorState 
-                title="Generation Failed"
-                message={error}
+                title={canRetryNext ? "Primary Engine Busy" : "Generation Failed"}
+                message={canRetryNext 
+                  ? `The current AI engine is under heavy load. Would you like to try the Backup Engine instead? (${engineNames[providerIndex]})`
+                  : error
+                }
               />
-              <div className="flex justify-center gap-4">
+              <div className="flex flex-col items-center gap-4">
                 <button 
                   onClick={startGeneration}
-                  className="px-8 py-3 bg-gold text-black rounded-xl font-bold hover:bg-gold-hover transition-all hover:scale-105 active:scale-95 shadow-xl shadow-gold/20"
+                  className="w-full max-w-sm px-8 py-4 bg-gold text-black rounded-xl font-bold hover:bg-gold-hover transition-all hover:scale-105 active:scale-95 shadow-xl shadow-gold/20"
                 >
-                  Try Again
+                  {canRetryNext ? `Try Backup: ${engineNames[providerIndex]}` : "Try Again"}
                 </button>
                 <button 
-                  onClick={() => { setStep("select-pages"); setError(null); }}
-                  className="px-8 py-3 bg-surface border border-border text-primary rounded-xl font-medium hover:bg-bg transition-all"
+                  onClick={() => { setStep("select-pages"); setError(null); setProviderIndex(0); setCanRetryNext(false); }}
+                  className="text-secondary hover:text-primary transition-colors text-sm font-medium"
                 >
                   Back to selection
                 </button>
