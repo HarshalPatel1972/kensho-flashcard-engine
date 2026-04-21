@@ -59,6 +59,7 @@ export async function POST(
     const arrayBuffer = await pdfResponse.arrayBuffer();
     const buffer = Buffer.from(arrayBuffer);
 
+    // Use Gemini’s native PDF support - No external parser libraries needed
     const responseText = await tryGemini(buffer);
 
     let generatedCards;
