@@ -27,23 +27,23 @@ export function PreferencesModal() {
           {/* Modal Container */}
           <div className="fixed inset-0 flex items-center justify-center z-[101] pointer-events-none p-4 md:p-8">
             <motion.div
-              initial={{ opacity: 0, scale: 0.95, y: 10 }}
-              animate={{ opacity: 1, scale: 1, y: 0 }}
-              exit={{ opacity: 0, scale: 0.95, y: 10 }}
-              className="w-full max-w-[1000px] h-full max-h-[700px] bg-bg shadow-2xl rounded-2xl overflow-hidden pointer-events-auto relative border border-border/40"
+              initial={{ opacity: 0, scale: 0.95 }}
+              animate={{ opacity: 1, scale: 1 }}
+              exit={{ opacity: 0, scale: 0.95 }}
+              className="w-full max-w-fit h-fit max-h-[90vh] shadow-2xl rounded-2xl overflow-hidden pointer-events-auto relative border border-border/40 bg-surface"
             >
-              {/* Close button as seen in standard Clerk modals */}
+              {/* Close Button - Integrated into Clerk Header space */}
               <button
                 onClick={() => {
                   playClick();
                   close();
                 }}
-                className="absolute top-4 right-4 w-10 h-10 rounded-full hover:bg-surface/80 flex items-center justify-center transition-colors z-50 border border-border/20"
+                className="absolute top-5 right-5 w-8 h-8 rounded-full hover:bg-surface/80 flex items-center justify-center transition-colors z-[110]"
               >
-                <X className="w-5 h-5 text-secondary" />
+                <X className="w-4 h-4 text-secondary" />
               </button>
 
-              <div className="w-full h-full overflow-hidden">
+              <div className="min-w-[800px] lg:min-w-[900px]">
                 <UserProfile 
                   routing="hash"
                   appearance={{
@@ -51,7 +51,7 @@ export function PreferencesModal() {
                       rootBox: "w-full h-full",
                       card: "w-full h-full shadow-none bg-transparent border-none",
                       navbar: "bg-surface-secondary border-r border-border/30",
-                      scrollBox: "bg-surface h-full",
+                      scrollBox: "bg-surface",
                     }
                   }}
                 >
