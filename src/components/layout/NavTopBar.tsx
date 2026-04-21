@@ -1,6 +1,6 @@
 "use client";
 
-import { UserButton, SignedIn } from "@clerk/nextjs";
+import { UserButton, useAuth } from "@clerk/nextjs";
 import { ThemeToggle } from "@/components/ThemeToggle";
 import { Settings, Menu } from "lucide-react";
 import { AppPreferences } from "@/components/settings/AppPreferences";
@@ -13,6 +13,7 @@ interface NavTopBarProps {
 
 export function NavTopBar({ title = "Kenshō Dashboard", onMenuClick }: NavTopBarProps) {
   const { playHover } = useKenshoSounds();
+  const { isSignedIn } = useAuth();
 
   return (
     <header className="sticky top-0 z-50 h-20 shrink-0 flex items-center px-6 md:px-8 bg-bg/60 backdrop-blur-xl border-b border-border/40">
@@ -34,7 +35,7 @@ export function NavTopBar({ title = "Kenshō Dashboard", onMenuClick }: NavTopBa
         <ThemeToggle />
         
         <div onMouseEnter={() => playHover()}>
-          <SignedIn>
+          {isSignedIn && (
             <UserButton
               appearance={{
                 elements: {
@@ -53,7 +54,7 @@ export function NavTopBar({ title = "Kenshō Dashboard", onMenuClick }: NavTopBa
                 <AppPreferences />
               </UserButton.UserProfilePage>
             </UserButton>
-          </SignedIn>
+          )}
         </div>
       </div>
     </header>
