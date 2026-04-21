@@ -70,7 +70,7 @@ function parseCardsFromResponse(text: string): Card[] {
 
 export async function generateCardsFromText(
   text: string
-): Promise<Card[]> {
+): Promise<{ cards: Card[], provider: string }> {
   
   // Hard limit — Use first 10,000 words to cover significant document depth
   const words = text.split(/\s+/);
@@ -85,5 +85,5 @@ export async function generateCardsFromText(
     throw new Error("NO_CARDS_GENERATED")
   }
   
-  return cards
+  return { cards, provider: result.provider }
 }

@@ -20,6 +20,7 @@ export function UploadZone({ deckId, onSuccess, onCancel, skipDeleteOnCancel }: 
   const [uploadedUrl, setUploadedUrl] = useState<string | null>(null);
   const [abortController, setAbortController] = useState<AbortController | null>(null);
   const [isCancelling, setIsCancelling] = useState(false);
+  const [activeProvider, setActiveProvider] = useState<string | null>(null);
 
   const resetFileInput = () => {
     const input = document.getElementById("pdf-upload") as HTMLInputElement | null;
@@ -40,19 +41,19 @@ export function UploadZone({ deckId, onSuccess, onCancel, skipDeleteOnCancel }: 
         signal: controller.signal,
       });
 
+      const data = await fetchRes.json();
+
       if (!fetchRes.ok) {
-        const errorText = await fetchRes.text();
-        let errorMessage = "Generation failed";
-        try {
-          const errorJson = JSON.parse(errorText);
-          errorMessage = errorJson.error || errorMessage;
-        } catch {
-          errorMessage = `Server Error (${fetchRes.status}): ${errorText.substring(0, 50)}...`;
-        }
-        throw new Error(errorMessage);
+        throw new Error(data.error || "Generation failed");
       }
 
-      toast.success("Deck created successfully!");
+      const providerName = data.provider || null;
+      if (providerName) setActiveProvider(providerName);
+
+      const count = data.newCards || 0;
+      const displayProvider = providerName ? (providerName.charAt(0).toUpperCase() + providerName.slice(1)) : "AI";
+      
+      toast.success(`Deck created! ${count} cards via ${displayProvider}`);
       resetFileInput();
       onSuccess();
     } catch (err: any) {
@@ -205,7 +206,15 @@ export function UploadZone({ deckId, onSuccess, onCancel, skipDeleteOnCancel }: 
             </div>
             <p className="text-lg text-primary font-medium">Drop your PDF here or click to upload</p>
             <p className="text-sm text-secondary">Cards are generated from the core concepts of your PDF</p>
-            <p className="text-xs text-secondary/70 mt-1">Best results with focused, text-based PDFs</p>
+            {activeProvider && (
+              <div className="mt-4 px-3 py-1 rounded-full bg-gold/5 border border-gold/20 flex items-center space-x-2">
+                <div className="w-1.5 h-1.5 rounded-full bg-gold animate-pulse" />
+                <span className="text-[10px] uppercase tracking-widest text-gold/80 font-bold">
+                  Last Engine: {activeProvider}
+                </span>
+              </div>
+            )}
+            <p className="text-xs text-secondary/70 mt-2">Best results with focused, text-based PDFs</p>
           </label>
         )}
       </div>

@@ -37,9 +37,9 @@ export async function POST(req: Request, { params }: { params: Promise<{ deckId:
     }
 
     // Step 3: Generate cards via chunked pipeline
-    let cardsData: { front: string; back: string }[] = [];
+    let result: { cards: any[]; provider: string } = { cards: [], provider: "" };
     try {
-      cardsData = await generateCardsFromText(text);
+      result = await generateCardsFromText(text);
     } catch (error: any) {
       if (error.message === "ALL_PROVIDERS_FAILED") {
         return NextResponse.json(
@@ -56,7 +56,7 @@ export async function POST(req: Request, { params }: { params: Promise<{ deckId:
       throw error;
     }
 
-    const cardsToInsert = cardsData.slice(0, 40).map((c: any) => ({
+    const cardsToInsert = result.cards.slice(0, 40).map((c: any) => ({
       deckId,
       front: String(c.front || c.question || "").substring(0, 500),
       back: String(c.back || c.answer || "").substring(0, 500)
@@ -74,7 +74,11 @@ export async function POST(req: Request, { params }: { params: Promise<{ deckId:
       .set({ cardCount: (deck.cardCount ?? 0) + cardsToInsert.length })
       .where(eq(decks.id, deckId));
 
-    return NextResponse.json({ success: true, newCards: cardsToInsert.length });
+    return NextResponse.json({ 
+      success: true, 
+      newCards: cardsToInsert.length,
+      provider: result.provider 
+    });
   } catch (err: any) {
     if (err.name === 'AbortError') {
       if (deckId) {
