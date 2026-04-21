@@ -16,7 +16,7 @@ export default function DashboardLayout({ children }: { children: ReactNode }) {
             <Link href="/dashboard" className="text-xl font-medium tracking-tight text-primary hover:opacity-80 transition-opacity">
               Kenshō
             </Link>
-            <Link href="/docs" className="text-sm text-secondary hover:text-gold transition-colors">
+            <Link href="/docs" className="px-3 py-1.5 text-sm btn-kensho-3d-secondary">
               Docs
             </Link>
           </div>
@@ -41,7 +41,7 @@ export default function DashboardLayout({ children }: { children: ReactNode }) {
         <div className="mt-20 pb-12 text-center">
           <Link 
             href="/docs" 
-            className="text-xs text-secondary hover:text-gold transition-colors inline-flex items-center gap-1"
+            className="px-4 py-2 text-xs btn-kensho-3d-secondary inline-flex items-center gap-1"
           >
             How Kenshō works 
             <span className="btn-arrow">

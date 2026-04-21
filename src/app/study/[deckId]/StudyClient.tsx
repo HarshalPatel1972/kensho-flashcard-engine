@@ -218,7 +218,7 @@ export default function StudyClient() {
         </Link>
           <Link 
             href="/docs" 
-            className="text-xs text-secondary hover:text-gold transition-colors inline-flex items-center gap-1 btn-kensho-3d-secondary px-4 py-2"
+            className="px-6 py-2.5 text-xs font-bold btn-kensho-3d-secondary flex items-center gap-1"
           >
             How Kenshō works 
             <span className="btn-arrow ml-1">

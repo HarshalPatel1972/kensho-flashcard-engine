@@ -16,7 +16,7 @@ export default function DocsPage() {
           <header className="space-y-4">
             <Link 
               href={isSignedIn ? "/dashboard" : "/"} 
-              className="inline-flex items-center text-sm text-secondary hover:text-gold transition-colors group"
+              className="px-4 py-2 text-sm btn-kensho-3d-secondary group"
             >
               <ArrowLeft className="w-4 h-4 mr-2 group-hover:-translate-x-1 transition-transform" />
               {isSignedIn ? "Back to Dashboard" : "Back to Home"}
