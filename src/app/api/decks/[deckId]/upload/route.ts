@@ -84,6 +84,17 @@ async function tryGeminiMultimodal(buffer: Buffer) {
   return result.response.text();
 }
 
+async function tryGeminiText(text: string) {
+  if (!process.env.GEMINI_API_KEY) throw new Error("No Gemini key");
+  const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY!);
+  const model = genAI.getGenerativeModel({ model: "gemini-2.0-flash" });
+  const result = await model.generateContent([
+    { text: SYSTEM_PROMPT },
+    { text: `Context:\n${text.substring(0, 30000)}\n\nGenerate flashcards now.` }
+  ]);
+  return result.response.text();
+}
+
 export async function POST(req: Request, { params }: { params: Promise<{ deckId: string }> }) {
   try {
     const { userId } = await auth();
@@ -122,7 +133,9 @@ export async function POST(req: Request, { params }: { params: Promise<{ deckId:
       try { responseText = await tryGroq(pdfText); } catch (e) {
         try { responseText = await tryDeepSeek(pdfText); } catch (e2) {
           try { responseText = await tryHuggingFace(pdfText); } catch (e3) {
-            console.warn("Retrying with Gemini...");
+            try { responseText = await tryGeminiText(pdfText); } catch (e4) {
+              console.warn("Retrying with Gemini Multimodal...");
+            }
           }
         }
       }
@@ -158,7 +171,10 @@ export async function POST(req: Request, { params }: { params: Promise<{ deckId:
 
     return NextResponse.json({ success: true, newCards: newCards.length });
   } catch (err: any) {
-    console.error(err);
-    return NextResponse.json({ error: err.message }, { status: 500 });
+    console.error("Upload error:", err);
+    // Sanitize DB or other unknown technical errors
+    const message = err.message || "An unexpected error occurred.";
+    const isSafeMessage = message.includes("AI engines") || message.includes("AI output") || message.includes("Unauthorized") || message.includes("not found");
+    return NextResponse.json({ error: isSafeMessage ? message : "Servers are currently experiencing heavy load. Please try again." }, { status: 500 });
   }
 }
