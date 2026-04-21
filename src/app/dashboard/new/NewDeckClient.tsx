@@ -69,7 +69,7 @@ export default function NewDeckClient() {
 
   const [isProcessingInfo, setIsProcessingInfo] = useState(false);
   const [abortController, setAbortController] = useState<AbortController | null>(null);
-  const { playClick, playSuccess, playError } = useKenshoSounds();
+  const { playClick, playSuccess, playError, playType } = useKenshoSounds();
 
   const handleCreateDeck = async (e?: React.FormEvent) => {
     if (e) e.preventDefault();
