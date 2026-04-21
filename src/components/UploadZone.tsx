@@ -17,6 +17,7 @@ export function UploadZone({ deckId, onSuccess }: UploadZoneProps) {
   const [error, setError] = useState<string | null>(null);
   const [uploadedUrl, setUploadedUrl] = useState<string | null>(null);
   const [abortController, setAbortController] = useState<AbortController | null>(null);
+  const [isCancelling, setIsCancelling] = useState(false);
 
   const resetFileInput = () => {
     const input = document.getElementById("pdf-upload") as HTMLInputElement | null;
@@ -69,6 +70,7 @@ export function UploadZone({ deckId, onSuccess }: UploadZoneProps) {
     signal: abortController?.signal,
     onClientUploadComplete: async (res) => {
       const url = res?.[0]?.url;
+      if (isCancelling) return; // Prevent proceeding if cancelled
       if (!url) {
         setError("Upload failed - no URL returned");
         resetFileInput();
@@ -97,11 +99,25 @@ export function UploadZone({ deckId, onSuccess }: UploadZoneProps) {
     await startUpload([file]);
   };
 
-  const handleCancel = () => {
+  const handleCancel = async () => {
+    setIsCancelling(true);
     if (abortController) {
       abortController.abort();
     }
+    
+    // Stop UploadThing upload implicitly by controller
+
+    if (deckId) {
+      try {
+        await fetch(`/api/decks/${deckId}`, { method: "DELETE" });
+      } catch (e) {
+        // Silent — best effort cleanup
+      }
+    }
+
     resetFileInput();
+    toast.info("Upload cancelled");
+    setIsCancelling(false);
   };
 
   const handleDrop = useCallback((e: React.DragEvent) => {
@@ -154,9 +170,10 @@ export function UploadZone({ deckId, onSuccess }: UploadZoneProps) {
             />
             <button
               onClick={(e) => { e.stopPropagation(); handleCancel(); }}
-              className="mt-2 text-sm text-red-500 hover:text-red-400 font-medium cursor-pointer pointer-events-auto transition-colors px-4 py-2"
+              disabled={isCancelling}
+              className="mt-2 text-sm text-red-500 hover:text-red-400 font-medium cursor-pointer pointer-events-auto transition-colors px-4 py-2 disabled:opacity-50 disabled:cursor-not-allowed"
             >
-              Cancel Process
+              {isCancelling ? "Cancelling..." : "Cancel Process"}
             </button>
           </div>
         ) : error && uploadedUrl ? (
