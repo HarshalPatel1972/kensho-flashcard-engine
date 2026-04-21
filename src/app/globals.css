@@ -79,6 +79,7 @@
 .nav-item-active {
   background: color-mix(in srgb, var(--secondary), transparent 92%);
   color: var(--primary) !important;
+  overflow: hidden; /* This is key for the 100% height blend */
 }
 
 .nav-item-active::after {
@@ -87,9 +88,9 @@
   right: 0;
   top: 0;
   height: 100%;
-  width: 3px;
+  width: 8px;
   background: var(--gold);
-  border-radius: 4px 4px 4px 4px;
+  border-radius: 4px 0 0 4px; /* Rounded only on the left, parent clips the right */
 }
 
 /* --- BUTTONS & ANIMATIONS --- */

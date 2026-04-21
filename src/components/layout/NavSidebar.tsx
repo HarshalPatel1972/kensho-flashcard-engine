@@ -15,6 +15,7 @@ import {
 } from "lucide-react";
 import { useKenshoSounds } from "@/hooks/use-kensho-sounds";
 import { cn } from "@/lib/utils";
+import { useClerk } from "@clerk/nextjs";
 
 const NAV_ITEMS = [
   { icon: Home, label: "Home", href: "/dashboard" },
@@ -25,6 +26,8 @@ export function NavSidebar() {
   const [isCollapsed, setIsCollapsed] = useState(false);
   const pathname = usePathname();
   const { playClick, playHover } = useKenshoSounds();
+
+  const { openUserProfile } = useClerk();
 
   // Handle auto-collapse on tablet
   useEffect(() => {
@@ -127,11 +130,13 @@ export function NavSidebar() {
 
       {/* Settings at Bottom */}
       <div className="p-4 mt-auto border-t border-border/30">
-        <Link
-          href="/dashboard?settings=true"
-          onClick={() => playClick()}
+        <button
+          onClick={() => {
+            playClick();
+            openUserProfile();
+          }}
           onMouseEnter={() => playHover()}
-          className="relative group flex items-center gap-4 px-4 py-3.5 rounded-full text-secondary hover:bg-surface/50 transition-all duration-200"
+          className="w-full relative group flex items-center gap-4 px-4 py-3.5 rounded-full text-secondary hover:bg-surface/50 transition-all duration-200"
         >
           <Settings className="w-5 h-5 shrink-0" />
           <div className="flex-1 overflow-hidden">
@@ -142,14 +147,14 @@ export function NavSidebar() {
                   animate={{ opacity: 1, x: 0 }}
                   exit={{ opacity: 0, x: -10 }}
                   transition={{ duration: 0.15 }}
-                  className="font-medium whitespace-nowrap block"
+                  className="font-medium whitespace-nowrap block text-left"
                 >
                   Preferences
                 </motion.span>
               )}
             </AnimatePresence>
           </div>
-        </Link>
+        </button>
       </div>
     </motion.aside>
   );

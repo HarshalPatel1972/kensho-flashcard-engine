@@ -16,7 +16,7 @@ export function NavTopBar({ title = "Dashboard", onMenuClick }: NavTopBarProps) 
   const { isSignedIn } = useAuth();
 
   return (
-    <header className="sticky top-0 z-50 h-20 shrink-0 flex items-center px-6 md:px-8 bg-bg/60 backdrop-blur-xl border-b border-border/40">
+    <header className="sticky top-0 z-50 h-20 shrink-0 flex items-center px-6 md:px-8 sidebar-glass border-b border-border/40">
       <div className="flex-1 flex items-center gap-4">
         {/* Mobile Menu Toggle */}
         <button 
