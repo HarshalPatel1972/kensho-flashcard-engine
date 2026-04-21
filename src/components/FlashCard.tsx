@@ -30,7 +30,7 @@ export function FlashCard({ front, back, isFlipped, onFlip }: FlashCardProps) {
       >
         {/* Front Face */}
         <div 
-          className="absolute inset-0 bg-surface border border-border/50 rounded-2xl p-6 md:p-12 flex flex-col items-center justify-center text-center shadow-xl"
+          className="absolute inset-0 bg-[#ffffff] dark:bg-surface border-[#e5e5e5] dark:border-border/50 rounded-2xl p-6 md:p-12 flex flex-col items-center justify-center text-center shadow-[0_4px_24px_rgba(0,0,0,0.08)] dark:shadow-xl"
           style={{ backfaceVisibility: "hidden" }}
         >
           <p className="text-[clamp(1.25rem,5vw,2.5rem)] text-primary font-medium leading-relaxed">
@@ -43,7 +43,7 @@ export function FlashCard({ front, back, isFlipped, onFlip }: FlashCardProps) {
 
         {/* Back Face */}
         <div 
-          className="absolute inset-0 bg-surface border border-gold/30 rounded-2xl p-6 md:p-12 flex flex-col items-center justify-center text-center shadow-2xl shadow-gold/5"
+          className="absolute inset-0 bg-[#ffffff] dark:bg-surface border-[#e5e5e5] dark:border-gold/30 rounded-2xl p-6 md:p-12 flex flex-col items-center justify-center text-center shadow-[0_4px_24px_rgba(0,0,0,0.08)] dark:shadow-2xl dark:shadow-gold/5"
           style={{ 
             backfaceVisibility: "hidden", 
             transform: "rotateY(180deg)" 
