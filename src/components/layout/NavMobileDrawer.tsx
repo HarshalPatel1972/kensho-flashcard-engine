@@ -70,8 +70,8 @@ export function NavMobileDrawer({ isOpen, onClose }: NavMobileDrawerProps) {
                       onClose();
                     }}
                     className={cn(
-                      "flex items-center gap-4 px-5 py-4 rounded-lg transition-all duration-200",
-                      isActive ? "bg-surface-secondary border border-border/50 text-gold font-bold" : "text-secondary hover:bg-surface/50"
+                      "relative flex items-center gap-4 px-5 py-4 rounded-lg transition-all duration-200",
+                      isActive ? "nav-item-active font-bold" : "text-secondary hover:bg-surface/50"
                     )}
                   >
                     <item.icon className="w-5 h-5" />
