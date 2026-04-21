@@ -9,6 +9,7 @@ import { AppPreferences } from "@/components/settings/AppPreferences";
 
 import { NavSidebar } from "@/components/layout/NavSidebar";
 import { NavTopBar } from "@/components/layout/NavTopBar";
+import { NavMobileDrawer } from "@/components/layout/NavMobileDrawer";
 import { useState } from "react";
 
 export default function DashboardLayout({ children }: { children: ReactNode }) {
@@ -42,8 +43,11 @@ export default function DashboardLayout({ children }: { children: ReactNode }) {
         </main>
       </div>
 
-      {/* Mobile Sidebar Overlay (Mobile Drawer TBD or simple toggle) */}
-      {/* ... Add Mobile Drawer implementation if needed ... */}
+      {/* Mobile Sidebar Overlay */}
+      <NavMobileDrawer 
+        isOpen={isMobileMenuOpen} 
+        onClose={() => setIsMobileMenuOpen(false)} 
+      />
     </div>
   );
 }
