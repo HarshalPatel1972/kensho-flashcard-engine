@@ -53,19 +53,7 @@ export default async function DashboardPage({ searchParams }: { searchParams: Pr
         and(
           eq(decks.userId, userId),
           searchTerm 
-            ? or(
-                ilike(decks.title, searchTerm),
-                exists(
-                  db.select()
-                    .from(cards)
-                    .where(
-                      and(
-                        eq(cards.deckId, decks.id),
-                        ilike(cards.front, searchTerm)
-                      )
-                    )
-                )
-              )
+            ? ilike(decks.title, searchTerm)
             : undefined
         )
       )
