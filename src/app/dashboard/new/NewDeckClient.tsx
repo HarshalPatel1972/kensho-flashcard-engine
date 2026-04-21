@@ -364,6 +364,14 @@ export default function NewDeckClient() {
 
   return (
     <div className="max-w-2xl mx-auto space-y-8 animate-in fade-in slide-in-from-bottom-4 duration-500">
+      <div className="mb-4">
+        <Link 
+          href="/dashboard" 
+          className="text-sm border-b border-transparent hover:border-gold text-secondary hover:text-gold transition-colors pb-0.5 inline-flex"
+        >
+          ← Back to Decks
+        </Link>
+      </div>
       {renderHeader()}
 
       {!deckId ? (
