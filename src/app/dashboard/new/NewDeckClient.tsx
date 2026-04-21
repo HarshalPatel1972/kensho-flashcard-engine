@@ -111,48 +111,91 @@ export default function NewDeckClient() {
     }
   };
 
-  // Thumbnail Rendering Logic
-  useEffect(() => {
-    if (step !== "select-pages" || !pdfFile || totalPages === 0) return;
+  const pdfDocRef = useRef<any>(null);
+  const objectUrlsRef = useRef<string[]>([]);
 
-    const renderRange = async () => {
-      setIsRenderingThumbnails(true);
+  // Cleanup effect
+  useEffect(() => {
+    return () => {
+      objectUrlsRef.current.forEach(url => URL.revokeObjectURL(url));
+      if (pdfDocRef.current) pdfDocRef.current.destroy();
+    };
+  }, []);
+
+  // PDF Loader effect - runs only when pdfFile changes
+  useEffect(() => {
+    if (!pdfFile) return;
+    
+    let isMounted = true;
+    const loadPdf = async () => {
       try {
+        if (pdfDocRef.current) {
+          await pdfDocRef.current.destroy();
+          pdfDocRef.current = null;
+        }
         const arrayBuffer = await pdfFile.arrayBuffer();
         const pdf = await pdfjsLib.getDocument({ data: arrayBuffer }).promise;
-        const newThumbs: Record<number, string> = { ...thumbnails };
-        
-        // Only render the pages currently in the selected range that aren't already cached
-        const pagesToRender = selectedPages.filter(p => !newThumbs[p]);
-        
-        for (const pageNum of pagesToRender) {
-          try {
-            const page = await pdf.getPage(pageNum);
-            const viewport = page.getViewport({ scale: 0.2 });
-            const canvas = document.createElement("canvas");
-            const context = canvas.getContext("2d");
-            if (!context) continue;
-
-            canvas.height = viewport.height;
-            canvas.width = viewport.width;
-
-            await page.render({ canvasContext: context, viewport }).promise;
-            newThumbs[pageNum] = canvas.toDataURL();
-          } catch (e) {
-            console.error(`Failed to render thumbnail for page ${pageNum}`, e);
-          }
+        if (isMounted) {
+          pdfDocRef.current = pdf;
+          console.log("[Zero-Lag] PDF Instance Ready");
+        } else {
+          pdf.destroy();
         }
-        setThumbnails(newThumbs);
       } catch (err) {
-        console.error("Thumbnail rendering error:", err);
-      } finally {
-        setIsRenderingThumbnails(false);
+        console.error("PDF Load Error:", err);
       }
     };
+    loadPdf();
+    return () => { isMounted = false; };
+  }, [pdfFile]);
 
-    const timer = setTimeout(renderRange, 300);
-    return () => clearTimeout(timer);
-  }, [selectedPages.length, pageMode, rangeInput, pdfFile, totalPages, step]);
+  // Thumbnail Rendering Logic - Optimized
+  useEffect(() => {
+    if (step !== "select-pages" || !pdfDocRef.current || totalPages === 0) return;
+
+    let isStale = false;
+    const renderRange = async () => {
+      setIsRenderingThumbnails(true);
+      const pdf = pdfDocRef.current;
+      const newThumbs: Record<number, string> = { ...thumbnails };
+      const pagesToRender = selectedPages.filter(p => !newThumbs[p]);
+      
+      for (const pageNum of pagesToRender) {
+        if (isStale) break;
+        try {
+          const page = await pdf.getPage(pageNum);
+          const viewport = page.getViewport({ scale: 0.3 }); // Slightly higher quality for crispness
+          const canvas = document.createElement("canvas");
+          const context = canvas.getContext("2d");
+          if (!context) continue;
+
+          canvas.height = viewport.height;
+          canvas.width = viewport.width;
+
+          await page.render({ canvasContext: context, viewport }).promise;
+          
+          // Use Blobs instead of DataURLs for zero-heap impact
+          const blob = await new Promise<Blob | null>(res => canvas.toBlob(res, "image/webp", 0.7));
+          if (blob && !isStale) {
+            const url = URL.createObjectURL(blob);
+            objectUrlsRef.current.push(url);
+            newThumbs[pageNum] = url;
+            // Update incrementally for instant feedback
+            setThumbnails({ ...newThumbs });
+          }
+        } catch (e) {
+          console.error(`Failed to render thumbnail for page ${pageNum}`, e);
+        }
+      }
+      setIsRenderingThumbnails(false);
+    };
+
+    const timer = setTimeout(renderRange, 150); // Faster debounce
+    return () => {
+      isStale = true;
+      clearTimeout(timer);
+    };
+  }, [selectedPages.length, pageMode, rangeInput, totalPages, step]);
 
   const quickSelect = (type: "first4" | "first10" | "all") => {
     setPageMode("custom");
