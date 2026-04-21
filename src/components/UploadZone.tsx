@@ -8,12 +8,13 @@ import { toast } from "sonner";
 
 type UploadZoneProps = {
   deckId: string;
-  onSuccess: () => void;
+  onSuccess?: () => void;
+  onUploadComplete?: (url: string) => void;
   onCancel: () => void;
   skipDeleteOnCancel?: boolean;
 };
 
-export function UploadZone({ deckId, onSuccess, onCancel, skipDeleteOnCancel }: UploadZoneProps) {
+export function UploadZone({ deckId, onSuccess, onUploadComplete, onCancel, skipDeleteOnCancel }: UploadZoneProps) {
   const [isHovering, setIsHovering] = useState(false);
   const [isGenerating, setIsGenerating] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -80,7 +81,11 @@ export function UploadZone({ deckId, onSuccess, onCancel, skipDeleteOnCancel }: 
         return;
       }
       setUploadedUrl(url);
-      await generateCards(url);
+      if (onUploadComplete) {
+        onUploadComplete(url);
+      } else if (onSuccess) {
+        await generateCards(url);
+      }
     },
     onUploadError: (error: Error) => {
       if (error.message !== "Upload aborted") {
