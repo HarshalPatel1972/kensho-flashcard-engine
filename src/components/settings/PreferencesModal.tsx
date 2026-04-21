@@ -30,31 +30,31 @@ export function PreferencesModal() {
               initial={{ opacity: 0, scale: 0.95 }}
               animate={{ opacity: 1, scale: 1 }}
               exit={{ opacity: 0, scale: 0.95 }}
-              className="w-full max-w-fit h-fit max-h-[90vh] shadow-2xl rounded-2xl overflow-hidden pointer-events-auto relative border border-border/40 bg-surface"
+              className="relative shadow-2xl rounded-2xl overflow-hidden pointer-events-auto border border-border/20 bg-surface"
             >
-              {/* Close Button - Integrated into Clerk Header space */}
+              {/* Close Button - Absolutely positioned Relative to the Component root */}
               <button
                 onClick={() => {
                   playClick();
                   close();
                 }}
-                className="absolute top-5 right-5 w-8 h-8 rounded-full hover:bg-surface/80 flex items-center justify-center transition-colors z-[110]"
+                className="absolute top-6 right-6 w-8 h-8 rounded-full hover:bg-surface/80 flex items-center justify-center transition-colors z-[110]"
               >
                 <X className="w-4 h-4 text-secondary" />
               </button>
 
-              <div className="min-w-[800px] lg:min-w-[900px]">
-                <UserProfile 
-                  routing="hash"
-                  appearance={{
-                    elements: {
-                      rootBox: "w-full h-full",
-                      card: "w-full h-full shadow-none bg-transparent border-none",
-                      navbar: "bg-surface-secondary border-r border-border/30",
-                      scrollBox: "bg-surface",
-                    }
-                  }}
-                >
+              <UserProfile 
+                routing="hash"
+                appearance={{
+                  elements: {
+                    rootBox: "w-full",
+                    card: "shadow-none bg-transparent border-none m-0",
+                    navbar: "bg-surface-secondary border-r border-border/30",
+                    scrollBox: "bg-surface",
+                    pageScrollBox: "p-8 md:p-12",
+                  }
+                }}
+              >
                   <UserProfile.Page label="account" />
                   <UserProfile.Page label="security" />
                   <UserProfile.Page
@@ -71,7 +71,6 @@ export function PreferencesModal() {
                     </div>
                   </UserProfile.Page>
                 </UserProfile>
-              </div>
             </motion.div>
           </div>
         </>
