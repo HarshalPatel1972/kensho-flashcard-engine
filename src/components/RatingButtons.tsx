@@ -46,8 +46,9 @@ export function RatingButtons({ onRate, disabled }: RatingButtonsProps) {
           disabled={disabled}
           onClick={() => { playClick(); onRate(btn.value); }}
           whileHover={shouldReduceMotion ? {} : { scale: 1.05, translateY: -2 }}
-          transition={{ type: "spring", stiffness: 400, damping: 17 }}
-          className={`group relative flex flex-col items-center justify-center w-full md:w-28 h-24 rounded-2xl border transition-all duration-100 disabled:opacity-50 ${btn.color}`}
+          whileTap={shouldReduceMotion ? {} : { translateY: 3, boxShadow: `0 2px 0 0 ${btn.shelfColor}` }}
+          transition={{ type: "spring", stiffness: 450, damping: 20 }}
+          className={`group relative flex flex-col items-center justify-center w-full md:w-28 h-24 rounded-2xl border transition-colors duration-100 disabled:opacity-50 ${btn.color}`}
           style={{
             backgroundColor: btn.bgColor,
             boxShadow: `0 5px 0 0 ${btn.shelfColor}`,
@@ -55,13 +56,6 @@ export function RatingButtons({ onRate, disabled }: RatingButtonsProps) {
         >
           <span className="text-lg font-bold mb-1">{btn.label}</span>
           <span className="text-[10px] md:text-xs text-white/80 px-2 py-0.5 rounded-md bg-black/20 transition-colors font-medium">Press {btn.key}</span>
-          
-          <style jsx>{`
-            button:active {
-              transform: translateY(4px);
-              box-shadow: 0 1px 0 0 ${btn.shelfColor} !important;
-            }
-          `}</style>
         </motion.button>
       ))}
     </div>
