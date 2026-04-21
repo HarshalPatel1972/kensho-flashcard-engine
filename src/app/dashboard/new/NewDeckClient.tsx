@@ -16,6 +16,30 @@ if (typeof window !== "undefined") {
   pdfjsLib.GlobalWorkerOptions.workerSrc = `//cdnjs.cloudflare.com/ajax/libs/pdf.js/${pdfjsLib.version}/pdf.worker.min.js`;
 }
 
+function parsePageRange(input: string, maxPages: number): number[] {
+  const pages = new Set<number>();
+  const parts = input.split(",").map(p => p.trim());
+  
+  for (const part of parts) {
+    if (part.includes("-")) {
+      const [startStr, endStr] = part.split("-");
+      const start = parseInt(startStr);
+      const end = parseInt(endStr);
+      if (!isNaN(start) && !isNaN(end)) {
+        const s = Math.min(start, end);
+        const e = Math.max(start, end);
+        for (let i = s; i <= e; i++) {
+          if (i >= 1 && i <= maxPages) pages.add(i);
+        }
+      }
+    } else {
+      const p = parseInt(part);
+      if (!isNaN(p) && p >= 1 && p <= maxPages) pages.add(p);
+    }
+  }
+  return Array.from(pages).sort((a, b) => a - b);
+}
+
 type UploadStep = "upload" | "select-pages" | "generating";
 
 export default function NewDeckClient() {
@@ -31,11 +55,14 @@ export default function NewDeckClient() {
   const [pdfUrl, setPdfUrl] = useState<string | null>(null);
   const [pdfFile, setPdfFile] = useState<File | null>(null);
   const [totalPages, setTotalPages] = useState(0);
-  const [fromPage, setFromPage] = useState(1);
-  const [toPage, setToPage] = useState(1);
+  const [pageMode, setPageMode] = useState<"all" | "custom">("all");
+  const [rangeInput, setRangeInput] = useState("");
   const [thumbnails, setThumbnails] = useState<Record<number, string>>({});
   const [isRenderingThumbnails, setIsRenderingThumbnails] = useState(false);
-  const selectedPages = Array.from({ length: toPage - fromPage + 1 }, (_, i) => fromPage + i);
+
+  const selectedPages = pageMode === "all" 
+    ? Array.from({ length: Math.min(20, totalPages) }, (_, i) => i + 1)
+    : parsePageRange(rangeInput, totalPages);
 
   const [isProcessingInfo, setIsProcessingInfo] = useState(false);
   const [abortController, setAbortController] = useState<AbortController | null>(null);
@@ -73,8 +100,8 @@ export default function NewDeckClient() {
       
       const count = data.totalPages;
       setTotalPages(count);
-      setFromPage(1);
-      setToPage(Math.min(4, count));
+      setPageMode(count <= 20 ? "all" : "custom");
+      setRangeInput(count <= 4 ? `1-${count}` : `1-4`);
       setStep("select-pages");
       setError(null);
     } catch (err: any) {
@@ -125,13 +152,19 @@ export default function NewDeckClient() {
 
     const timer = setTimeout(renderRange, 300);
     return () => clearTimeout(timer);
-  }, [fromPage, toPage, pdfFile, totalPages, step]);
+  }, [selectedPages.length, pageMode, rangeInput, pdfFile, totalPages, step]);
 
   const quickSelect = (type: "first4" | "first10" | "all") => {
-    setFromPage(1);
-    if (type === "first4") setToPage(Math.min(4, totalPages));
-    if (type === "first10") setToPage(Math.min(10, totalPages));
-    if (type === "all") setToPage(Math.min(20, totalPages));
+    setPageMode("custom");
+    if (type === "first4") setRangeInput(`1-${Math.min(4, totalPages)}`);
+    if (type === "first10") setRangeInput(`1-${Math.min(10, totalPages)}`);
+    if (type === "all") {
+      if (totalPages <= 20) {
+        setPageMode("all");
+      } else {
+        setRangeInput(`1-20`);
+      }
+    }
   };
 
 
@@ -295,29 +328,32 @@ export default function NewDeckClient() {
       ) : step === "select-pages" ? (
         <div className="space-y-8 animate-in fade-in slide-in-from-right-4 duration-500">
           <div className="bg-surface p-6 rounded-2xl border border-border/50 space-y-6">
-             <div className="grid grid-cols-2 gap-6">
-                <div className="space-y-2">
-                  <label className="text-xs uppercase tracking-widest text-secondary font-bold">From Page</label>
-                  <input 
-                    type="number" 
-                    min={1} 
-                    max={totalPages}
-                    value={fromPage}
-                    onChange={(e) => setFromPage(Math.max(1, parseInt(e.target.value) || 1))}
-                    className="w-full bg-bg border border-border rounded-xl px-4 py-3 text-lg font-medium focus:ring-2 focus:ring-gold outline-none transition-all"
-                  />
+             <div className="space-y-4">
+                <div className="flex items-center justify-between">
+                  <label className="text-xs uppercase tracking-widest text-secondary font-bold">Pages</label>
+                  <select 
+                    value={pageMode}
+                    onChange={(e) => setPageMode(e.target.value as "all" | "custom")}
+                    className="bg-bg border border-border rounded-lg px-3 py-1.5 text-sm font-medium focus:ring-1 focus:ring-gold outline-none"
+                  >
+                    <option value="all">All</option>
+                    <option value="custom">Custom</option>
+                  </select>
                 </div>
-                <div className="space-y-2">
-                  <label className="text-xs uppercase tracking-widest text-secondary font-bold">To Page</label>
-                  <input 
-                    type="number" 
-                    min={fromPage} 
-                    max={totalPages}
-                    value={toPage}
-                    onChange={(e) => setToPage(Math.max(fromPage, parseInt(e.target.value) || fromPage))}
-                    className="w-full bg-bg border border-border rounded-xl px-4 py-3 text-lg font-medium focus:ring-2 focus:ring-gold outline-none transition-all"
-                  />
-                </div>
+
+                {pageMode === "custom" && (
+                  <div className="space-y-2 animate-in fade-in slide-in-from-top-2 duration-300">
+                    <input 
+                      type="text" 
+                      value={rangeInput}
+                      onChange={(e) => setRangeInput(e.target.value)}
+                      placeholder="e.g. 1-5, 8, 11-13"
+                      className="w-full bg-bg border border-border rounded-xl px-4 py-3 text-lg font-medium focus:ring-2 focus:ring-gold outline-none transition-all"
+                      autoFocus
+                    />
+                    <p className="text-[10px] text-secondary italic">Enter page numbers or ranges separated by commas</p>
+                  </div>
+                )}
              </div>
 
              <div className="flex flex-wrap gap-2">
@@ -369,23 +405,23 @@ export default function NewDeckClient() {
 
           <div className="pt-4 space-y-6">
             <div className="flex flex-col items-center gap-4">
-              {toPage - fromPage + 1 > 20 && (
+              {selectedPages.length > 20 && (
                 <div className="px-4 py-2 rounded-xl bg-red-500/10 border border-red-500/20 text-red-500 text-xs font-medium animate-in fade-in zoom-in duration-300">
-                  Maximum 20 pages allowed. Please narrow your range.
+                  Maximum 20 pages allowed. You currently have {selectedPages.length} selected.
                 </div>
               )}
               
               <div className="text-center">
                 <p className="text-xs text-secondary mb-4">
-                  {toPage - fromPage + 1} pages selected · AI will process 
+                  {selectedPages.length} pages selected · AI will process 
                   <span className="text-primary font-medium ml-1">
-                    {toPage - fromPage + 1 <= 4 ? "full content" : "key lines per page"}
+                    {selectedPages.length <= 4 ? "full content" : "key lines per page"}
                   </span>
                 </p>
 
                 <button
                   onClick={startGeneration}
-                  disabled={toPage - fromPage + 1 === 0 || toPage - fromPage + 1 > 20}
+                  disabled={selectedPages.length === 0 || selectedPages.length > 20}
                   className="w-full md:w-auto min-w-[280px] inline-flex items-center justify-center rounded-xl bg-[#f5a623] px-10 py-5 text-xl font-bold text-black hover:bg-[#f5a623]/90 hover:scale-[1.02] active:scale-[0.98] transition-all shadow-gold-glow disabled:opacity-50 disabled:scale-100 disabled:pointer-events-none"
                 >
                   Create Flashcards 
