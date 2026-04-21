@@ -71,8 +71,9 @@ export async function generateCardsFromText(
   text: string
 ): Promise<Card[]> {
   
-  // Balanced limit — covers enough context without hitting free tier timeouts
-  const safeText = text.slice(0, 6000).trim()
+  // Hard limit — Use first 10,000 words to cover significant document depth
+  const words = text.split(/\s+/);
+  const safeText = words.slice(0, 10000).join(" ");
   
   const prompt = CARD_GENERATION_PROMPT(safeText)
   const result = await generateWithFallback(prompt, 800)

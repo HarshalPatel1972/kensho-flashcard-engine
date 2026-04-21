@@ -26,7 +26,8 @@ export async function POST(req: Request, { params }: { params: Promise<{ deckId:
 
     // Step 2: Extract text
     const text = await extractTextFromPDF(buffer);
-    console.log(`[PDFExtract] Extracted ${text.length} characters from deck ${deckId}`);
+    const wordCount = text.split(/\s+/).length;
+    console.log(`[PDFExtract] Extracted ${text.length} chars (~${wordCount} words) from deck ${deckId}`);
     
     if (text.length < 100) {
       return NextResponse.json(
