@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { DeckCard } from "./DeckCard";
 import { motion, useReducedMotion, AnimatePresence, Variants } from "framer-motion";
 
@@ -35,6 +35,10 @@ const itemVariants: Variants = {
 export function DeckGrid({ initialDecks }: { initialDecks: Deck[] }) {
   const [decks, setDecks] = useState(initialDecks);
   const shouldReduceMotion = useReducedMotion();
+
+  useEffect(() => {
+    setDecks(initialDecks);
+  }, [initialDecks]);
 
   const handleDelete = (id: string) => {
     setDecks((prev) => prev.filter((d) => d.id !== id));

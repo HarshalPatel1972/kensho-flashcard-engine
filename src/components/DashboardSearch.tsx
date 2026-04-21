@@ -18,7 +18,7 @@ export function DashboardSearch() {
       } else {
         params.delete("q");
       }
-      replace(`${pathname}?${params.toString()}`);
+      replace(`${pathname}?${params.toString()}`, { scroll: false });
     }, 300);
 
     return () => clearTimeout(handler);
