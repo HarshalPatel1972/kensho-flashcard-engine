@@ -1,6 +1,7 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect, useRef } from "react";
+import { motion, AnimatePresence } from "framer-motion";
 import { useRouter } from "next/navigation";
 import { UploadZone } from "@/components/UploadZone";
 import { LoadingMessage } from "@/components/LoadingMessage";
@@ -8,7 +9,6 @@ import { ErrorState } from "@/components/ErrorState";
 import { ArrowRight, Info, Loader2 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { toast } from "sonner";
-import { useEffect, useRef } from "react";
 import * as pdfjsLib from "pdfjs-dist/legacy/build/pdf";
 
 // Client-side worker config
@@ -248,7 +248,6 @@ export default function NewDeckClient() {
               <ErrorState 
                 title="Generation Failed"
                 message={error}
-                onRetry={startGeneration}
               />
               <div className="flex justify-center gap-4">
                 <button 
@@ -329,16 +328,12 @@ export default function NewDeckClient() {
         <div className="space-y-8 animate-in fade-in slide-in-from-right-4 duration-500">
           <div className="bg-surface p-6 rounded-2xl border border-border/50 space-y-6">
              <div className="space-y-4">
-                <div className="flex items-center justify-between">
+                <div className="flex items-center justify-between relative">
                   <label className="text-xs uppercase tracking-widest text-secondary font-bold">Pages</label>
-                  <select 
-                    value={pageMode}
-                    onChange={(e) => setPageMode(e.target.value as "all" | "custom")}
-                    className="bg-bg border border-border rounded-lg px-3 py-1.5 text-sm font-medium focus:ring-1 focus:ring-gold outline-none"
-                  >
-                    <option value="all">All</option>
-                    <option value="custom">Custom</option>
-                  </select>
+                  <PageModeSelect 
+                    value={pageMode} 
+                    onChange={setPageMode} 
+                  />
                 </div>
 
                 {pageMode === "custom" && (
@@ -466,6 +461,64 @@ export default function NewDeckClient() {
           </p>
         </div>
       )}
+    </div>
+  );
+}
+function PageModeSelect({ value, onChange }: { value: "all" | "custom", onChange: (v: "all" | "custom") => void }) {
+  const [isOpen, setIsOpen] = useState(false);
+  const containerRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    const handleClickOutside = (e: MouseEvent) => {
+      if (containerRef.current && !containerRef.current.contains(e.target as Node)) {
+        setIsOpen(false);
+      }
+    };
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => document.removeEventListener("mousedown", handleClickOutside);
+  }, []);
+
+  return (
+    <div className="relative" ref={containerRef}>
+      <button
+        onClick={() => setIsOpen(!isOpen)}
+        className="flex items-center gap-2 bg-bg border border-border rounded-lg px-4 py-1.5 text-sm font-medium hover:border-gold transition-colors focus:ring-1 focus:ring-gold outline-none min-w-[100px] justify-between"
+      >
+        <span>{value === "all" ? "All" : "Custom"}</span>
+        <svg className={cn("w-4 h-4 transition-transform duration-200", isOpen && "rotate-180")} fill="none" viewBox="0 0 24 24" stroke="currentColor">
+          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+        </svg>
+      </button>
+
+      <AnimatePresence>
+        {isOpen && (
+          <motion.div
+            initial={{ opacity: 0, y: 4, scale: 0.95 }}
+            animate={{ opacity: 1, y: 0, scale: 1 }}
+            exit={{ opacity: 0, y: 4, scale: 0.95 }}
+            transition={{ duration: 0.15, ease: "easeOut" }}
+            className="absolute right-0 mt-2 w-40 bg-surface border border-border shadow-2xl rounded-xl overflow-hidden z-[60]"
+          >
+            {(["all", "custom"] as const).map((mode) => (
+              <button
+                key={mode}
+                onClick={() => {
+                  onChange(mode);
+                  setIsOpen(false);
+                }}
+                className={cn(
+                  "w-full text-left px-4 py-2.5 text-sm transition-colors",
+                  value === mode 
+                    ? "bg-gold text-black font-bold" 
+                    : "text-primary hover:bg-gold/10 hover:text-gold"
+                )}
+              >
+                {mode === "all" ? "All" : "Custom"}
+              </button>
+            ))}
+          </motion.div>
+        )}
+      </AnimatePresence>
     </div>
   );
 }
