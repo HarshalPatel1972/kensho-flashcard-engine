@@ -27,19 +27,8 @@ export async function generateWithFallback(
     call: (model: string) => Promise<string>;
   }[] = [
     {
-      name: "gemini",
-      tiers: ["gemini-3.1-flash-lite", "gemma-4-31b-it"],
-      timeout: 12000,
-      call: async (modelId) => {
-        const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY!);
-        const model = genAI.getGenerativeModel({ model: modelId });
-        const result = await model.generateContent(prompt);
-        return result.response.text();
-      }
-    },
-    {
       name: "groq",
-      tiers: ["qwen-3.6-35b-a3b", "llama-3.1-8b-instant"],
+      tiers: ["llama-3.1-8b-instant", "llama-3.3-70b-versatile"],
       timeout: 10000,
       call: async (modelId) => {
         const groq = new Groq({ apiKey: process.env.GROQ_API_KEY! });
@@ -53,8 +42,19 @@ export async function generateWithFallback(
       }
     },
     {
+      name: "gemini",
+      tiers: ["gemini-1.5-flash", "gemini-1.5-pro"],
+      timeout: 12000,
+      call: async (modelId) => {
+        const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY!);
+        const model = genAI.getGenerativeModel({ model: modelId });
+        const result = await model.generateContent(prompt);
+        return result.response.text();
+      }
+    },
+    {
       name: "huggingface",
-      tiers: ["google/gemma-4-26b-a4b-it", "mistralai/Mistral-Small-4"],
+      tiers: ["mistralai/Mistral-7B-Instruct-v0.3", "Qwen/Qwen2.5-72B-Instruct"],
       timeout: 12000,
       call: async (modelId) => {
         const response = await fetch(
