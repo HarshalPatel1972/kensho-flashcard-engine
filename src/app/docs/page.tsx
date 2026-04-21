@@ -143,23 +143,38 @@ export default function DocsPage() {
               </div>
             </section>
 
-            {/* SECTION 6 */}
-            <section className="space-y-4">
+            {/* SECTION 7 */}
+            <section id="cookies" className="space-y-4 scroll-mt-24">
               <h2 className="text-xl font-bold uppercase tracking-widest text-gold text-right md:text-left">
-                06. Master Learner Tips
+                07. Privacy & Cookies
               </h2>
-              <div className="text-lg leading-[1.8] font-light text-primary/90 space-y-6">
-                <ul className="list-disc list-inside space-y-4 pl-4">
-                  <li><span className="font-medium text-primary">Be Consistent:</span> Study for 5 minutes every single day. The algorithm works best when you don't break the chain.</li>
-                  <li><span className="font-medium text-primary">Be Honest:</span> Inflating your ratings to feel "better" only hurts your long-term retention. If you struggled, hit Hard.</li>
-                  <li><span className="font-medium text-primary">Check "Weak Cards":</span> Before studying, glance at the cards marked "Needs Work" on your deck page.</li>
-                  <li><span className="font-medium text-primary">The AI Coach:</span> Read the coaching note after each session. It identifies patterns in your mistakes that you might not see yourself.</li>
-                </ul>
+              <div className="text-lg leading-[1.8] font-light text-primary/90 space-y-4">
+                <p>
+                  Kenshō is built with a "Privacy First" philosophy. We use cookies and local storage only 
+                  to ensure the technical reliability and personalization of your experience.
+                </p>
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-6 pt-4">
+                  <div className="p-4 rounded-xl border border-border/30 bg-surface/20">
+                    <p className="font-bold text-xs uppercase tracking-widest text-gold mb-2">Essential</p>
+                    <p className="text-sm text-secondary">Securing your account and keeping you logged in via Clerk.</p>
+                  </div>
+                  <div className="p-4 rounded-xl border border-border/30 bg-surface/20">
+                    <p className="font-bold text-xs uppercase tracking-widest text-gold mb-2">Preferences</p>
+                    <p className="text-sm text-secondary">Remembering your 3D theme, haptic sound levels, and font sizes.</p>
+                  </div>
+                  <div className="p-4 rounded-xl border border-border/30 bg-surface/20">
+                    <p className="font-bold text-xs uppercase tracking-widest text-gold mb-2">Operation</p>
+                    <p className="text-sm text-secondary">Managing real-time AI states and deck synchronization.</p>
+                  </div>
+                </div>
+                <p className="text-base text-secondary pt-4">
+                  We do not use 3rd-party advertising or sell your behavioral data. Your study sessions 
+                  are your own.
+                </p>
               </div>
             </section>
 
           </main>
-
           <footer className="pt-16 border-t border-border/30 text-center">
             <Link
               href={isSignedIn ? "/dashboard" : "/"}

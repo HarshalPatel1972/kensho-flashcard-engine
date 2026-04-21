@@ -5,6 +5,7 @@ import { Outfit } from "next/font/google";
 import "./globals.css";
 import { ThemeProvider } from "@/components/ThemeProvider";
 import { SettingsProvider } from "@/providers/SettingsProvider";
+import { CookieBanner } from "@/components/CookieBanner";
 
 const outfit = Outfit({ subsets: ["latin"] });
 
@@ -39,6 +40,7 @@ export default function RootLayout({
           <ThemeProvider attribute="class" defaultTheme="system" enableSystem>
             <SettingsProvider>
               {children}
+              <CookieBanner />
               <Toaster richColors position="top-right" />
             </SettingsProvider>
           </ThemeProvider>
