@@ -41,7 +41,7 @@ export default async function DashboardPage({ searchParams }: { searchParams: Pr
       and(
         eq(decks.userId, userId),
         eq(decks.cardCount, 0),
-        lt(decks.createdAt, new Date(Date.now() - 5 * 60 * 1000))
+        lte(decks.createdAt, new Date(Date.now() - 5 * 60 * 1000))
       )
     );
 

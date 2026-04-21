@@ -15,7 +15,7 @@ const SYSTEM_PROMPT = `
   Rules:
   - Front: Concrete question.
   - Back: Concise answer.
-  - Return ONLY a JSON array: [{"front": "...", "back": "..."}, ...]
+  - Return ONLY a valid JSON object with a "flashcards" array property: {"flashcards": [{"front": "...", "back": "..."}, ...]}
   - No markdown, no preamble, no explanations.
 `;
 
@@ -139,10 +139,41 @@ export async function POST(req: Request, { params }: { params: Promise<{ deckId:
 
     let cardsData;
     try {
-      const jsonMatch = responseText.match(/\[[\s\S]*\]/) || responseText.match(/\{[\s\S]*\}/);
-      const parsed = JSON.parse(jsonMatch ? jsonMatch[0] : responseText);
+      // 1. Strip markdown wrapper
+      let cleanText = responseText.replace(/```(json)?\n?/g, '').trim();
+
+      // 2. Try parsing straight away
+      let parsed;
+      try {
+        parsed = JSON.parse(cleanText);
+      } catch {
+        // 3. Fallback: extract the JSON bounds via indexOf
+        const startObj = cleanText.indexOf('{');
+        const endObj = cleanText.lastIndexOf('}');
+        const startArr = cleanText.indexOf('[');
+        const endArr = cleanText.lastIndexOf(']');
+        
+        let possibleJsons = [];
+        if (startObj !== -1 && endObj > startObj) possibleJsons.push(cleanText.substring(startObj, endObj + 1));
+        if (startArr !== -1 && endArr > startArr) possibleJsons.push(cleanText.substring(startArr, endArr + 1));
+        
+        const validMatch = possibleJsons.sort((a, b) => b.length - a.length)[0];
+        if (!validMatch) throw new Error("No JSON boundaries found");
+        parsed = JSON.parse(validMatch);
+      }
+
+      // 4. Resolve the array
       cardsData = Array.isArray(parsed) ? parsed : (parsed.cards || parsed.flashcards || []);
+      
+      // Fallback property search
+      if (!Array.isArray(cardsData) && typeof Object.keys(parsed) !== 'undefined') {
+        const foundArr = Object.values(parsed).find(Array.isArray);
+        if (foundArr) cardsData = foundArr;
+      }
+      
+      if (!Array.isArray(cardsData)) throw new Error("Parsed JSON did not contain an array");
     } catch (e) {
+      console.error("AI output parsing failed:", e, responseText.substring(0, 100));
       throw new Error("AI output was invalid. Please retry.");
     }
 
