@@ -77,9 +77,9 @@ export default function Home() {
         <nav className="absolute top-0 right-0 p-6 z-20">
           <Link 
             href="/docs" 
-            className="text-sm font-medium text-secondary hover:text-gold transition-colors border-b border-transparent hover:border-gold pb-0.5"
+            className="px-6 py-2.5 text-sm font-bold btn-kensho-3d-secondary"
           >
-            Docs
+            How Kenshō works →
           </Link>
         </nav>
 
