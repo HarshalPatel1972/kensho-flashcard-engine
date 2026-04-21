@@ -4,6 +4,8 @@ import { auth } from "@clerk/nextjs/server";
 import { GoogleGenerativeAI } from "@google/generative-ai";
 import { eq, and } from "drizzle-orm";
 import { NextResponse } from "next/server";
+// @ts-ignore
+import pdf from "pdf-parse";
 
 export const dynamic = "force-dynamic";
 
@@ -19,14 +21,9 @@ const SYSTEM_PROMPT = `
 
 async function tryGroq(text: string) {
   if (!process.env.GROQ_API_KEY) throw new Error("No Groq key");
-  console.log("Attempting generation with Groq...");
-  
   const res = await fetch("https://api.groq.com/openai/v1/chat/completions", {
     method: "POST",
-    headers: {
-      "Content-Type": "application/json",
-      Authorization: `Bearer ${process.env.GROQ_API_KEY}`,
-    },
+    headers: { "Content-Type": "application/json", Authorization: `Bearer ${process.env.GROQ_API_KEY}` },
     body: JSON.stringify({
       model: "llama-3.3-70b-specdec",
       messages: [
@@ -37,22 +34,16 @@ async function tryGroq(text: string) {
       response_format: { type: "json_object" }
     }),
   });
-
-  if (!res.ok) throw new Error(`Groq failed: ${res.status}`);
+  if (!res.ok) throw new Error(`Groq ${res.status}`);
   const data = await res.json();
   return data.choices[0].message.content;
 }
 
 async function tryDeepSeek(text: string) {
   if (!process.env.DEEPSEEK_API_KEY) throw new Error("No DeepSeek key");
-  console.log("Attempting generation with DeepSeek...");
-
   const res = await fetch("https://api.deepseek.com/chat/completions", {
     method: "POST",
-    headers: {
-      "Content-Type": "application/json",
-      Authorization: `Bearer ${process.env.DEEPSEEK_API_KEY}`,
-    },
+    headers: { "Content-Type": "application/json", Authorization: `Bearer ${process.env.DEEPSEEK_API_KEY}` },
     body: JSON.stringify({
       model: "deepseek-chat",
       messages: [
@@ -62,134 +53,112 @@ async function tryDeepSeek(text: string) {
       temperature: 0.3
     }),
   });
-
-  if (!res.ok) throw new Error(`DeepSeek failed: ${res.status}`);
+  if (!res.ok) throw new Error(`DeepSeek ${res.status}`);
   const data = await res.json();
   return data.choices[0].message.content;
 }
 
 async function tryHuggingFace(text: string) {
   if (!process.env.HUGGING_FACE_API_KEY) throw new Error("No HF key");
-  console.log("Attempting generation with Hugging Face...");
-
   const res = await fetch("https://api-inference.huggingface.co/models/mistralai/Mistral-7B-Instruct-v0.3", {
     method: "POST",
-    headers: {
-      "Content-Type": "application/json",
-      Authorization: `Bearer ${process.env.HUGGING_FACE_API_KEY}`,
-    },
+    headers: { "Content-Type": "application/json", Authorization: `Bearer ${process.env.HUGGING_FACE_API_KEY}` },
     body: JSON.stringify({
       inputs: `<s>[INST] ${SYSTEM_PROMPT}\n\nContext:\n${text.substring(0, 5000)} [/INST]`,
       parameters: { max_new_tokens: 1000, temperature: 0.3 }
     }),
   });
-
-  if (!res.ok) throw new Error(`HF failed: ${res.status}`);
+  if (!res.ok) throw new Error(`HF ${res.status}`);
   const data = await res.json();
   return Array.isArray(data) ? data[0].generated_text : (data.generated_text || "");
 }
 
-async function tryGemini(buffer: Buffer, prompt: string = SYSTEM_PROMPT) {
+async function tryGeminiMultimodal(buffer: Buffer) {
   if (!process.env.GEMINI_API_KEY) throw new Error("No Gemini key");
   const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY!);
   const model = genAI.getGenerativeModel({ model: "gemini-2.0-flash" });
-
   const result = await model.generateContent([
     { inlineData: { mimeType: "application/pdf", data: buffer.toString("base64") } },
-    { text: prompt }
+    { text: SYSTEM_PROMPT }
   ]);
-
   return result.response.text();
 }
 
-export async function POST(
-  req: Request,
-  { params }: { params: Promise<{ deckId: string }> }
-) {
+export async function POST(req: Request, { params }: { params: Promise<{ deckId: string }> }) {
   try {
     const { userId } = await auth();
     if (!userId) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
 
     const p = await params;
     const deckId = p.deckId;
-
     const [deck] = await db.select().from(decks).where(and(eq(decks.id, deckId), eq(decks.userId, userId)));
     if (!deck) return NextResponse.json({ error: "Deck not found" }, { status: 404 });
 
     const { fileUrl } = await req.json();
-    if (!fileUrl) return NextResponse.json({ error: "No PDF URL provided" }, { status: 400 });
-
     const pdfResponse = await fetch(fileUrl);
-    if (!pdfResponse.ok) throw new Error("Failed to fetch PDF");
     const buffer = Buffer.from(await pdfResponse.arrayBuffer());
 
-    let responseText = "";
-
-    // 1. Extract Text using Gemini (Fastest, build-safe, handles huge files)
     let pdfText = "";
     try {
-      console.log("Extracting text with Gemini...");
-      pdfText = await tryGemini(buffer, "Extract all the core educational text from this PDF. Cleanly format it as a continuous text stream.");
-    } catch (e: any) {
-      console.warn("Gemini Extraction failed, will try multimodal generation directly", e.message);
+      const data = await pdf(buffer);
+      pdfText = data.text;
+    } catch (e) {
+      console.warn("Local PDF extraction failed, trying Gemini Reader...", e);
+      try {
+        const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY!);
+        const model = genAI.getGenerativeModel({ model: "gemini-2.0-flash" });
+        const result = await model.generateContent([
+          { inlineData: { mimeType: "application/pdf", data: buffer.toString("base64") } },
+          { text: "Extract content for flashcards." }
+        ]);
+        pdfText = result.response.text();
+      } catch (e2) {
+        console.error("All text extraction failed.");
+      }
     }
 
-    // 2. Generation Chain (Groq -> DeepSeek -> HF -> Gemini)
+    let responseText = "";
     if (pdfText) {
-      try {
-        responseText = await tryGroq(pdfText);
-      } catch (e: any) {
-        console.warn("Groq failed:", e.message);
-        try {
-          responseText = await tryDeepSeek(pdfText);
-        } catch (e2: any) {
-          console.warn("DeepSeek failed:", e2.message);
-          try {
-            responseText = await tryHuggingFace(pdfText);
-          } catch (e3: any) {
-            console.warn("Hugging Face failed:", e3.message);
+      try { responseText = await tryGroq(pdfText); } catch (e) {
+        try { responseText = await tryDeepSeek(pdfText); } catch (e2) {
+          try { responseText = await tryHuggingFace(pdfText); } catch (e3) {
+            console.warn("Retrying with Gemini...");
           }
         }
       }
     }
 
-    // 3. Final Fallback: Full Gemini Multimodal Generation
     if (!responseText) {
-      responseText = await tryGemini(buffer);
+      try {
+        responseText = await tryGeminiMultimodal(buffer);
+      } catch (e) {
+        throw new Error("All AI engines are temporarily exhausted. Please try again soon.");
+      }
     }
 
-    // 4. Parse JSON
-    let generatedCards;
+    let cardsData;
     try {
       const jsonMatch = responseText.match(/\[[\s\S]*\]/) || responseText.match(/\{[\s\S]*\}/);
-      const cleanJson = jsonMatch ? jsonMatch[0] : responseText;
-      const parsed = JSON.parse(cleanJson);
-      generatedCards = Array.isArray(parsed) ? parsed : (parsed.cards || parsed.flashcards || []);
+      const parsed = JSON.parse(jsonMatch ? jsonMatch[0] : responseText);
+      cardsData = Array.isArray(parsed) ? parsed : (parsed.cards || parsed.flashcards || []);
     } catch (e) {
-      console.error("Parse failed:", responseText);
-      throw new Error("AI returned unreadable format");
-    }
-
-    if (!Array.isArray(generatedCards) || generatedCards.length === 0) {
-      throw new Error("No cards generated");
+      throw new Error("AI output was invalid. Please retry.");
     }
 
     const newCards = await db.insert(cards).values(
-      generatedCards.slice(0, 30).map(c => ({
+      cardsData.slice(0, 30).map((c: any) => ({
         deckId,
         front: String(c.front || c.question || "").substring(0, 500),
         back: String(c.back || c.answer || "").substring(0, 500)
-      })).filter(c => c.front && c.back)
+      })).filter((c: any) => c.front && c.back)
     ).returning();
 
     await db.insert(cardProgress).values(newCards.map(c => ({ userId, cardId: c.id })));
     await db.update(decks).set({ cardCount: (deck.cardCount ?? 0) + newCards.length }).where(eq(decks.id, deckId));
 
     return NextResponse.json({ success: true, newCards: newCards.length });
-  } catch (error: any) {
-    console.error("Upload Route Error:", error);
-    let userMsg = "Something went wrong during generation. Please try again soon.";
-    if (error.message.includes("429")) userMsg = "AI rate limit reached. Please wait 15 seconds.";
-    return NextResponse.json({ error: userMsg }, { status: 500 });
+  } catch (err: any) {
+    console.error(err);
+    return NextResponse.json({ error: err.message }, { status: 500 });
   }
 }
