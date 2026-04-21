@@ -10,9 +10,10 @@ type UploadZoneProps = {
   deckId: string;
   onSuccess: () => void;
   onCancel: () => void;
+  skipDeleteOnCancel?: boolean;
 };
 
-export function UploadZone({ deckId, onSuccess, onCancel }: UploadZoneProps) {
+export function UploadZone({ deckId, onSuccess, onCancel, skipDeleteOnCancel }: UploadZoneProps) {
   const [isHovering, setIsHovering] = useState(false);
   const [isGenerating, setIsGenerating] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -108,7 +109,7 @@ export function UploadZone({ deckId, onSuccess, onCancel }: UploadZoneProps) {
     
     // Stop UploadThing upload implicitly by controller
 
-    if (deckId) {
+    if (deckId && !skipDeleteOnCancel) {
       try {
         await fetch(`/api/decks/${deckId}`, { method: "DELETE" });
       } catch (e) {

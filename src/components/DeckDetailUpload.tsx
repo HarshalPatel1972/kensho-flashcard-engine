@@ -10,5 +10,12 @@ export function DeckDetailUpload({ deckId }: { deckId: string }) {
     router.refresh();
   };
 
-  return <UploadZone deckId={deckId} onSuccess={handleSuccess} />;
+  return (
+    <UploadZone 
+      deckId={deckId} 
+      onSuccess={handleSuccess} 
+      onCancel={() => router.refresh()} 
+      skipDeleteOnCancel={true}
+    />
+  );
 }
