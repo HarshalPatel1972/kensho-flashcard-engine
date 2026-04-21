@@ -10,6 +10,7 @@ export function ProgressBar({ current, total }: { current: number; total: number
     <div className="w-full h-1.5 bg-surface rounded-full overflow-hidden border border-border/30">
       <motion.div 
         className="h-full bg-gold"
+        style={{ minWidth: "8px" }}
         initial={{ width: 0 }}
         animate={{ width: `${percentage}%` }}
         transition={{ duration: shouldReduceMotion ? 0 : 0.3, ease: "easeOut" }}
