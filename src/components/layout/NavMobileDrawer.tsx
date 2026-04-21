@@ -79,20 +79,6 @@ export function NavMobileDrawer({ isOpen, onClose }: NavMobileDrawerProps) {
                   </Link>
                 );
               })}
-
-              <div className="pt-8 mt-8 border-t border-border/30">
-                <Link
-                  href="/dashboard/new"
-                  onClick={() => {
-                    playClick();
-                    onClose();
-                  }}
-                  className="flex items-center gap-4 px-4 py-4 rounded-xl bg-gold text-black font-bold shadow-gold-glow"
-                >
-                  <PlusCircle className="w-5 h-5" />
-                  <span>New Deck</span>
-                </Link>
-              </div>
             </nav>
           </motion.div>
         </>

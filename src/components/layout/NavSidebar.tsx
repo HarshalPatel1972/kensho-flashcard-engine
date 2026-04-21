@@ -92,46 +92,37 @@ export function NavSidebar() {
               onClick={() => playClick()}
               onMouseEnter={() => playHover()}
               className={cn(
-                "relative group flex items-center gap-4 px-4 py-3 rounded-full transition-all duration-200 overflow-hidden",
+                "relative group flex items-center gap-4 px-4 py-3 rounded-full transition-all duration-200",
                 isActive ? "nav-item-active" : "text-secondary hover:bg-surface/50"
               )}
             >
               <item.icon className={cn("w-5 h-5 shrink-0", isActive ? "text-gold" : "text-secondary")} />
               
-              {!isCollapsed && (
-                <motion.span
-                  initial={{ opacity: 0 }}
-                  animate={{ opacity: 1 }}
-                  className="font-medium whitespace-nowrap"
-                >
-                  {item.label}
-                </motion.span>
-              )}
+              <div className="flex-1 overflow-hidden">
+                <AnimatePresence mode="wait">
+                  {!isCollapsed && (
+                    <motion.span
+                      initial={{ opacity: 0, x: -10 }}
+                      animate={{ opacity: 1, x: 0 }}
+                      exit={{ opacity: 0, x: -10 }}
+                      transition={{ duration: 0.15 }}
+                      className="font-medium whitespace-nowrap block"
+                    >
+                      {item.label}
+                    </motion.span>
+                  )}
+                </AnimatePresence>
+              </div>
 
               {/* Tooltip for collapsed mode */}
               {isCollapsed && (
-                <div className="absolute left-full ml-4 px-3 py-2 bg-black text-white text-xs rounded opacity-0 group-hover:opacity-100 pointer-events-none transition-opacity whitespace-nowrap z-50">
+                <div className="absolute left-full ml-4 px-3 py-2 bg-black text-white text-xs rounded opacity-0 group-hover:opacity-100 pointer-events-none transition-opacity whitespace-nowrap z-50 shadow-xl">
                   {item.label}
                 </div>
               )}
             </Link>
           );
         })}
-
-        <div className="pt-6 mt-6 border-t border-border/30">
-          <Link
-            href="/dashboard/new"
-            onClick={() => playClick()}
-            onMouseEnter={() => playHover()}
-            className={cn(
-              "flex items-center gap-4 px-4 py-3 rounded-full transition-all duration-200",
-              "bg-gold text-black shadow-gold-glow hover:bg-gold-hover"
-            )}
-          >
-            <PlusCircle className="w-5 h-5 shrink-0" />
-            {!isCollapsed && <span className="font-bold whitespace-nowrap">New Deck</span>}
-          </Link>
-        </div>
       </nav>
 
       {/* Settings at Bottom */}
@@ -140,10 +131,24 @@ export function NavSidebar() {
           href="/dashboard?settings=true"
           onClick={() => playClick()}
           onMouseEnter={() => playHover()}
-          className="flex items-center gap-4 px-4 py-3.5 rounded-xl text-secondary hover:bg-surface/50 transition-all duration-200"
+          className="relative group flex items-center gap-4 px-4 py-3.5 rounded-full text-secondary hover:bg-surface/50 transition-all duration-200"
         >
           <Settings className="w-5 h-5 shrink-0" />
-          {!isCollapsed && <span className="font-medium whitespace-nowrap">Preferences</span>}
+          <div className="flex-1 overflow-hidden">
+            <AnimatePresence mode="wait">
+              {!isCollapsed && (
+                <motion.span
+                  initial={{ opacity: 0, x: -10 }}
+                  animate={{ opacity: 1, x: 0 }}
+                  exit={{ opacity: 0, x: -10 }}
+                  transition={{ duration: 0.15 }}
+                  className="font-medium whitespace-nowrap block"
+                >
+                  Preferences
+                </motion.span>
+              )}
+            </AnimatePresence>
+          </div>
         </Link>
       </div>
     </motion.aside>
