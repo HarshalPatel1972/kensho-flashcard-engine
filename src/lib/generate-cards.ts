@@ -8,7 +8,7 @@ export interface Card {
 const CARD_GENERATION_PROMPT = (chunk: string) => `
 You are a master educator creating high-quality flashcards from study material.
 
-Given the following text, generate between 3 and 5 flashcards maximum.
+Given the following text, generate between 3 and 10 flashcards maximum.
 
 Rules:
 - Cover key concepts, definitions, relationships, and important examples
@@ -16,6 +16,7 @@ Rules:
 - Back: a concise but complete answer (1-3 sentences max)
 - Do NOT create trivial or obvious cards
 - Write as a great teacher would, not a bot
+- Focus on core takeaways from the provided text
 
 Return ONLY a valid JSON array, no markdown, no preamble, no explanation:
 [{"front": "...", "back": "..."}, ...]
@@ -51,8 +52,8 @@ function parseCardsFromResponse(text: string): Card[] {
       front: String(card.front || card.question || card.q || "").trim(),
       back: String(card.back || card.answer || card.a || "").trim()
     })).filter((card: any) => 
-      card.front.length > 1 &&
-      card.back.length > 1
+      card.front.length > 5 &&
+      card.back.length > 5
     );
 
     if (cards.length === 0 && text.length > 0) {
