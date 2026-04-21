@@ -4,6 +4,7 @@ import Link from "next/link";
 import { useState, useRef, useEffect } from "react";
 import { motion, AnimatePresence, useReducedMotion } from "framer-motion";
 import { useKenshoSounds } from "@/hooks/use-kensho-sounds";
+import { formatReviewDate } from "@/lib/date-utils";
 
 type DeckCardProps = {
   id: string;
@@ -116,7 +117,7 @@ export function DeckCard({ id, title, cardCount, masteredCount, dueTodayCount, l
               )}
               
               <span className="text-[10px] uppercase tracking-widest text-secondary font-bold">
-                {isEmpty ? "Empty" : lastStudiedAt ? new Date(lastStudiedAt).toLocaleDateString(undefined, { month: 'short', day: 'numeric' }) : "New"}
+                {isEmpty ? "Empty" : lastStudiedAt ? formatReviewDate(lastStudiedAt) : "New"}
               </span>
             </div>
           </div>

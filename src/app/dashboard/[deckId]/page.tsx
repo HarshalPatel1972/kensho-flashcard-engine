@@ -10,6 +10,7 @@ import { WeakCards } from "@/components/WeakCards";
 import { DeckDetailUpload } from "@/components/DeckDetailUpload";
 import { DeckTitle } from "@/components/DeckTitle";
 import { ErrorState } from "@/components/ErrorState";
+import { formatReviewDate } from "@/lib/date-utils";
 
 export const dynamic = "force-dynamic";
 
@@ -205,7 +206,11 @@ export default async function DeckOverviewPage({ params }: { params: Promise<{ d
                           </span>
                         </td>
                         <td className="py-4 px-4 md:px-6 text-sm text-secondary text-right align-top whitespace-nowrap hidden md:table-cell">
-                          {card.dueDate ? new Date(card.dueDate).toLocaleDateString() : "Pending"}
+                          {card.dueDate ? (
+                            <span className={card.dueDate < new Date() ? "text-red-400 font-medium" : ""}>
+                              {formatReviewDate(card.dueDate)}
+                            </span>
+                          ) : "Pending"}
                         </td>
                       </tr>
                     ))}
