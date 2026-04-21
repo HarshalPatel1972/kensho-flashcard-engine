@@ -86,6 +86,7 @@ async function tryHuggingFace(text: string) {
 
   if (!res.ok) throw new Error(`HF failed: ${res.status}`);
   const data = await res.json();
+  // HF returns text directly or in an array
   return Array.isArray(data) ? data[0].generated_text : (data.generated_text || "");
 }
 
@@ -124,13 +125,15 @@ export async function POST(
     const buffer = Buffer.from(await pdfResponse.arrayBuffer());
 
     let responseText = "";
+    let extractionError = "";
 
     // 1. Extract Text using Gemini (Fastest, build-safe, handles huge files)
     let pdfText = "";
     try {
       console.log("Extracting text with Gemini...");
-      pdfText = await tryGemini(buffer, "Extract all the core educational text from this PDF. Cleanly format it as a continuous text stream.");
+      pdfText = await tryGemini(buffer, "Extract all the core text/educational content from this PDF. Return ONLY the plain text.");
     } catch (e: any) {
+      extractionError = e.message;
       console.warn("Gemini Extraction failed, will try multimodal generation directly", e.message);
     }
 
@@ -155,7 +158,15 @@ export async function POST(
 
     // 3. Final Fallback: Full Gemini Multimodal Generation
     if (!responseText) {
-      responseText = await tryGemini(buffer);
+      try {
+        responseText = await tryGemini(buffer);
+      } catch (e4: any) {
+        console.error("All AI engines failed:", e4.message);
+        const userMsg = e4.message.includes("429") 
+          ? "AI limits reached. Please try again in 30 seconds." 
+          : "Generation failed across all engines. Please check if the PDF is readable.";
+        return NextResponse.json({ error: userMsg }, { status: 503 });
+      }
     }
 
     // 4. Parse JSON
@@ -167,11 +178,11 @@ export async function POST(
       generatedCards = Array.isArray(parsed) ? parsed : (parsed.cards || parsed.flashcards || []);
     } catch (e) {
       console.error("Parse failed:", responseText);
-      throw new Error("AI returned unreadable format");
+      return NextResponse.json({ error: "AI response was unreadable. Please try again." }, { status: 500 });
     }
 
     if (!Array.isArray(generatedCards) || generatedCards.length === 0) {
-      throw new Error("No cards generated");
+      return NextResponse.json({ error: "No cards were generated." }, { status: 400 });
     }
 
     const newCards = await db.insert(cards).values(
@@ -188,8 +199,6 @@ export async function POST(
     return NextResponse.json({ success: true, newCards: newCards.length });
   } catch (error: any) {
     console.error("Upload Route Error:", error);
-    let userMsg = "Something went wrong during generation. Please try again soon.";
-    if (error.message.includes("429")) userMsg = "AI rate limit reached. Please wait 15 seconds.";
-    return NextResponse.json({ error: userMsg }, { status: 500 });
+    return NextResponse.json({ error: "Service temporarily overloaded. Please try again." }, { status: 500 });
   }
 }
