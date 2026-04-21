@@ -36,17 +36,17 @@ ${JSON.stringify(cards)}
 
 function parseCardsFromResponse(text: string): Card[] {
   try {
-    // Strip markdown code blocks if present
-    const cleaned = text
-      .replace(/```json\n?/g, "")
-      .replace(/```\n?/g, "")
-      .trim();
+    // Find the first '[' and the last ']' to extract the JSON array
+    const firstBracket = text.indexOf("[");
+    const lastBracket = text.lastIndexOf("]");
     
-    // Find JSON array in response
-    const jsonMatch = cleaned.match(/\[[\s\S]*\]/);
-    if (!jsonMatch) return [];
+    if (firstBracket === -1 || lastBracket === -1 || lastBracket < firstBracket) {
+      console.error("[Parser] No JSON array boundaries found in AI response");
+      return [];
+    }
     
-    const parsed = JSON.parse(jsonMatch[0]);
+    const jsonStr = text.substring(firstBracket, lastBracket + 1);
+    const parsed = JSON.parse(jsonStr);
     const cards = parsed.map((card: any) => ({
       front: String(card.front || card.question || card.q || "").trim(),
       back: String(card.back || card.answer || card.a || "").trim()

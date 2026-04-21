@@ -20,6 +20,9 @@ export async function generateWithFallback(
   prompt: string,
   maxTokens: number = 1000
 ): Promise<AIResult> {
+  // Debug Log for Keys
+  console.log(`[AI-Status] Keys: Groq=${!!process.env.GROQ_API_KEY}, Gemini=${!!process.env.GEMINI_API_KEY}`);
+
   const providers: {
     name: Provider;
     tiers: string[];
@@ -31,15 +34,16 @@ export async function generateWithFallback(
       tiers: ["llama-3.3-70b-versatile", "llama-3.1-8b-instant"],
       timeout: 10000,
       call: async (modelId) => {
-        const groq = new Groq({ apiKey: process.env.GROQ_API_KEY! });
+        if (!process.env.GROQ_API_KEY) throw new Error("GROQ_API_KEY_MISSING");
+        const groq = new Groq({ apiKey: process.env.GROQ_API_KEY });
         const completion = await groq.chat.completions.create({
           messages: [
-            { role: "system", content: "You are a professional educational assistant. Return ONLY valid JSON arrays." },
+            { role: "system", content: "You are an educational assistant. Return ONLY JSON arrays." },
             { role: "user", content: prompt }
           ],
           model: modelId,
           max_tokens: maxTokens,
-          temperature: 0.1 // Lowered for more consistent JSON
+          temperature: 0.1
         });
         return completion.choices[0]?.message?.content || "";
       }
@@ -47,9 +51,10 @@ export async function generateWithFallback(
     {
       name: "gemini",
       tiers: ["gemini-2.5-flash", "gemma-4-31b-it"],
-      timeout: 25000, // Balanced for Vercel
+      timeout: 15000, 
       call: async (modelId) => {
-        const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY!);
+        if (!process.env.GEMINI_API_KEY) throw new Error("GEMINI_API_KEY_MISSING");
+        const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY);
         const model = genAI.getGenerativeModel({ 
           model: modelId,
           safetySettings: [
@@ -76,16 +81,14 @@ export async function generateWithFallback(
           )
         ]);
 
-        if (text && text.length > 10) {
+        if (text && text.trim().length > 10) {
           return { text, provider: provider.name };
         }
       } catch (e: any) {
-        // CRITICAL: Log the actual error for Vercel troubleshooting
         console.error(`[AI ERROR] ${provider.name} (${modelId}) failed:`, e.message || e);
       }
     }
   }
 
-  // All providers and tiers failed
   throw new Error("ALL_PROVIDERS_FAILED");
 }
