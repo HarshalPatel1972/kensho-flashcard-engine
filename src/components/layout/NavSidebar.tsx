@@ -16,6 +16,7 @@ import {
 import { useKenshoSounds } from "@/hooks/use-kensho-sounds";
 import { cn } from "@/lib/utils";
 import { useClerk } from "@clerk/nextjs";
+import { useSettingsModal } from "@/hooks/use-settings-modal";
 
 const NAV_ITEMS = [
   { icon: Home, label: "Home", href: "/dashboard" },
@@ -28,6 +29,7 @@ export function NavSidebar() {
   const { playClick, playHover } = useKenshoSounds();
 
   const { openUserProfile } = useClerk();
+  const { open: openSettings } = useSettingsModal();
 
   // Handle auto-collapse on tablet
   useEffect(() => {
@@ -133,7 +135,7 @@ export function NavSidebar() {
         <button
           onClick={() => {
             playClick();
-            openUserProfile();
+            openSettings();
           }}
           onMouseEnter={() => playHover()}
           className="w-full relative group flex items-center gap-4 px-4 py-3.5 rounded-full text-secondary hover:bg-surface/50 transition-all duration-200"

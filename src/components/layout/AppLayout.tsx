@@ -4,6 +4,8 @@ import { ReactNode, useState } from "react";
 import { NavSidebar } from "./NavSidebar";
 import { NavTopBar } from "./NavTopBar";
 import { NavMobileDrawer } from "./NavMobileDrawer";
+import { PreferencesModal } from "../settings/PreferencesModal";
+import { useSettingsModal } from "@/hooks/use-settings-modal";
 
 interface AppLayoutProps {
   children: ReactNode;
@@ -32,7 +34,9 @@ export function AppLayout({ children, title }: AppLayoutProps) {
         </main>
       </div>
 
-      {/* Mobile Sidebar Overlay */}
+      {/* Modals & Overlays */}
+      <PreferencesModal />
+      
       <NavMobileDrawer 
         isOpen={isMobileMenuOpen} 
         onClose={() => setIsMobileMenuOpen(false)} 
