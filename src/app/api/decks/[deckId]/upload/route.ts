@@ -97,6 +97,16 @@ export async function POST(
     return NextResponse.json({ success: true, newCards: newCards.length });
   } catch (error: any) {
     console.error("Processing Error:", error);
-    return NextResponse.json({ error: error.message || "Processing failed" }, { status: 500 });
+    
+    let userMessage = "Something went wrong during generation.";
+    if (error.message?.includes("429") || error.message?.includes("quota")) {
+      userMessage = "We've reached the AI limit for today. Please wait about a minute before trying again.";
+    } else if (error.message?.includes("413") || error.message?.includes("too large")) {
+      userMessage = "This PDF is too large for the AI to process. Please try a smaller file.";
+    } else if (error.message?.includes("invalid") || error.message?.includes("JSON")) {
+      userMessage = "The AI couldn't generate cards for this specific PDF. Is it a scanned image?";
+    }
+
+    return NextResponse.json({ error: userMessage }, { status: 500 });
   }
 }
