@@ -109,7 +109,7 @@ export function DeckCard({ id, title, cardCount, masteredCount, dueTodayCount, l
                   ? "bg-amber-500/10 text-amber-500 border border-amber-500/20" 
                   : "bg-slate-800/50 text-secondary border border-slate-700/50"
                 }`}>
-                  {dueTodayCount > 0 ? `${dueTodayCount} Due Now` : "Settled"}
+                  {dueTodayCount > 0 ? `${dueTodayCount} Due Now` : "All caught up"}
                 </span>
               )}
               
