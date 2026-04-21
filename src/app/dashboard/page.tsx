@@ -36,6 +36,15 @@ export default async function DashboardPage({ searchParams }: { searchParams: Pr
   let dbError = null;
 
   try {
+    // Clean up orphaned empty decks older than 5 minutes
+    await db.delete(decks).where(
+      and(
+        eq(decks.userId, userId),
+        eq(decks.cardCount, 0),
+        lt(decks.createdAt, new Date(Date.now() - 5 * 60 * 1000))
+      )
+    );
+
     const decksResult = await db
       .select({
         id: decks.id,
