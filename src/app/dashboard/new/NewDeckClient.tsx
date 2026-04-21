@@ -10,6 +10,7 @@ import { ArrowRight, Info, Loader2 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { toast } from "sonner";
 import * as pdfjsLib from "pdfjs-dist/legacy/build/pdf";
+import { useKenshoSounds } from "@/hooks/use-kensho-sounds";
 
 // Client-side worker config
 if (typeof window !== "undefined") {
@@ -57,8 +58,9 @@ export default function NewDeckClient() {
   const [totalPages, setTotalPages] = useState(0);
   const [pageMode, setPageMode] = useState<"all" | "custom">("all");
   const [rangeInput, setRangeInput] = useState("");
-  const [thumbnails, setThumbnails] = useState<Record<number, string>>({});
   const [isRenderingThumbnails, setIsRenderingThumbnails] = useState(false);
+  const renderingBusyRef = useRef(false);
+  const thumbnailsRef = useRef<Record<number, string>>({});
 
   const selectedPages = pageMode === "all" 
     ? Array.from({ length: Math.min(20, totalPages) }, (_, i) => i + 1)
@@ -66,10 +68,12 @@ export default function NewDeckClient() {
 
   const [isProcessingInfo, setIsProcessingInfo] = useState(false);
   const [abortController, setAbortController] = useState<AbortController | null>(null);
+  const { playClick, playSuccess, playError } = useKenshoSounds();
 
   const handleCreateDeck = async (e?: React.FormEvent) => {
     if (e) e.preventDefault();
     if (!title.trim()) return;
+    playClick();
     
     setIsCreating(true);
     setError(null);
@@ -102,6 +106,7 @@ export default function NewDeckClient() {
       setTotalPages(count);
       setPageMode(count <= 20 ? "all" : "custom");
       setRangeInput(count <= 4 ? `1-${count}` : `1-4`);
+      playSuccess();
       setStep("select-pages");
       setError(null);
     } catch (err: any) {
@@ -137,6 +142,8 @@ export default function NewDeckClient() {
         const pdf = await pdfjsLib.getDocument({ data: arrayBuffer }).promise;
         if (isMounted) {
           pdfDocRef.current = pdf;
+          // Trigger a re-render to start thumbnail logic
+          setTotalPages(pdf.numPages);
           console.log("[Zero-Lag] PDF Instance Ready");
         } else {
           pdf.destroy();
@@ -149,22 +156,26 @@ export default function NewDeckClient() {
     return () => { isMounted = false; };
   }, [pdfFile]);
 
-  // Thumbnail Rendering Logic - Optimized
+  // Thumbnail Rendering Logic - Optimized v2.0
   useEffect(() => {
     if (step !== "select-pages" || !pdfDocRef.current || totalPages === 0) return;
 
     let isStale = false;
     const renderRange = async () => {
+      if (renderingBusyRef.current) return;
+      renderingBusyRef.current = true;
       setIsRenderingThumbnails(true);
+
       const pdf = pdfDocRef.current;
-      const newThumbs: Record<number, string> = { ...thumbnails };
-      const pagesToRender = selectedPages.filter(p => !newThumbs[p]);
+      const currentThumbs = { ...thumbnailsRef.current };
+      const pagesToRender = selectedPages.filter(p => !currentThumbs[p]);
       
+      let batchUpdated = false;
       for (const pageNum of pagesToRender) {
         if (isStale) break;
         try {
           const page = await pdf.getPage(pageNum);
-          const viewport = page.getViewport({ scale: 0.3 }); // Slightly higher quality for crispness
+          const viewport = page.getViewport({ scale: 0.3 });
           const canvas = document.createElement("canvas");
           const context = canvas.getContext("2d");
           if (!context) continue;
@@ -174,26 +185,39 @@ export default function NewDeckClient() {
 
           await page.render({ canvasContext: context, viewport }).promise;
           
-          // Use Blobs instead of DataURLs for zero-heap impact
           const blob = await new Promise<Blob | null>(res => canvas.toBlob(res, "image/webp", 0.7));
           if (blob && !isStale) {
             const url = URL.createObjectURL(blob);
             objectUrlsRef.current.push(url);
-            newThumbs[pageNum] = url;
-            // Update incrementally for instant feedback
-            setThumbnails({ ...newThumbs });
+            thumbnailsRef.current[pageNum] = url;
+            batchUpdated = true;
+            
+            // Batch update state every 3 pages to avoid React flood, or if last page
+            if (thumbnailsRef.current[pageNum] && (Object.keys(thumbnailsRef.current).length % 3 === 0 || pageNum === pagesToRender[pagesToRender.length-1])) {
+              setThumbnails({ ...thumbnailsRef.current });
+            }
           }
+          
+          // Cleanup PDFJS page cache immediately
+          (page as any).cleanup();
         } catch (e) {
           console.error(`Failed to render thumbnail for page ${pageNum}`, e);
         }
       }
+      
+      if (batchUpdated && !isStale) {
+        setThumbnails({ ...thumbnailsRef.current });
+      }
+      
+      renderingBusyRef.current = false;
       setIsRenderingThumbnails(false);
     };
 
-    const timer = setTimeout(renderRange, 150); // Faster debounce
+    const timer = setTimeout(renderRange, 150);
     return () => {
       isStale = true;
       clearTimeout(timer);
+      // We don't reset renderingBusyRef here to let the current async loop finish its cycle check
     };
   }, [selectedPages.length, pageMode, rangeInput, totalPages, step]);
 
@@ -208,6 +232,7 @@ export default function NewDeckClient() {
         setRangeInput(`1-20`);
       }
     }
+    playClick();
   };
 
 
@@ -219,6 +244,7 @@ export default function NewDeckClient() {
     
     const controller = new AbortController();
     setAbortController(controller);
+    playClick();
     setStep("generating");
     setError(null);
 
@@ -242,6 +268,7 @@ export default function NewDeckClient() {
 
       toast.success("Flashcards generated!");
       setProviderIndex(0); // Reset for next time
+      playSuccess();
       router.push(`/dashboard/${deckId}`);
       router.refresh();
     } catch (err: any) {
