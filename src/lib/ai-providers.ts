@@ -43,8 +43,8 @@ export async function generateWithFallback(
     },
     {
       name: "gemini",
-      tiers: ["gemini-1.5-flash", "gemini-1.5-pro"],
-      timeout: 12000,
+      tiers: ["gemma-4-31b-it"],
+      timeout: 30000,
       call: async (modelId) => {
         const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY!);
         const model = genAI.getGenerativeModel({ model: modelId });
