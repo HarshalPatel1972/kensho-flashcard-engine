@@ -9,9 +9,10 @@ import { toast } from "sonner";
 type UploadZoneProps = {
   deckId: string;
   onSuccess: () => void;
+  onCancel: () => void;
 };
 
-export function UploadZone({ deckId, onSuccess }: UploadZoneProps) {
+export function UploadZone({ deckId, onSuccess, onCancel }: UploadZoneProps) {
   const [isHovering, setIsHovering] = useState(false);
   const [isGenerating, setIsGenerating] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -117,6 +118,7 @@ export function UploadZone({ deckId, onSuccess }: UploadZoneProps) {
 
     resetFileInput();
     toast.info("Upload cancelled");
+    onCancel();
     setIsCancelling(false);
   };
 

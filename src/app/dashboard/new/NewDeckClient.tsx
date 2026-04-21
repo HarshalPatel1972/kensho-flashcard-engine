@@ -103,7 +103,11 @@ export default function NewDeckClient() {
             <h2 className="text-xl font-medium mb-1">{title}</h2>
             {description && <p className="text-secondary text-sm mb-4">{description}</p>}
             <div className="mt-8">
-              <UploadZone deckId={deckId} onSuccess={handleUploadSuccess} />
+              <UploadZone 
+                deckId={deckId} 
+                onSuccess={handleUploadSuccess} 
+                onCancel={() => setDeckId(null)}
+              />
             </div>
           </div>
           <p className="text-center text-sm text-secondary">
