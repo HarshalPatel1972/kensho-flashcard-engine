@@ -25,7 +25,7 @@ async function tryGroq(text: string) {
     method: "POST",
     headers: { "Content-Type": "application/json", Authorization: `Bearer ${process.env.GROQ_API_KEY}` },
     body: JSON.stringify({
-      model: "llama-3.3-70b-specdec",
+      model: "llama-3.1-8b-instant",
       messages: [
         { role: "system", content: SYSTEM_PROMPT },
         { role: "user", content: `Context:\n${text.substring(0, 30000)}\n\nGenerate flashcards now.` }
@@ -39,44 +39,30 @@ async function tryGroq(text: string) {
   return data.choices[0].message.content;
 }
 
-async function tryDeepSeek(text: string) {
-  if (!process.env.DEEPSEEK_API_KEY) throw new Error("No DeepSeek key");
-  const res = await fetch("https://api.deepseek.com/chat/completions", {
-    method: "POST",
-    headers: { "Content-Type": "application/json", Authorization: `Bearer ${process.env.DEEPSEEK_API_KEY}` },
-    body: JSON.stringify({
-      model: "deepseek-chat",
-      messages: [
-        { role: "system", content: SYSTEM_PROMPT },
-        { role: "user", content: `Context:\n${text.substring(0, 30000)}\n\nGenerate flashcards now.` }
-      ],
-      temperature: 0.3
-    }),
-  });
-  if (!res.ok) throw new Error(`DeepSeek ${res.status}`);
-  const data = await res.json();
-  return data.choices[0].message.content;
-}
-
 async function tryHuggingFace(text: string) {
   if (!process.env.HUGGING_FACE_API_KEY) throw new Error("No HF key");
-  const res = await fetch("https://api-inference.huggingface.co/models/mistralai/Mistral-7B-Instruct-v0.3", {
+  const res = await fetch("https://api-inference.huggingface.co/models/mistralai/Mistral-7B-Instruct-v0.3/v1/chat/completions", {
     method: "POST",
     headers: { "Content-Type": "application/json", Authorization: `Bearer ${process.env.HUGGING_FACE_API_KEY}` },
     body: JSON.stringify({
-      inputs: `<s>[INST] ${SYSTEM_PROMPT}\n\nContext:\n${text.substring(0, 5000)} [/INST]`,
-      parameters: { max_new_tokens: 1000, temperature: 0.3 }
+      model: "mistralai/Mistral-7B-Instruct-v0.3",
+      messages: [
+        { role: "system", content: SYSTEM_PROMPT },
+        { role: "user", content: `Context:\n${text.substring(0, 5000)}\n\nGenerate flashcards now.` }
+      ],
+      max_tokens: 1000,
+      temperature: 0.3
     }),
   });
   if (!res.ok) throw new Error(`HF ${res.status}`);
   const data = await res.json();
-  return Array.isArray(data) ? data[0].generated_text : (data.generated_text || "");
+  return data.choices[0].message.content;
 }
 
 async function tryGeminiMultimodal(buffer: Buffer) {
   if (!process.env.GEMINI_API_KEY) throw new Error("No Gemini key");
   const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY!);
-  const model = genAI.getGenerativeModel({ model: "gemini-2.0-flash" });
+  const model = genAI.getGenerativeModel({ model: "gemini-2.5-flash-lite" });
   const result = await model.generateContent([
     { inlineData: { mimeType: "application/pdf", data: buffer.toString("base64") } },
     { text: SYSTEM_PROMPT }
@@ -87,7 +73,7 @@ async function tryGeminiMultimodal(buffer: Buffer) {
 async function tryGeminiText(text: string) {
   if (!process.env.GEMINI_API_KEY) throw new Error("No Gemini key");
   const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY!);
-  const model = genAI.getGenerativeModel({ model: "gemini-2.0-flash" });
+  const model = genAI.getGenerativeModel({ model: "gemini-2.5-flash-lite" });
   const result = await model.generateContent([
     { text: SYSTEM_PROMPT },
     { text: `Context:\n${text.substring(0, 30000)}\n\nGenerate flashcards now.` }
@@ -117,7 +103,7 @@ export async function POST(req: Request, { params }: { params: Promise<{ deckId:
       console.warn("Local PDF extraction failed, trying Gemini Reader...", e);
       try {
         const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY!);
-        const model = genAI.getGenerativeModel({ model: "gemini-2.0-flash" });
+        const model = genAI.getGenerativeModel({ model: "gemini-2.5-flash-lite" });
         const result = await model.generateContent([
           { inlineData: { mimeType: "application/pdf", data: buffer.toString("base64") } },
           { text: "Extract content for flashcards." }
@@ -131,11 +117,9 @@ export async function POST(req: Request, { params }: { params: Promise<{ deckId:
     let responseText = "";
     if (pdfText) {
       try { responseText = await tryGroq(pdfText); } catch (e) {
-        try { responseText = await tryDeepSeek(pdfText); } catch (e2) {
-          try { responseText = await tryHuggingFace(pdfText); } catch (e3) {
-            try { responseText = await tryGeminiText(pdfText); } catch (e4) {
-              console.warn("Retrying with Gemini Multimodal...");
-            }
+        try { responseText = await tryHuggingFace(pdfText); } catch (e2) {
+          try { responseText = await tryGeminiText(pdfText); } catch (e3) {
+            console.warn("Retrying with Gemini Multimodal...");
           }
         }
       }
