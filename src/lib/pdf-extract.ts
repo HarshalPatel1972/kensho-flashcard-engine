@@ -54,11 +54,11 @@ export async function extractTextFromPages(
         // 1-4 pages: take full text of each page, no limit
         pageTexts.push(pageText);
       } else {
-        // 5-20 pages: take only first 2 lines (~200 chars) from each page
-        // This gives context from every section without overloading the model
-        const twoLines = pageText.slice(0, 200).trim();
-        if (twoLines.length > 20) {
-          pageTexts.push(`[Page ${pageNum}]: ${twoLines}`);
+        // 5-20 pages: take first 1000 chars from each page
+        // This provides significant context without hitting token limits
+        const sampledText = pageText.slice(0, 1000).trim();
+        if (sampledText.length > 20) {
+          pageTexts.push(`[Page ${pageNum}]: ${sampledText}`);
         }
       }
     } catch (e) {

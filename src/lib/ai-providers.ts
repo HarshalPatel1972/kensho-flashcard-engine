@@ -18,7 +18,7 @@ export interface AIResult {
 // Single text generation with tiered fallback chain (Optimized Apr 2026 Fleet)
 export async function generateWithFallback(
   prompt: string,
-  maxTokens: number = 1000
+  maxTokens: number = 2048
 ): Promise<AIResult> {
   // Debug Log for Keys
   console.log(`[AI-Status] Keys: Groq=${!!process.env.GROQ_API_KEY}, Gemini=${!!process.env.GEMINI_API_KEY}`);
@@ -27,36 +27,40 @@ export async function generateWithFallback(
     name: Provider;
     tiers: string[];
     timeout: number;
-    call: (model: string) => Promise<string>;
+    call: (model: string, temp: number) => Promise<string>;
   }[] = [
     {
       name: "groq",
       tiers: ["llama-3.3-70b-versatile", "llama-3.1-8b-instant"],
-      timeout: 10000,
-      call: async (modelId) => {
+      timeout: 30000, // Increased to 30s
+      call: async (modelId, temp) => {
         if (!process.env.GROQ_API_KEY) throw new Error("GROQ_API_KEY_MISSING");
         const groq = new Groq({ apiKey: process.env.GROQ_API_KEY });
         const completion = await groq.chat.completions.create({
           messages: [
-            { role: "system", content: "You are an educational assistant. Return ONLY JSON arrays." },
+            { role: "system", content: "You are an educational assistant. Return ONLY JSON arrays. No preamble. No markdown blocks." },
             { role: "user", content: prompt }
           ],
           model: modelId,
           max_tokens: maxTokens,
-          temperature: 0.1
+          temperature: temp
         });
         return completion.choices[0]?.message?.content || "";
       }
     },
     {
       name: "gemini",
-      tiers: ["gemini-2.5-flash", "gemma-4-31b-it"],
-      timeout: 15000, 
-      call: async (modelId) => {
+      tiers: ["gemini-1.5-flash", "gemini-1.5-pro"],
+      timeout: 45000, // Increased to 45s
+      call: async (modelId, temp) => {
         if (!process.env.GEMINI_API_KEY) throw new Error("GEMINI_API_KEY_MISSING");
         const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY);
         const model = genAI.getGenerativeModel({ 
           model: modelId,
+          generationConfig: {
+            temperature: temp,
+            maxOutputTokens: maxTokens,
+          },
           safetySettings: [
             { category: HarmCategory.HARM_CATEGORY_HARASSMENT, threshold: HarmBlockThreshold.BLOCK_NONE },
             { category: HarmCategory.HARM_CATEGORY_HATE_SPEECH, threshold: HarmBlockThreshold.BLOCK_NONE },
@@ -72,20 +76,26 @@ export async function generateWithFallback(
 
   for (const provider of providers) {
     for (const modelId of provider.tiers) {
-      try {
-        console.log(`[AI] Trying ${provider.name} (${modelId})...`);
-        const text = await Promise.race([
-          provider.call(modelId),
-          new Promise<string>((_, reject) =>
-            setTimeout(() => reject(new Error(`${provider.name} timeout`)), provider.timeout)
-          )
-        ]);
+      // Robustness: Try each model twice before falling back
+      for (let attempt = 1; attempt <= 2; attempt++) {
+        try {
+          const temp = attempt === 1 ? 0.1 : 0.4; // Slightly more creative on retry
+          console.log(`[AI] Trying ${provider.name} (${modelId}) - Attempt ${attempt}/2...`);
+          
+          const text = await Promise.race([
+            provider.call(modelId, temp),
+            new Promise<string>((_, reject) =>
+              setTimeout(() => reject(new Error(`${provider.name} timeout`)), provider.timeout)
+            )
+          ]);
 
-        if (text && text.trim().length > 10) {
-          return { text, provider: provider.name };
+          if (text && text.trim().length > 20) {
+            return { text, provider: provider.name };
+          }
+        } catch (e: any) {
+          console.error(`[AI ERROR] ${provider.name} (${modelId}) attempt ${attempt} failed:`, e.message || e);
+          if (attempt === 2) continue; // Move to next model
         }
-      } catch (e: any) {
-        console.error(`[AI ERROR] ${provider.name} (${modelId}) failed:`, e.message || e);
       }
     }
   }
