@@ -3,6 +3,7 @@
 import Link from "next/link";
 import { useState, useRef, useEffect } from "react";
 import { motion, AnimatePresence, useReducedMotion } from "framer-motion";
+import { useKenshoSounds } from "@/hooks/use-kensho-sounds";
 
 type DeckCardProps = {
   id: string;
@@ -20,6 +21,7 @@ export function DeckCard({ id, title, cardCount, masteredCount, dueTodayCount, l
   const [isDeleting, setIsDeleting] = useState(false);
   const menuRef = useRef<HTMLDivElement>(null);
   const shouldReduceMotion = useReducedMotion();
+  const { playClick, playError } = useKenshoSounds();
 
   const isEmpty = cardCount === 0;
   const progress = cardCount > 0 ? (masteredCount / cardCount) * 100 : 0;
@@ -122,7 +124,7 @@ export function DeckCard({ id, title, cardCount, masteredCount, dueTodayCount, l
         
         <div className="absolute top-5 right-5" ref={menuRef}>
           <button 
-            onClick={(e) => { e.preventDefault(); e.stopPropagation(); setShowMenu(!showMenu); }}
+            onClick={(e) => { e.preventDefault(); e.stopPropagation(); playClick(); setShowMenu(!showMenu); }}
             className="p-2 text-secondary hover:text-primary transition-colors rounded-lg hover:bg-white/5"
             aria-label="More options"
           >
@@ -181,7 +183,7 @@ export function DeckCard({ id, title, cardCount, masteredCount, dueTodayCount, l
                   Cancel
                 </button>
                 <button 
-                  onClick={handleDelete}
+                  onClick={() => { playError(); handleDelete(); }}
                   className="flex-1 px-4 py-2.5 rounded-lg bg-red-500 text-primary text-sm font-medium hover:bg-red-600 transition-colors disabled:opacity-50"
                   disabled={isDeleting}
                 >
