@@ -193,14 +193,14 @@ export async function POST(req: Request, { params }: { params: Promise<{ deckId:
 
     return NextResponse.json({ success: true, newCards: cardsToInsert.length });
   } catch (err: any) {
-    if (deckId) {
-      try {
-        await db.delete(decks).where(eq(decks.id, deckId));
-      } catch (cleanupError) {
-        console.error("Cleanup failed:", cleanupError);
-      }
-    }
     if (err.name === 'AbortError') {
+      if (deckId) {
+        try {
+          await db.delete(decks).where(eq(decks.id, deckId));
+        } catch (cleanupError) {
+          console.error("Cleanup failed:", cleanupError);
+        }
+      }
       return NextResponse.json({ cancelled: true }, { status: 499 });
     }
     console.error("Upload error:", err);
