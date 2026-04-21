@@ -7,6 +7,9 @@ import { X, Home, Library, BookOpen, PlusCircle, Sparkles, Settings } from "luci
 import { useKenshoSounds } from "@/hooks/use-kensho-sounds";
 import { cn } from "@/lib/utils";
 
+import { useClerk } from "@clerk/nextjs";
+import { useSettingsModal } from "@/hooks/use-settings-modal";
+
 interface NavMobileDrawerProps {
   isOpen: boolean;
   onClose: () => void;
@@ -21,6 +24,7 @@ const NAV_ITEMS = [
 export function NavMobileDrawer({ isOpen, onClose }: NavMobileDrawerProps) {
   const pathname = usePathname();
   const { playClick } = useKenshoSounds();
+  const { open: openSettings } = useSettingsModal();
 
   return (
     <AnimatePresence>
@@ -82,20 +86,17 @@ export function NavMobileDrawer({ isOpen, onClose }: NavMobileDrawerProps) {
             </nav>
 
             <div className="p-4 border-t border-border/30">
-              <Link
-                href="/dashboard/settings"
+              <button
                 onClick={() => {
                   playClick();
                   onClose();
+                  openSettings();
                 }}
-                className={cn(
-                  "w-full flex items-center gap-4 px-5 py-4 rounded-full transition-all",
-                  pathname === "/dashboard/settings" ? "nav-item-active font-bold" : "text-secondary hover:bg-surface/50"
-                )}
+                className="w-full flex items-center gap-4 px-5 py-4 rounded-full text-secondary hover:bg-surface/50 transition-all"
               >
                 <Settings className="w-5 h-5" />
                 <span className="font-medium">Preferences</span>
-              </Link>
+              </button>
             </div>
           </motion.div>
         </>

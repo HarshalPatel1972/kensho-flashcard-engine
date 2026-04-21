@@ -16,6 +16,7 @@ import {
 import { useKenshoSounds } from "@/hooks/use-kensho-sounds";
 import { cn } from "@/lib/utils";
 import { useClerk } from "@clerk/nextjs";
+import { useSettingsModal } from "@/hooks/use-settings-modal";
 
 const NAV_ITEMS = [
   { icon: Home, label: "Home", href: "/dashboard" },
@@ -28,6 +29,7 @@ export function NavSidebar() {
   const { playClick, playHover } = useKenshoSounds();
 
   const { openUserProfile } = useClerk();
+  const { open: openSettings } = useSettingsModal();
 
   // Handle auto-collapse on tablet
   useEffect(() => {
@@ -130,16 +132,15 @@ export function NavSidebar() {
 
       {/* Settings at Bottom */}
       <div className="p-4 mt-auto border-t border-border/30">
-        <Link
-          href="/dashboard/settings"
-          onClick={() => playClick()}
+        <button
+          onClick={() => {
+            playClick();
+            openSettings();
+          }}
           onMouseEnter={() => playHover()}
-          className={cn(
-            "w-full relative group flex items-center gap-4 px-4 py-3.5 rounded-full transition-all duration-200",
-            pathname === "/dashboard/settings" ? "nav-item-active" : "text-secondary hover:bg-surface/50"
-          )}
+          className="w-full relative group flex items-center gap-4 px-4 py-3.5 rounded-full text-secondary hover:bg-surface/50 transition-all duration-200"
         >
-          <Settings className={cn("w-5 h-5 shrink-0", pathname === "/dashboard/settings" ? "text-primary" : "text-secondary")} />
+          <Settings className="w-5 h-5 shrink-0" />
           <div className="flex-1 overflow-hidden">
             <AnimatePresence mode="wait">
               {!isCollapsed && (
@@ -155,7 +156,7 @@ export function NavSidebar() {
               )}
             </AnimatePresence>
           </div>
-        </Link>
+        </button>
       </div>
     </motion.aside>
   );
