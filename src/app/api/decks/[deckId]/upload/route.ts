@@ -62,13 +62,17 @@ export async function POST(req: Request, { params }: { params: Promise<{ deckId:
       back: String(c.back || c.answer || "").substring(0, 500)
     })).filter((c: any) => c.front && c.back);
 
-    await db.transaction(async (tx) => {
-      if (cardsToInsert.length > 0) {
-        const newCards = await tx.insert(cards).values(cardsToInsert).returning();
-        await tx.insert(cardProgress).values(newCards.map(c => ({ userId, cardId: c.id })));
+    if (cardsToInsert.length > 0) {
+      const newCards = await db.insert(cards).values(cardsToInsert).returning();
+      
+      if (newCards.length > 0) {
+        await db.insert(cardProgress).values(newCards.map(c => ({ userId, cardId: c.id })));
       }
-      await tx.update(decks).set({ cardCount: (deck.cardCount ?? 0) + cardsToInsert.length }).where(eq(decks.id, deckId));
-    });
+    }
+    
+    await db.update(decks)
+      .set({ cardCount: (deck.cardCount ?? 0) + cardsToInsert.length })
+      .where(eq(decks.id, deckId));
 
     return NextResponse.json({ success: true, newCards: cardsToInsert.length });
   } catch (err: any) {
