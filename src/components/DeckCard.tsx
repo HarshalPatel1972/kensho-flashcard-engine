@@ -62,10 +62,10 @@ export function DeckCard({ id, title, cardCount, masteredCount, dueTodayCount, l
       <div className="group relative">
         <Link 
           href={`/dashboard/${id}`}
-          className={`block p-6 rounded-2xl border transition-all relative overflow-hidden ${
+          className={`block p-6 rounded-2xl border transition-all relative overflow-hidden card-lifted ${
             isEmpty 
               ? "bg-surface/20 border-border/40 border-dashed hover:border-gold/40" 
-              : "bg-surface border-border/50 hover:border-gold/50 shadow-sm"
+              : "bg-surface border-border/50 hover:border-gold/50"
           }`}
         >
           <div className="flex justify-between items-start mb-6">
