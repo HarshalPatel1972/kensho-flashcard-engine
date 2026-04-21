@@ -64,7 +64,7 @@ export default function Home() {
     return () => clearTimeout(timeout);
   }, [prefersReducedMotion]);
 
-  const easing = [0.23, 1, 0.32, 1];
+  const easing: [number, number, number, number] = [0.23, 1, 0.32, 1];
   const variants = {
     hidden: { opacity: 0, y: 24 },
     visible: { opacity: 1, y: 0 }

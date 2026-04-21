@@ -19,11 +19,12 @@ const SYSTEM_PROMPT = `
   - No markdown, no preamble, no explanations.
 `;
 
-async function tryGroq(text: string) {
+async function tryGroq(text: string, signal?: AbortSignal) {
   if (!process.env.GROQ_API_KEY) throw new Error("No Groq key");
   const res = await fetch("https://api.groq.com/openai/v1/chat/completions", {
     method: "POST",
     headers: { "Content-Type": "application/json", Authorization: `Bearer ${process.env.GROQ_API_KEY}` },
+    signal,
     body: JSON.stringify({
       model: "llama-3.1-8b-instant",
       messages: [
@@ -39,11 +40,12 @@ async function tryGroq(text: string) {
   return data.choices[0].message.content;
 }
 
-async function tryHuggingFace(text: string) {
+async function tryHuggingFace(text: string, signal?: AbortSignal) {
   if (!process.env.HUGGING_FACE_API_KEY) throw new Error("No HF key");
   const res = await fetch("https://api-inference.huggingface.co/models/mistralai/Mistral-7B-Instruct-v0.3/v1/chat/completions", {
     method: "POST",
     headers: { "Content-Type": "application/json", Authorization: `Bearer ${process.env.HUGGING_FACE_API_KEY}` },
+    signal,
     body: JSON.stringify({
       model: "mistralai/Mistral-7B-Instruct-v0.3",
       messages: [
@@ -59,7 +61,7 @@ async function tryHuggingFace(text: string) {
   return data.choices[0].message.content;
 }
 
-async function tryGeminiMultimodal(buffer: Buffer) {
+async function tryGeminiMultimodal(buffer: Buffer, signal?: AbortSignal) {
   if (!process.env.GEMINI_API_KEY) throw new Error("No Gemini key");
   const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY!);
   const model = genAI.getGenerativeModel({ model: "gemini-2.5-flash-lite" });
@@ -70,7 +72,7 @@ async function tryGeminiMultimodal(buffer: Buffer) {
   return result.response.text();
 }
 
-async function tryGeminiText(text: string) {
+async function tryGeminiText(text: string, signal?: AbortSignal) {
   if (!process.env.GEMINI_API_KEY) throw new Error("No Gemini key");
   const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY!);
   const model = genAI.getGenerativeModel({ model: "gemini-2.5-flash-lite" });
@@ -82,17 +84,19 @@ async function tryGeminiText(text: string) {
 }
 
 export async function POST(req: Request, { params }: { params: Promise<{ deckId: string }> }) {
+  const { signal } = req;
+  const p = await params;
+  const deckId = p.deckId;
+
   try {
     const { userId } = await auth();
     if (!userId) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
 
-    const p = await params;
-    const deckId = p.deckId;
     const [deck] = await db.select().from(decks).where(and(eq(decks.id, deckId), eq(decks.userId, userId)));
     if (!deck) return NextResponse.json({ error: "Deck not found" }, { status: 404 });
 
     const { fileUrl } = await req.json();
-    const pdfResponse = await fetch(fileUrl);
+    const pdfResponse = await fetch(fileUrl, { signal });
     const buffer = Buffer.from(await pdfResponse.arrayBuffer());
 
     let pdfText = "";
@@ -110,15 +114,15 @@ export async function POST(req: Request, { params }: { params: Promise<{ deckId:
         ]);
         pdfText = result.response.text();
       } catch (e2) {
-        console.error("All text extraction failed.");
+        console.error("All text extraction failed.", e2);
       }
     }
 
     let responseText = "";
     if (pdfText) {
-      try { responseText = await tryGroq(pdfText); } catch (e) {
-        try { responseText = await tryHuggingFace(pdfText); } catch (e2) {
-          try { responseText = await tryGeminiText(pdfText); } catch (e3) {
+      try { responseText = await tryGroq(pdfText, signal); } catch (e) {
+        try { responseText = await tryHuggingFace(pdfText, signal); } catch (e2) {
+          try { responseText = await tryGeminiText(pdfText, signal); } catch (e3) {
             console.warn("Retrying with Gemini Multimodal...");
           }
         }
@@ -127,7 +131,7 @@ export async function POST(req: Request, { params }: { params: Promise<{ deckId:
 
     if (!responseText) {
       try {
-        responseText = await tryGeminiMultimodal(buffer);
+        responseText = await tryGeminiMultimodal(buffer, signal);
       } catch (e) {
         throw new Error("All AI engines are temporarily exhausted. Please try again soon.");
       }
@@ -155,6 +159,13 @@ export async function POST(req: Request, { params }: { params: Promise<{ deckId:
 
     return NextResponse.json({ success: true, newCards: newCards.length });
   } catch (err: any) {
+    if (err.name === 'AbortError') {
+
+      if (deckId) {
+        await db.delete(decks).where(eq(decks.id, deckId));
+      }
+      return NextResponse.json({ cancelled: true }, { status: 499 });
+    }
     console.error("Upload error:", err);
     // Sanitize DB or other unknown technical errors
     const message = err.message || "An unexpected error occurred.";
