@@ -32,26 +32,36 @@ export function RatingButtons({ onRate, disabled }: RatingButtonsProps) {
   }, [onRate, disabled, playClick]);
 
   const buttons = [
-    { label: "Again", key: "1", value: 0, color: "text-red-500 border-red-500/20 hover:bg-[#ef4444] hover:border-[#ef4444] hover:text-white active:bg-[#dc2626] active:border-[#dc2626] active:text-white" },
-    { label: "Hard", key: "2", value: 3, color: "text-orange-500 border-orange-500/20 hover:bg-[#f97316] hover:border-[#f97316] hover:text-white active:bg-[#ea6c0a] active:border-[#ea6c0a] active:text-white" },
-    { label: "Good", key: "3", value: 4, color: "text-green-500 border-green-500/20 hover:bg-[#22c55e] hover:border-[#22c55e] hover:text-white active:bg-[#16a34a] active:border-[#16a34a] active:text-white" },
-    { label: "Easy", key: "4", value: 5, color: "text-cyan-500 border-cyan-500/20 hover:bg-[#06b6d4] hover:border-[#06b6d4] hover:text-white active:bg-[#0891b2] active:border-[#0891b2] active:text-white" },
+    { label: "Again", key: "1", value: 0, shadowColor: "rgba(239, 68, 68, 0.4)", activeShadowColor: "rgba(185, 28, 28, 0.6)", color: "text-red-500 border-red-500/20 active:translate-y-1" },
+    { label: "Hard", key: "2", value: 3, shadowColor: "rgba(249, 115, 22, 0.4)", activeShadowColor: "rgba(194, 65, 12, 0.6)", color: "text-orange-500 border-orange-500/20 active:translate-y-1" },
+    { label: "Good", key: "3", value: 4, shadowColor: "rgba(34, 197, 94, 0.4)", activeShadowColor: "rgba(21, 128, 61, 0.6)", color: "text-green-500 border-green-500/20 active:translate-y-1" },
+    { label: "Easy", key: "4", value: 5, shadowColor: "rgba(6, 182, 212, 0.4)", activeShadowColor: "rgba(14, 116, 144, 0.6)", color: "text-cyan-500 border-cyan-500/20 active:translate-y-1" },
   ];
 
   return (
-    <div className="grid grid-cols-2 md:flex md:flex-row items-center justify-center gap-4 mt-8 md:mt-12 animate-in fade-in slide-in-from-bottom-4 duration-300 w-full max-w-xl mx-auto px-4 md:px-0">
+    <div className="grid grid-cols-2 md:flex md:flex-row items-center justify-center gap-6 mt-8 md:mt-12 animate-in fade-in slide-in-from-bottom-4 duration-300 w-full max-w-xl mx-auto px-4 md:px-0">
       {buttons.map((btn) => (
         <motion.button
           key={btn.label}
           disabled={disabled}
-          onClick={() => onRate(btn.value)}
-          whileHover={shouldReduceMotion ? {} : { scale: 1.03 }}
-          whileTap={shouldReduceMotion ? {} : { scale: 0.95 }}
+          onClick={() => { playClick(); onRate(btn.value); }}
+          whileHover={shouldReduceMotion ? {} : { scale: 1.05, translateY: -2 }}
           transition={{ type: "spring", stiffness: 400, damping: 17 }}
-          className={`group flex flex-col items-center justify-center w-full md:w-24 h-24 rounded-2xl border border-border/50 bg-[#f5f5f5] dark:bg-surface transition-all duration-200 disabled:opacity-50 ${btn.color}`}
+          className={`group relative flex flex-col items-center justify-center w-full md:w-28 h-28 rounded-2xl border transition-all duration-100 disabled:opacity-50 ${btn.color}`}
+          style={{
+            backgroundColor: 'var(--surface)',
+            boxShadow: `0 5px 0 0 ${btn.shadowColor}`,
+          }}
         >
-          <span className="text-base font-medium mb-1 md:mb-2">{btn.label}</span>
-          <span className="text-[10px] md:text-xs text-secondary group-hover:text-white/75 group-active:text-white/75 px-2 py-1 rounded-md bg-bg/50 transition-colors">Press {btn.key}</span>
+          <span className="text-lg font-bold mb-1 md:mb-2">{btn.label}</span>
+          <span className="text-[10px] md:text-xs text-secondary px-2 py-1 rounded-md bg-bg/50 transition-colors">Press {btn.key}</span>
+          
+          <style jsx>{`
+            button:active {
+              transform: translateY(4px);
+              box-shadow: 0 1px 0 0 ${btn.shadowColor} !important;
+            }
+          `}</style>
         </motion.button>
       ))}
     </div>

@@ -195,11 +195,11 @@ export function UploadZone({ deckId, onSuccess, onUploadComplete, onFileSelected
             <div className="flex flex-wrap items-center justify-center gap-4">
               <button
                 onClick={() => generateCards(uploadedUrl)}
-                className="px-6 py-2.5 bg-gold text-black rounded-lg font-medium hover:bg-gold-hover transition-all shadow-lg shadow-gold/20"
+                className="px-8 py-3 btn-kensho-3d"
               >
                 Retry Generation
               </button>
-              <label htmlFor="pdf-upload" className="px-6 py-2.5 bg-surface border border-border text-primary rounded-lg font-medium hover:bg-bg transition-all cursor-pointer">
+              <label htmlFor="pdf-upload" className="px-8 py-3 btn-kensho-3d-secondary">
                 Upload Different File
               </label>
             </div>

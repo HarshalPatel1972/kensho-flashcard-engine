@@ -138,10 +138,10 @@ export default async function DashboardPage({ searchParams }: { searchParams: Pr
           <div className="fixed bottom-8 right-8 z-50">
             <Link
               href="/dashboard/new"
-              className="flex items-center justify-center w-14 h-14 rounded-full bg-gold text-black shadow-lg hover:scale-105 active:scale-95 transition-transform hover:bg-gold-hover"
+              className="flex items-center justify-center w-14 h-14 rounded-full shadow-gold-glow transition-transform btn-kensho-3d"
               aria-label="New Deck"
             >
-              <span className="text-2xl font-light">+</span>
+              <span className="text-2xl font-bold">+</span>
             </Link>
           </div>
         )}

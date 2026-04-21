@@ -328,7 +328,7 @@ export default function NewDeckClient() {
               />
               <button
                 onClick={handleCancel}
-                className="text-sm text-red-500 hover:text-red-400 font-medium transition-colors cursor-pointer"
+                className="px-6 py-2.5 text-red-500 font-bold btn-kensho-3d-secondary"
               >
                 Cancel Generation
               </button>
@@ -345,13 +345,13 @@ export default function NewDeckClient() {
               <div className="flex flex-col items-center gap-4">
                 <button 
                   onClick={startGeneration}
-                  className="w-full max-w-sm px-8 py-4 bg-gold text-black rounded-xl font-bold hover:bg-gold-hover transition-all hover:scale-105 active:scale-95 shadow-xl shadow-gold/20"
+                  className="w-full max-w-sm px-8 py-4 btn-kensho-3d"
                 >
                   {canRetryNext ? `Try Backup: ${engineNames[providerIndex]}` : "Try Again"}
                 </button>
                 <button 
                   onClick={() => { setStep("select-pages"); setError(null); setProviderIndex(0); setCanRetryNext(false); }}
-                  className="text-secondary hover:text-primary transition-colors text-sm font-medium"
+                  className="px-6 py-2.5 btn-kensho-3d-secondary"
                 >
                   Back to selection
                 </button>
@@ -368,7 +368,7 @@ export default function NewDeckClient() {
       <div className="mb-4">
         <Link 
           href="/dashboard" 
-          className="text-sm border-b border-transparent hover:border-gold text-secondary hover:text-gold transition-colors pb-0.5 inline-flex"
+          className="px-4 py-2 text-sm btn-kensho-3d-secondary"
         >
           ← Back to Decks
         </Link>
@@ -418,7 +418,7 @@ export default function NewDeckClient() {
               <button
                 type="submit"
                 disabled={isCreating || !title.trim()}
-                className="w-full inline-flex items-center justify-center rounded-md bg-gold px-6 py-3 text-sm font-medium text-black hover:bg-gold-hover transition-colors disabled:opacity-50"
+                className="w-full px-8 py-4 text-lg btn-kensho-3d"
               >
                 Save and Continue
               </button>
@@ -530,7 +530,7 @@ export default function NewDeckClient() {
               
               <button 
                 onClick={() => { playClick(); setStep("upload"); setPdfUrl(null); }}
-                className="text-sm text-secondary hover:text-primary transition-colors mt-2"
+                className="px-6 py-2.5 text-xs font-bold btn-kensho-3d-secondary"
               >
                 Change PDF
               </button>

@@ -117,6 +117,65 @@ a:hover .btn-arrow {
   cursor: not-allowed;
 }
 
+/* Secondary 3D Variant (Subtle) */
+.btn-kensho-3d-secondary {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 9999px;
+  background-color: var(--surface) !important;
+  color: var(--foreground) !important;
+  font-weight: 600 !important;
+  border: 1px solid var(--border) !important;
+  box-shadow: 0 3px 0 0 var(--border) !important;
+  transition: all 0.1s ease !important;
+  cursor: pointer;
+  padding: 8px 16px;
+}
+
+.btn-kensho-3d-secondary:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 4px 0 0 var(--border) !important;
+  border-color: var(--gold) !important;
+}
+
+.btn-kensho-3d-secondary:active {
+  transform: translateY(2px);
+  box-shadow: 0 1px 0 0 var(--border) !important;
+}
+
+/* Small Item 3D Variant (Rating Tiles/Toggles) */
+.btn-kensho-3d-item {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 12px;
+  background-color: var(--surface);
+  border: 1px solid var(--border);
+  box-shadow: 0 2px 0 0 var(--border);
+  transition: all 0.1s ease;
+  cursor: pointer;
+}
+
+.btn-kensho-3d-item:active {
+  transform: translateY(1px);
+  box-shadow: 0 1px 0 0 var(--border);
+}
+
+.btn-kensho-3d-item.active {
+  background-color: var(--gold);
+  color: black;
+  border-color: transparent;
+  box-shadow: 0 3px 0 0 color-mix(in srgb, var(--gold), black 30%);
+}
+
+.btn-kensho-3d-item.active:active {
+  transform: translateY(2px);
+  box-shadow: 0 1px 0 0 color-mix(in srgb, var(--gold), black 30%);
+}
+
 @keyframes pulse-gold {
   0%, 100% { box-shadow: 0 0 0 0 color-mix(in srgb, var(--gold), transparent 60%); }
   50% { box-shadow: 0 0 0 12px color-mix(in srgb, var(--gold), transparent 100%); }

@@ -73,16 +73,14 @@ export function AppPreferences() {
             <Type size={16} />
             <p>Font Size</p>
           </div>
-          <div className="grid grid-cols-3 gap-2">
+          <div className="grid grid-cols-3 gap-3">
             {(["small", "medium", "large"] as const).map((size) => (
               <button
                 key={size}
                 onClick={() => handleSetFontSize(size)}
                 className={cn(
-                  "py-2.5 px-4 rounded-lg border text-sm font-medium transition-all capitalize",
-                  fontSize === size 
-                    ? "bg-gold text-black border-gold shadow-lg shadow-gold/20" 
-                    : "bg-surface border-border/50 text-secondary hover:border-gold/30"
+                  "py-2.5 px-4 h-11 text-sm font-bold capitalize transition-all btn-kensho-3d-item",
+                  fontSize === size && "active"
                 )}
               >
                 {size}
@@ -108,13 +106,16 @@ export function AppPreferences() {
                 key={theme.id}
                 onClick={() => handleSetAccent(theme.id as any)}
                 className={cn(
-                  "w-10 h-10 rounded-full border-2 flex items-center justify-center transition-all hover:scale-110",
-                  accentColor === theme.id ? "border-primary scale-110" : "border-transparent"
+                  "w-12 h-12 rounded-full border-2 flex items-center justify-center transition-all btn-kensho-3d-item",
+                  accentColor === theme.id && "active"
                 )}
-                style={{ backgroundColor: theme.color }}
+                style={{ 
+                  backgroundColor: theme.color,
+                  boxShadow: accentColor === theme.id ? `0 4px 0 0 color-mix(in srgb, ${theme.color}, black 30%)` : `0 2px 0 0 var(--border)`
+                }}
                 title={theme.label}
               >
-                {accentColor === theme.id && <Check size={18} className="text-white drop-shadow-md" />}
+                {accentColor === theme.id && <Check size={20} className="text-white drop-shadow-md" />}
               </button>
             ))}
           </div>

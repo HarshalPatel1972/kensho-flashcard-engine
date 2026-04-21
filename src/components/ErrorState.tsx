@@ -20,7 +20,7 @@ export function ErrorState({ title, message, onRetry }: ErrorStateProps) {
       {onRetry && (
         <button
           onClick={onRetry}
-          className="inline-flex items-center gap-2 rounded-md bg-surface border border-border px-6 py-2.5 text-sm font-medium text-primary hover:bg-bg transition-colors active:scale-95"
+          className="inline-flex items-center gap-2 px-8 py-3 btn-kensho-3d-secondary"
         >
           <RefreshCcw className="w-4 h-4" />
           Try again
