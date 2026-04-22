@@ -8,8 +8,8 @@ export const metadata = {
 
 export default function DocsLayout({ children }: { children: ReactNode }) {
   return (
-    <AppLayout title="Documentation">
+    <div className="min-h-screen bg-bg">
       {children}
-    </AppLayout>
+    </div>
   );
 }

@@ -4,33 +4,28 @@ import Link from "next/link";
 import { PageTransition } from "@/components/PageTransition";
 import { ArrowLeft } from "lucide-react";
 import { useAuth } from "@clerk/nextjs";
-import { Footer } from "@/components/layout/Footer";
 
 export default function DocsPage() {
-  const { userId } = useAuth();
-
   return (
     <PageTransition>
-      <div className="flex flex-col min-h-screen">
-        <main className="flex-1 max-w-4xl mx-auto px-6 py-12 md:py-20">
-          <Link 
-            href={userId ? "/dashboard" : "/"} 
-            className="inline-flex items-center gap-2 text-sm font-bold text-secondary hover:text-gold transition-colors mb-12 group"
-          >
-            <ArrowLeft size={16} className="group-hover:-translate-x-1 transition-transform" />
-            Back to {userId ? "Dashboard" : "Home"}
-          </Link>
+      <div className="max-w-4xl mx-auto px-6 py-20">
+        <Link 
+          href="/" 
+          className="inline-flex items-center gap-2 text-sm font-bold text-secondary hover:text-gold transition-colors mb-12 group"
+        >
+          <ArrowLeft size={16} className="group-hover:-translate-x-1 transition-transform" />
+          Back to Home
+        </Link>
 
-          <header className="space-y-4 mb-20">
-            <h1 className="text-6xl md:text-8xl font-medium tracking-tight text-primary">
-              The Docs
-            </h1>
-            <p className="text-xl md:text-2xl text-secondary font-light leading-relaxed max-w-2xl">
+        <div className="space-y-16">
+          <header className="space-y-4 pt-4">
+            <h1 className="text-5xl md:text-7xl font-medium tracking-tight text-primary mb-8">Documentation</h1>
+            <p className="text-lg text-secondary font-light leading-relaxed">
               Master your study material with spaced repetition and AI-driven automation.
             </p>
           </header>
 
-          <div className="space-y-20 pb-12">
+          <main className="space-y-20 pb-24">
             {/* SECTION 1 */}
             <section className="space-y-4">
               <h2 className="text-xl font-bold uppercase tracking-widest text-gold text-left">
@@ -173,9 +168,8 @@ export default function DocsPage() {
                 </p>
               </div>
             </section>
-          </div>
-        </main>
-        <Footer />
+          </main>
+        </div>
       </div>
     </PageTransition>
   );
