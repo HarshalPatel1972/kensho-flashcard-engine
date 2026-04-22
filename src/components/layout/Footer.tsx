@@ -20,7 +20,7 @@ export function Footer() {
         <div className="space-y-3">
           <div className="flex items-center gap-2">
             <div className="w-8 h-8 rounded-xl overflow-hidden border border-gold/40">
-              <img src="/favicon.svg" alt="Kenshō" className="w-full h-full object-cover invert" />
+              <img src="/favicon.svg" alt="Kenshō" className="w-full h-full object-cover" />
             </div>
             <span className="text-2xl font-bold tracking-tight">Kenshō</span>
           </div>
