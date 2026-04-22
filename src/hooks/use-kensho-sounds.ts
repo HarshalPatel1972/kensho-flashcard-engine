@@ -10,7 +10,7 @@ const SOUNDS = {
   flip: "https://assets.mixkit.co/active_storage/sfx/2048/2048-preview.mp3",
   type: "https://assets.mixkit.co/active_storage/sfx/2354/2354-preview.mp3",
   hover: "https://assets.mixkit.co/active_storage/sfx/2571/2571-preview.mp3",
-  trash: "https://assets.mixkit.co/active_storage/sfx/1474/1474-preview.mp3"
+  trash: "https://assets.mixkit.co/active_storage/sfx/1481/1481-preview.mp3"
 };
 
 // Global state for low-latency audio
@@ -58,7 +58,7 @@ export function useKenshoSounds() {
     source.buffer = audioBuffers[soundName];
 
     const gainNode = audioCtx.createGain();
-    gainNode.gain.value = soundName === "type" ? 0.15 : soundName === "hover" ? 0.08 : 0.4;
+    gainNode.gain.value = soundName === "type" ? 0.15 : soundName === "hover" ? 0.08 : soundName === "trash" ? 0.2 : 0.4;
 
     source.connect(gainNode);
     gainNode.connect(audioCtx.destination);
