@@ -173,7 +173,12 @@ export function UploadZone({ deckId, onSuccess, onUploadComplete, onFileSelected
           <div className="flex flex-col items-center space-y-4 p-8">
             <LoadingMessage 
               quote 
-              messages={isUploading ? ["Uploading PDF to secure storage..."] : [
+              messages={isUploading ? [
+                "Uploading your PDF...",
+                "Securing your data...",
+                "Preparing for analysis...",
+                "Almost in the laboratory..."
+              ] : [
                 "Reading your PDF...",
                 "Extracting core concepts...",
                 "Crafting your cards...",
