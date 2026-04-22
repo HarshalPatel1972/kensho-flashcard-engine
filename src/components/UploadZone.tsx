@@ -5,6 +5,7 @@ import { cn } from "@/lib/utils";
 import { LoadingMessage } from "./LoadingMessage";
 import { useUploadThing } from "@/lib/uploadthing";
 import { toast } from "sonner";
+import { useKenshoSounds } from "@/hooks/use-kensho-sounds";
 
 type UploadZoneProps = {
   deckId: string;
@@ -23,6 +24,7 @@ export function UploadZone({ deckId, onSuccess, onUploadComplete, onFileSelected
   const [abortController, setAbortController] = useState<AbortController | null>(null);
   const [isCancelling, setIsCancelling] = useState(false);
   const [activeProvider, setActiveProvider] = useState<string | null>(null);
+  const { playClick } = useKenshoSounds();
 
   const resetFileInput = () => {
     const input = document.getElementById("pdf-upload") as HTMLInputElement | null;
