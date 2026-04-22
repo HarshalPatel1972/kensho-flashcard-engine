@@ -41,6 +41,7 @@ export function StudyComplete({
   useEffect(() => {
     async function fetchCoachNote() {
       if (sessionLogs.length === 0) {
+        setCoachNote("Take a moment to center yourself. Your next study session is a fresh start.");
         setIsLoadingCoach(false);
         return;
       }
@@ -57,6 +58,7 @@ export function StudyComplete({
         }
       } catch (error) {
         console.error("Failed to fetch coach note:", error);
+        setCoachNote("You handled the material with clarity today. Focus on consistency to lock in these gains.");
       } finally {
         setIsLoadingCoach(false);
       }

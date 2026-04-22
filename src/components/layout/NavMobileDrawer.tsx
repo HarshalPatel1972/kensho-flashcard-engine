@@ -54,7 +54,7 @@ export function NavMobileDrawer({ isOpen, onClose }: NavMobileDrawerProps) {
                 <span className="font-bold tracking-tight text-primary">Kenshō</span>
               </div>
               <button 
-                onClick={onClose}
+                onClick={() => { playClick(); onClose(); }}
                 className="w-10 h-10 rounded-xl bg-surface border border-border flex items-center justify-center"
               >
                 <X className="w-5 h-5" />

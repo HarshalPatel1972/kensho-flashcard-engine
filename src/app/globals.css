@@ -140,10 +140,12 @@ a:hover .btn-arrow {
 }
 
 .btn-kensho-3d:disabled {
-  opacity: 0.5;
+  opacity: 0.7;
+  color: color-mix(in srgb, black, transparent 40%) !important;
   transform: none;
-  box-shadow: none !important;
+  box-shadow: 0 4px 0 0 color-mix(in srgb, var(--gold), black 40%) !important;
   cursor: not-allowed;
+  filter: grayscale(0.8);
 }
 
 /* Secondary 3D Variant (Subtle) */

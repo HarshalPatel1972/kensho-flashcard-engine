@@ -179,7 +179,7 @@ export function UploadZone({ deckId, onSuccess, onUploadComplete, onFileSelected
               ]} 
             />
             <button
-              onClick={(e) => { e.stopPropagation(); handleCancel(); }}
+              onClick={(e) => { e.stopPropagation(); playClick(); handleCancel(); }}
               disabled={isCancelling}
               className="mt-2 text-sm text-red-500 hover:text-red-400 font-medium cursor-pointer pointer-events-auto transition-colors px-4 py-2 disabled:opacity-50 disabled:cursor-not-allowed"
             >
@@ -194,18 +194,22 @@ export function UploadZone({ deckId, onSuccess, onUploadComplete, onFileSelected
             </div>
             <div className="flex flex-wrap items-center justify-center gap-4">
               <button
-                onClick={() => generateCards(uploadedUrl)}
+                onClick={() => { playClick(); generateCards(uploadedUrl); }}
                 className="px-8 py-3 btn-kensho-3d"
               >
                 Retry Generation
               </button>
-              <label htmlFor="pdf-upload" className="px-8 py-3 btn-kensho-3d-secondary">
+              <label htmlFor="pdf-upload" onClick={() => playClick()} className="px-8 py-3 btn-kensho-3d-secondary">
                 Upload Different File
               </label>
             </div>
           </div>
         ) : (
-          <label htmlFor="pdf-upload" className="flex flex-col items-center space-y-2 text-center p-12 cursor-pointer w-full h-full justify-center group">
+        <label 
+          htmlFor="pdf-upload" 
+          onClick={() => playClick()} 
+          className="flex flex-col items-center space-y-2 text-center p-12 cursor-pointer w-full h-full justify-center group"
+        >
             <div className="w-12 h-12 rounded-full bg-gold/10 flex items-center justify-center mb-2 group-hover:scale-110 transition-transform">
               <svg className="w-6 h-6 text-gold" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />

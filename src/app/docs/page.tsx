@@ -11,7 +11,7 @@ export default function DocsPage() {
       <div className="space-y-16">
         <header className="space-y-4">
           <h1 className="text-4xl md:text-5xl font-medium tracking-tight">
-            Kenshō Documentation
+            Documentation
           </h1>
           <p className="text-lg text-secondary font-light leading-relaxed">
             Master your study material with spaced repetition and AI-driven automation.

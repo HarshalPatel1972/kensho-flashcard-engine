@@ -65,6 +65,7 @@ export function NavSidebar() {
       <div className="h-24 flex items-center px-6 overflow-hidden">
         <Link 
           href="/dashboard" 
+          onClick={() => playClick()}
           className="flex items-center gap-3 hover:opacity-80 transition-opacity"
           onMouseEnter={() => playHover()}
         >
