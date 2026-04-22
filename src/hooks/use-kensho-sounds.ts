@@ -9,7 +9,8 @@ const SOUNDS = {
   error: "https://assets.mixkit.co/active_storage/sfx/2513/2513-preview.mp3",
   flip: "https://assets.mixkit.co/active_storage/sfx/2048/2048-preview.mp3",
   type: "https://assets.mixkit.co/active_storage/sfx/2354/2354-preview.mp3",
-  hover: "https://assets.mixkit.co/active_storage/sfx/2571/2571-preview.mp3"
+  hover: "https://assets.mixkit.co/active_storage/sfx/2571/2571-preview.mp3",
+  trash: "https://assets.mixkit.co/active_storage/sfx/1474/1474-preview.mp3"
 };
 
 // Global state for low-latency audio
@@ -72,5 +73,6 @@ export function useKenshoSounds() {
     playFlip: () => play("flip"),
     playType: () => play("type"),
     playHover: () => play("hover"),
+    playTrash: () => play("trash"),
   };
 }

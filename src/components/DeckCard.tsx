@@ -22,7 +22,7 @@ export function DeckCard({ id, title, cardCount, masteredCount, dueTodayCount, l
   const [isDeleting, setIsDeleting] = useState(false);
   const menuRef = useRef<HTMLDivElement>(null);
   const shouldReduceMotion = useReducedMotion();
-  const { playClick, playError } = useKenshoSounds();
+  const { playClick, playTrash } = useKenshoSounds();
 
   const isEmpty = cardCount === 0;
   const progress = cardCount > 0 ? (masteredCount / cardCount) * 100 : 0;
@@ -184,7 +184,7 @@ export function DeckCard({ id, title, cardCount, masteredCount, dueTodayCount, l
                   Cancel
                 </button>
                 <button 
-                  onClick={() => { playError(); handleDelete(); }}
+                  onClick={() => { playTrash(); handleDelete(); }}
                   className="flex-1 px-4 py-3 bg-red-500 text-white font-bold btn-kensho-3d-item border-none active:translate-y-1"
                   style={{
                     backgroundColor: '#ef4444',
