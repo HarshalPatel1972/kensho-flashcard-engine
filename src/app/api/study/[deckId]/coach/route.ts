@@ -13,7 +13,7 @@ export async function POST(
     if (!userId) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
 
     const body = await req.json();
-    const { sessionData } = body;
+    const { sessionData, providerIndex = 0 } = body;
 
     if (!sessionData || !Array.isArray(sessionData)) {
       return NextResponse.json({ error: "Missing session data" }, { status: 400 });
@@ -36,9 +36,20 @@ export async function POST(
       Return only the coaching text, no labels, no JSON.
     `;
 
-    const result = await generateWithFallback(prompt, 300);
-
-    return NextResponse.json({ feedback: result.text });
+    try {
+      const result = await generateWithFallback(prompt, providerIndex, 300);
+      return NextResponse.json({ feedback: result.text, provider: result.provider });
+    } catch (error: any) {
+      if (error.message === "PROVIDER_FAILED") {
+        const nextIndex = providerIndex + 1;
+        return NextResponse.json({ 
+          error: "Current AI system is busy.", 
+          nextIndex: nextIndex < 4 ? nextIndex : null,
+          providerIndex 
+        }, { status: 503 });
+      }
+      throw error;
+    }
   } catch (error) {
     console.error("Coaching API Error:", error);
     return NextResponse.json({ error: "Failed to generate coaching note" }, { status: 500 });
