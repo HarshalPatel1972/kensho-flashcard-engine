@@ -6,6 +6,7 @@ import "./globals.css";
 import { ThemeProvider } from "@/components/ThemeProvider";
 import { SettingsProvider } from "@/providers/SettingsProvider";
 import { CookieBanner } from "@/components/CookieBanner";
+import { GlobalAudioListener } from "@/components/GlobalAudioListener";
 
 const outfit = Outfit({ subsets: ["latin"] });
 
@@ -39,6 +40,7 @@ export default function RootLayout({
         >
           <ThemeProvider attribute="class" defaultTheme="system" enableSystem>
             <SettingsProvider>
+              <GlobalAudioListener />
               {children}
               <CookieBanner />
               <Toaster richColors position="top-right" />
