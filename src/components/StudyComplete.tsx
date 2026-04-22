@@ -145,7 +145,7 @@ export function StudyComplete({
               </p>
               <button
                 onClick={() => fetchCoachNote(providerIndex)}
-                className="w-full py-3 px-4 rounded-lg bg-gold/10 border border-gold/20 text-gold text-xs font-bold uppercase tracking-widest hover:bg-gold/20 transition-all flex items-center justify-center gap-2"
+                className="w-full py-3 px-4 btn-kensho-3d-secondary flex items-center justify-center gap-2"
               >
                 Retry Coach Evaluation {providerIndex > 0 && `(Backup ${providerIndex})`}
               </button>
@@ -161,7 +161,7 @@ export function StudyComplete({
       <div className="pt-6">
         <Link
           href={`/dashboard/${deckId}`}
-          className="inline-flex items-center justify-center rounded-md bg-surface border border-border px-8 py-3 text-sm font-medium text-primary hover:text-primary hover:border-gold transition-colors"
+          className="inline-flex px-12 py-4 btn-kensho-3d"
         >
           Back to Deck
         </Link>
