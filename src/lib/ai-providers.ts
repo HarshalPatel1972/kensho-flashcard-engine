@@ -27,7 +27,8 @@ export const PROVIDER_DISPLAY_NAMES: Record<Provider, string> = {
 export async function generateWithFallback(
   prompt: string,
   requestedIndex: number = 0,
-  maxTokens: number = 2048
+  maxTokens: number = 2048,
+  systemPrompt: string = ""
 ): Promise<AIResult> {
   const providers: {
     name: Provider;
@@ -37,11 +38,15 @@ export async function generateWithFallback(
       name: "groq",
       call: async (temp) => {
         const groq = new Groq({ apiKey: process.env.GROQ_API_KEY });
+        const messages: any[] = [{ role: "user", content: prompt }];
+        if (systemPrompt) {
+          messages.unshift({ role: "system", content: systemPrompt });
+        } else {
+          messages.unshift({ role: "system", content: "You are an educational assistant. Return ONLY JSON arrays. No preamble. No markdown code blocks." });
+        }
+
         const completion = await groq.chat.completions.create({
-          messages: [
-            { role: "system", content: "You are an educational assistant. Return ONLY JSON arrays. No preamble. No markdown code blocks." },
-            { role: "user", content: prompt }
-          ],
+          messages,
           model: "llama-3.3-70b-versatile",
           max_tokens: maxTokens,
           temperature: temp
@@ -52,6 +57,13 @@ export async function generateWithFallback(
     {
       name: "deepseek",
       call: async (temp) => {
+        const messages: any[] = [{ role: "user", content: prompt }];
+        if (systemPrompt) {
+          messages.unshift({ role: "system", content: systemPrompt });
+        } else {
+          messages.unshift({ role: "system", content: "Return ONLY JSON arrays. No preamble." });
+        }
+
         const response = await fetch("https://api.deepseek.com/v1/chat/completions", {
           method: "POST",
           headers: {
@@ -60,10 +72,7 @@ export async function generateWithFallback(
           },
           body: JSON.stringify({
             model: "deepseek-chat",
-            messages: [
-              { role: "system", content: "Return ONLY JSON arrays. No preamble." },
-              { role: "user", content: prompt }
-            ],
+            messages,
             temperature: temp,
             max_tokens: maxTokens
           })
@@ -77,8 +86,9 @@ export async function generateWithFallback(
       call: async (temp) => {
         const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY!);
         const model = genAI.getGenerativeModel({ model: "gemini-1.5-flash" });
+        const fullPrompt = systemPrompt ? `${systemPrompt}\n\nContent: ${prompt}` : prompt;
         const result = await model.generateContent({
-          contents: [{ role: "user", parts: [{ text: prompt }] }],
+          contents: [{ role: "user", parts: [{ text: fullPrompt }] }],
           generationConfig: { temperature: temp, maxOutputTokens: maxTokens }
         });
         return result.response.text();
