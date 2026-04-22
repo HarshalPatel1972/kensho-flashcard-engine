@@ -5,6 +5,7 @@ import { NavSidebar } from "./NavSidebar";
 import { NavTopBar } from "./NavTopBar";
 import { NavMobileDrawer } from "./NavMobileDrawer";
 import { PreferencesModal } from "../settings/PreferencesModal";
+import { Footer } from "./Footer";
 
 interface AppLayoutProps {
   children: ReactNode;
@@ -27,8 +28,11 @@ export function AppLayout({ children, title }: AppLayoutProps) {
         />
         
         <main className="flex-1 overflow-y-auto px-4 md:px-8 py-8">
-          <div className="max-w-5xl mx-auto">
-            {children}
+          <div className="max-w-5xl mx-auto flex flex-col min-h-full">
+            <div className="flex-1">
+              {children}
+            </div>
+            <Footer />
           </div>
         </main>
       </div>
