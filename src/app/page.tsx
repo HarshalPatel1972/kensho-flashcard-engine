@@ -8,6 +8,7 @@ import { PageTransition } from "@/components/PageTransition";
 import { motion, useReducedMotion } from "framer-motion";
 import { ArrowRight } from "lucide-react";
 import { Footer } from "@/components/layout/Footer";
+import { ThemeToggle } from "@/components/ThemeToggle";
 
 export default function Home() {
   const { userId, isLoaded } = useAuth();
@@ -74,7 +75,8 @@ export default function Home() {
     <PageTransition>
       <div className="flex flex-col min-h-screen">
         <main className="relative flex-1 flex flex-col items-center justify-center min-h-[92vh] p-6 text-center overflow-hidden">
-          <nav className="absolute top-0 right-0 p-6 z-20">
+          <nav className="absolute top-0 right-0 p-6 z-20 flex items-center gap-4">
+            <ThemeToggle />
             <Link 
               href="/docs" 
               className="px-6 py-2.5 text-sm font-bold btn-kensho-3d-secondary"
