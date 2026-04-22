@@ -16,7 +16,7 @@ import (
 
 type AIProvider interface {
 	Name() string
-	Generate(ctx context.Context, prompt string) (string, error)
+	Generate(ctx context.Context, systemPrompt, userPrompt string) (string, error)
 }
 
 // GroqProvider implements AIProvider using OpenAI-compatible SDK
@@ -26,13 +26,19 @@ type GroqProvider struct {
 }
 
 func (p *GroqProvider) Name() string { return "groq" }
-func (p *GroqProvider) Generate(ctx context.Context, prompt string) (string, error) {
+func (p *GroqProvider) Generate(ctx context.Context, systemPrompt, userPrompt string) (string, error) {
+	messages := []openai.ChatCompletionMessage{
+		{Role: openai.ChatMessageRoleUser, Content: userPrompt},
+	}
+	if systemPrompt != "" {
+		messages = append([]openai.ChatCompletionMessage{
+			{Role: openai.ChatMessageRoleSystem, Content: systemPrompt},
+		}, messages...)
+	}
+
 	resp, err := p.client.CreateChatCompletion(ctx, openai.ChatCompletionRequest{
-		Model: p.model,
-		Messages: []openai.ChatCompletionMessage{
-			{Role: openai.ChatMessageRoleSystem, Content: "Return ONLY JSON arrays. No preamble."},
-			{Role: openai.ChatMessageRoleUser, Content: prompt},
-		},
+		Model:       p.model,
+		Messages:    messages,
 		Temperature: 0.1,
 	})
 	if err != nil {
@@ -47,9 +53,13 @@ type GeminiProvider struct {
 }
 
 func (p *GeminiProvider) Name() string { return "gemini" }
-func (p *GeminiProvider) Generate(ctx context.Context, prompt string) (string, error) {
+func (p *GeminiProvider) Generate(ctx context.Context, systemPrompt, userPrompt string) (string, error) {
 	model := p.client.GenerativeModel("gemini-1.5-flash")
-	resp, err := model.GenerateContent(ctx, genai.Text(prompt))
+	fullPrompt := userPrompt
+	if systemPrompt != "" {
+		fullPrompt = systemPrompt + "\n\nInstructions: Follow the system role above.\n\nContent:\n" + userPrompt
+	}
+	resp, err := model.GenerateContent(ctx, genai.Text(fullPrompt))
 	if err != nil {
 		return "", err
 	}
@@ -115,9 +125,7 @@ If the text contains valid study material, you MUST return at least 3 cards. Do 
 Text to process:
 `
 
-func GenerateFlashcards(ctx context.Context, text string, requestedIndex int) ([]Card, string, error) {
-	prompt := CARD_GENERATION_PROMPT + text
-	
+func GenerateAIResponse(ctx context.Context, systemPrompt, userPrompt string, requestedIndex int) (string, string, error) {
 	type providerEntry struct {
 		name string
 		call func() (string, error)
@@ -131,7 +139,7 @@ func GenerateFlashcards(ctx context.Context, text string, requestedIndex int) ([
 		config.BaseURL = "https://api.groq.com/openai/v1"
 		client := openai.NewClientWithConfig(config)
 		p := &GroqProvider{client: client, model: "llama-3.3-70b-versatile"}
-		providers = append(providers, providerEntry{name: "groq", call: func() (string, error) { return p.Generate(ctx, prompt) }})
+		providers = append(providers, providerEntry{name: "groq", call: func() (string, error) { return p.Generate(ctx, systemPrompt, userPrompt) }})
 	}
 
 	// 2. DeepSeek (via OpenAI endpoint)
@@ -140,7 +148,7 @@ func GenerateFlashcards(ctx context.Context, text string, requestedIndex int) ([
 		config.BaseURL = "https://api.deepseek.com/v1"
 		client := openai.NewClientWithConfig(config)
 		p := &GroqProvider{client: client, model: "deepseek-chat"}
-		providers = append(providers, providerEntry{name: "deepseek", call: func() (string, error) { return p.Generate(ctx, prompt) }})
+		providers = append(providers, providerEntry{name: "deepseek", call: func() (string, error) { return p.Generate(ctx, systemPrompt, userPrompt) }})
 	}
 
 	// 3. Gemini
@@ -148,12 +156,12 @@ func GenerateFlashcards(ctx context.Context, text string, requestedIndex int) ([
 		client, err := genai.NewClient(ctx, option.WithAPIKey(key))
 		if err == nil {
 			p := &GeminiProvider{client: client}
-			providers = append(providers, providerEntry{name: "gemini", call: func() (string, error) { return p.Generate(ctx, prompt) }})
+			providers = append(providers, providerEntry{name: "gemini", call: func() (string, error) { return p.Generate(ctx, systemPrompt, userPrompt) }})
 		}
 	}
 
 	if len(providers) == 0 {
-		return nil, "", errors.New("no AI providers configured")
+		return "", "", errors.New("no AI providers configured")
 	}
 
 	start := requestedIndex
@@ -163,7 +171,7 @@ func GenerateFlashcards(ctx context.Context, text string, requestedIndex int) ([
 
 	for i := start; i < len(providers); i++ {
 		pe := providers[i]
-		log.Printf("[AI] Trying provider: %s", pe.name)
+		log.Printf("[AI] Trying provider: %s (Index %d)", pe.name, i)
 		
 		text, err := pe.call()
 		if err != nil {
@@ -171,12 +179,27 @@ func GenerateFlashcards(ctx context.Context, text string, requestedIndex int) ([
 			continue
 		}
 
-		cards, err := RescueParser(text)
-		if err == nil && len(cards) > 0 {
-			return cards, pe.name, nil
+		if text != "" {
+			return text, pe.name, nil
 		}
-		log.Printf("[AI ERROR] %s returned invalid JSON or empty result", pe.name)
 	}
 
-	return nil, "", errors.New("all providers failing")
+	return "", "", errors.New("all providers failing")
+}
+
+func GenerateFlashcards(ctx context.Context, text string, requestedIndex int) ([]Card, string, error) {
+	systemPrompt := "Return ONLY JSON arrays. No preamble. No markdown code blocks."
+	userPrompt := CARD_GENERATION_PROMPT + text
+	
+	textResult, provider, err := GenerateAIResponse(ctx, systemPrompt, userPrompt, requestedIndex)
+	if err != nil {
+		return nil, "", err
+	}
+
+	cards, err := RescueParser(textResult)
+	if err == nil && len(cards) > 0 {
+		return cards, provider, nil
+	}
+
+	return nil, "", errors.New("failed to parse flashcards from AI response")
 }

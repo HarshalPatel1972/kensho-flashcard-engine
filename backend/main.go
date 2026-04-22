@@ -56,7 +56,7 @@ func main() {
 			return
 		}
 
-		log.Printf("[PROD] Processing Request | PDF: %s | Pages: %v", req.PDFURL, req.SelectedPages)
+		log.Printf("[PROD] Processing Generate | PDF: %s | Pages: %v", req.PDFURL, req.SelectedPages)
 
 		if req.PDFURL == "" {
 			c.JSON(http.StatusBadRequest, gin.H{"error": "pdfUrl is required"})
@@ -84,6 +84,37 @@ func main() {
 
 		c.JSON(http.StatusOK, gin.H{
 			"cards": cards,
+			"provider": provider,
+			"providerIndex": req.ProviderIndex,
+		})
+	})
+
+	r.POST("/v1/coach", func(c *gin.Context) {
+		type CoachRequest struct {
+			SystemPrompt  string `json:"systemPrompt"`
+			UserPrompt    string `json:"userPrompt"`
+			ProviderIndex int    `json:"providerIndex"`
+		}
+		var req CoachRequest
+		if err := c.ShouldBindJSON(&req); err != nil {
+			c.JSON(http.StatusBadRequest, gin.H{"error": "Malformed request."})
+			return
+		}
+
+		log.Printf("[PROD] Processing Coach | Index: %d", req.ProviderIndex)
+
+		feedback, provider, err := GenerateAIResponse(c.Request.Context(), req.SystemPrompt, req.UserPrompt, req.ProviderIndex)
+		if err != nil {
+			log.Printf("[CRITICAL] Coach Error: %v", err)
+			c.JSON(http.StatusServiceUnavailable, gin.H{
+				"error": "Our AI engines are currently at capacity.",
+				"nextIndex": req.ProviderIndex + 1,
+			})
+			return
+		}
+
+		c.JSON(http.StatusOK, gin.H{
+			"feedback": feedback,
 			"provider": provider,
 			"providerIndex": req.ProviderIndex,
 		})
