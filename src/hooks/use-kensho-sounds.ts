@@ -12,31 +12,57 @@ const SOUNDS = {
   hover: "https://assets.mixkit.co/active_storage/sfx/2571/2571-preview.mp3"
 };
 
+// Global state for low-latency audio
+let audioCtx: AudioContext | null = null;
+const audioBuffers: Record<string, AudioBuffer> = {};
+
 export function useKenshoSounds() {
   const { audioEnabled } = useSettings();
-  const audioCache = useRef<Record<string, HTMLAudioElement>>({});
 
-  // Preload sounds
   useEffect(() => {
-    if (typeof window === "undefined") return;
+    if (typeof window === "undefined" || audioCtx) return;
     
+    // Initialize context
+    const AudioContextClass = window.AudioContext || (window as any).webkitAudioContext;
+    audioCtx = new AudioContextClass();
+
+    // Preload and decode
+    const loadSound = async (name: string, url: string) => {
+      try {
+        const response = await fetch(url);
+        const arrayBuffer = await response.arrayBuffer();
+        if (audioCtx) {
+          const decoded = await audioCtx.decodeAudioData(arrayBuffer);
+          audioBuffers[name] = decoded;
+        }
+      } catch (err) {
+        console.warn(`Failed to load sound: ${name}`, err);
+      }
+    };
+
     Object.entries(SOUNDS).forEach(([name, url]) => {
-      const audio = new Audio(url);
-      audio.load();
-      audioCache.current[name] = audio;
+      if (!audioBuffers[name]) loadSound(name, url);
     });
   }, []);
 
   const play = useCallback((soundName: keyof typeof SOUNDS) => {
-    if (!audioEnabled || typeof window === "undefined") return;
-    
-    const audio = audioCache.current[soundName];
-    if (audio) {
-      // Create a fresh clone to allow overlapping sounds (e.g. fast clicking)
-      const clone = audio.cloneNode() as HTMLAudioElement;
-      clone.volume = soundName === "type" ? 0.15 : soundName === "hover" ? 0.08 : 0.4;
-      clone.play().catch(e => console.warn("Audio playback failed:", e));
+    if (!audioEnabled || !audioCtx || !audioBuffers[soundName]) return;
+
+    // Resume context if suspended (browser autoplay policy)
+    if (audioCtx.state === "suspended") {
+      audioCtx.resume();
     }
+
+    const source = audioCtx.createBufferSource();
+    source.buffer = audioBuffers[soundName];
+
+    const gainNode = audioCtx.createGain();
+    gainNode.gain.value = soundName === "type" ? 0.15 : soundName === "hover" ? 0.08 : 0.4;
+
+    source.connect(gainNode);
+    gainNode.connect(audioCtx.destination);
+    
+    source.start(0);
   }, [audioEnabled]);
 
   return {
