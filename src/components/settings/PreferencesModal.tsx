@@ -55,8 +55,6 @@ export function PreferencesModal() {
                   }
                 }}
               >
-                  <UserProfile.Page label="account" />
-                  <UserProfile.Page label="security" />
                   <UserProfile.Page
                     label="Settings"
                     url="settings"
@@ -70,6 +68,8 @@ export function PreferencesModal() {
                       <AppPreferences />
                     </div>
                   </UserProfile.Page>
+                  <UserProfile.Page label="account" />
+                  <UserProfile.Page label="security" />
                 </UserProfile>
             </motion.div>
           </div>
