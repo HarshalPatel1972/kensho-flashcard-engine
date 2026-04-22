@@ -37,34 +37,55 @@ export function StudyComplete({
 }) {
   const [coachNote, setCoachNote] = useState<string | null>(null);
   const [isLoadingCoach, setIsLoadingCoach] = useState(true);
+  const [providerIndex, setProviderIndex] = useState(0);
+  const [error, setError] = useState<string | null>(null);
+  const [canRetryNext, setCanRetryNext] = useState(false);
 
-  useEffect(() => {
-    async function fetchCoachNote() {
-      if (sessionLogs.length === 0) {
-        setCoachNote("Take a moment to center yourself. Your next study session is a fresh start.");
-        setIsLoadingCoach(false);
-        return;
-      }
-
-      try {
-        const res = await fetch(`/api/study/${deckId}/coach`, {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ sessionData: sessionLogs }),
-        });
-        const data = await res.json();
-        if (data.feedback) {
-          setCoachNote(data.feedback);
-        }
-      } catch (error) {
-        console.error("Failed to fetch coach note:", error);
-        setCoachNote("You handled the material with clarity today. Focus on consistency to lock in these gains.");
-      } finally {
-        setIsLoadingCoach(false);
-      }
+  const fetchCoachNote = async (pIndex: number = 0) => {
+    if (sessionLogs.length === 0) {
+      setCoachNote("Take a moment to center yourself. Your next study session is a fresh start.");
+      setIsLoadingCoach(false);
+      return;
     }
 
-    fetchCoachNote();
+    setIsLoadingCoach(true);
+    setError(null);
+    try {
+      const res = await fetch(`/api/study/${deckId}/coach`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ sessionData: sessionLogs, providerIndex: pIndex }),
+      });
+      
+      const data = await res.json();
+      
+      if (!res.ok) {
+        if (res.status === 503 && data.nextIndex !== undefined) {
+          setProviderIndex(data.nextIndex);
+          setCanRetryNext(data.nextIndex !== null);
+          throw new Error(data.error || "AI Engine Busy");
+        }
+        throw new Error(data.error || "Failed to fetch coach note");
+      }
+
+      if (data.feedback) {
+        setCoachNote(data.feedback);
+        setError(null);
+      }
+    } catch (err: any) {
+      console.error("Failed to fetch coach note:", err);
+      setError(err.message);
+      // Only set generic fallback if we've exhausted retries or it's a fatal error
+      if (!canRetryNext && pIndex > 0) {
+        setCoachNote("You handled the material with clarity today. Focus on consistency to lock in these gains.");
+      }
+    } finally {
+      setIsLoadingCoach(false);
+    }
+  };
+
+  useEffect(() => {
+    fetchCoachNote(0);
   }, [deckId, sessionLogs]);
 
   return (
@@ -94,12 +115,15 @@ export function StudyComplete({
         </div>
       </div>
 
-      {(isLoadingCoach || coachNote) && (
+      {(isLoadingCoach || coachNote || error) && (
         <div className="w-full p-6 rounded-xl border border-border/50 bg-surface/50 text-left relative overflow-hidden">
-          <div className="flex items-center gap-2 mb-3">
+          <div className="flex items-center justify-between mb-3">
             <span className="text-xs font-bold uppercase tracking-widest text-gold flex items-center gap-1.5">
               <span className="text-sm">✨</span> Coach
             </span>
+            {error && !isLoadingCoach && (
+              <span className="text-[10px] text-red-500 font-medium uppercase tracking-tight">AI Engine Busy</span>
+            )}
           </div>
           
           {isLoadingCoach ? (
@@ -113,6 +137,18 @@ export function StudyComplete({
                   "Brewing something useful..."
                 ]} 
               />
+            </div>
+          ) : error ? (
+            <div className="space-y-4 py-2">
+              <p className="text-secondary text-sm italic leading-relaxed">
+                The primary AI coach is currently reflecting. Would you like to try a backup engine for your evaluation?
+              </p>
+              <button
+                onClick={() => fetchCoachNote(providerIndex)}
+                className="w-full py-3 px-4 rounded-lg bg-gold/10 border border-gold/20 text-gold text-xs font-bold uppercase tracking-widest hover:bg-gold/20 transition-all flex items-center justify-center gap-2"
+              >
+                Retry Coach Evaluation {providerIndex > 0 && `(Backup ${providerIndex})`}
+              </button>
             </div>
           ) : (
             <p className="text-primary text-sm leading-relaxed italic">
