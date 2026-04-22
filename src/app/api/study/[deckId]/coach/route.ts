@@ -19,25 +19,42 @@ export async function POST(
       return NextResponse.json({ error: "Missing session data" }, { status: 400 });
     }
 
-    const prompt = `
+    const systemPrompt = `
       You are a learning coach analyzing a student's flashcard study session.
-      
-      Session data:
-      ${JSON.stringify(sessionData)}
-      
       Quality scale: 0=complete blackout, 3=hard, 4=good, 5=easy
-      
       Write exactly 2-3 sentences of specific, actionable coaching feedback.
       Reference the actual card content where possible.
       Be direct, warm, and specific — not generic.
       Do NOT say "Great job!" or similar empty praise.
       Focus on patterns: what they're struggling with and one concrete tip.
-      
       Return only the coaching text, no labels, no JSON.
     `;
+    const userPrompt = `Session data: ${JSON.stringify(sessionData)}`;
 
+    const backendUrl = process.env.KENSHO_BACKEND_URL;
+    if (backendUrl) {
+      console.log(`[Proxy] Outsourcing Coaching to Go Backend: ${backendUrl}`);
+      try {
+        const goRes = await fetch(`${backendUrl}/v1/coach`, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ systemPrompt, userPrompt, providerIndex }),
+        });
+        const goData = await goRes.json();
+        if (goRes.ok) {
+          return NextResponse.json({ feedback: goData.feedback, provider: goData.provider });
+        }
+        if (goRes.status === 503) {
+          return NextResponse.json(goData, { status: 503 });
+        }
+      } catch (err: any) {
+        console.error("[Proxy Error] Go Backend unreachable:", err.message);
+      }
+    }
+
+    // Fallback to local
     try {
-      const result = await generateWithFallback(prompt, providerIndex, 300);
+      const result = await generateWithFallback(userPrompt, providerIndex, 400, systemPrompt);
       return NextResponse.json({ feedback: result.text, provider: result.provider });
     } catch (error: any) {
       if (error.message === "PROVIDER_FAILED") {
