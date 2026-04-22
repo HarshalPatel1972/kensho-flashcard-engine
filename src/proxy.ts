@@ -1,8 +1,7 @@
 import { clerkMiddleware, createRouteMatcher } from "@clerk/nextjs/server";
 
-// Allow the landing page and the Vercel Blob handshake to be public
-// The handshake itself is secured by the BLOB_READ_WRITE_TOKEN
-const isPublicRoute = createRouteMatcher(["/", "/api/upload-url(.*)"]);
+// Allow the landing page, documentation, and the Vercel Blob handshake to be public
+const isPublicRoute = createRouteMatcher(["/", "/docs(.*)", "/api/upload-url(.*)"]);
 
 const proxy = clerkMiddleware(async (auth, request) => {
   if (!isPublicRoute(request)) {
