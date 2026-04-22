@@ -20,7 +20,7 @@ const QUOTES = [
 
 export function LoadingMessage({ messages, intervalMs = 3000, quote = false }: LoadingMessageProps) {
   const [index, setIndex] = useState(0);
-  const [quoteIndex, setQuoteIndex] = useState(0);
+  const [quoteIndex] = useState(() => Math.floor(Math.random() * QUOTES.length));
   const [secondsPassed, setSecondsPassed] = useState(0);
   const shouldReduceMotion = useReducedMotion();
 
@@ -38,13 +38,7 @@ export function LoadingMessage({ messages, intervalMs = 3000, quote = false }: L
     return () => clearInterval(timer);
   }, []);
 
-  useEffect(() => {
-    if (!quote) return;
-    const timer = setInterval(() => {
-      setQuoteIndex((prev) => (prev + 1) % QUOTES.length);
-    }, 8000);
-    return () => clearInterval(timer);
-  }, [quote]);
+
 
   return (
     <div className="flex flex-col items-center space-y-6 text-center max-w-sm mx-auto">
