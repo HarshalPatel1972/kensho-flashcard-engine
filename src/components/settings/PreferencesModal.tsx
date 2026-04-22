@@ -35,7 +35,6 @@ export function PreferencesModal() {
               {/* Close Button - Absolutely positioned Relative to the Component root */}
               <button
                 onClick={() => {
-                  playClick();
                   close();
                 }}
                 className="absolute top-6 right-6 w-8 h-8 rounded-full hover:bg-surface/80 flex items-center justify-center transition-colors z-[110]"
@@ -61,10 +60,6 @@ export function PreferencesModal() {
                     labelIcon={<Settings size={16} />}
                   >
                     <div className="p-4 md:p-8">
-                      <div className="mb-6">
-                        <h2 className="text-2xl font-bold tracking-tight text-primary">Kenshō Experience</h2>
-                        <p className="text-secondary mt-1">Tailor the interface to your study style.</p>
-                      </div>
                       <AppPreferences />
                     </div>
                   </UserProfile.Page>

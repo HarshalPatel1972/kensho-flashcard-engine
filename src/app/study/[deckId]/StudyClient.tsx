@@ -108,7 +108,6 @@ export default function StudyClient() {
       }
 
       setIsFlipped(false);
-      playClick();
       
       setTimeout(() => {
         if (currentIndex < cards.length - 1) {
@@ -171,7 +170,7 @@ export default function StudyClient() {
     <PageTransition>
       <div className="min-h-screen flex flex-col items-center p-4">
         <header className="w-full max-w-3xl mx-auto flex items-center justify-between py-4 md:py-6">
-          <Link href={`/dashboard/${deckId}`} onClick={() => playClick()} className="px-4 py-2 text-sm btn-kensho-3d-secondary">
+          <Link href={`/dashboard/${deckId}`} className="px-4 py-2 text-sm btn-kensho-3d-secondary">
             ← Exit
           </Link>
           <div className="flex items-center gap-4">
@@ -212,7 +211,6 @@ export default function StudyClient() {
         <footer className="w-full max-w-3xl mx-auto py-8 text-center">
           <Link
           href={`/dashboard/${deckId}`}
-          onClick={() => playClick()}
           className="px-8 py-3 text-sm btn-kensho-3d-secondary"
         >
           Back to Deck

@@ -43,7 +43,6 @@ export function NavSidebar() {
   }, []);
 
   const toggleCollapse = () => {
-    playClick();
     setIsCollapsed(!isCollapsed);
   };
 
@@ -65,7 +64,6 @@ export function NavSidebar() {
       <div className="h-24 flex items-center px-6 overflow-hidden">
         <Link 
           href="/dashboard" 
-          onClick={() => playClick()}
           className="flex items-center gap-3 hover:opacity-80 transition-opacity"
           onMouseEnter={() => playHover()}
         >
@@ -95,7 +93,7 @@ export function NavSidebar() {
             <Link
               key={item.label}
               href={item.href}
-              onClick={() => playClick()}
+              onClick={() => {}}
               onMouseEnter={() => playHover()}
               className={cn(
                 "relative group flex items-center gap-4 px-4 py-3 rounded-lg transition-all duration-200",
@@ -135,7 +133,6 @@ export function NavSidebar() {
       <div className="p-4 mt-auto border-t border-border/30">
         <button
           onClick={() => {
-            playClick();
             openSettings();
           }}
           onMouseEnter={() => playHover()}

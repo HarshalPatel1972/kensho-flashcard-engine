@@ -201,7 +201,7 @@ export function UploadZone({ deckId, onSuccess, onUploadComplete, onFileSelected
             </div>
             <div className="flex flex-wrap items-center justify-center gap-4">
               <button
-                onClick={() => { playClick(); generateCards(uploadedUrl); }}
+                onClick={() => { generateCards(uploadedUrl); }}
                 className="px-8 py-3 btn-kensho-3d"
               >
                 Retry Generation

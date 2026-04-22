@@ -15,17 +15,14 @@ export function AppPreferences() {
   const { playClick } = useKenshoSounds();
 
   const handleToggleAudio = () => {
-    playClick();
     setAudioEnabled(!audioEnabled);
   };
 
   const handleSetFontSize = (size: typeof fontSize) => {
-    playClick();
     setFontSize(size);
   };
 
   const handleSetAccent = (color: typeof accentColor) => {
-    playClick();
     setAccentColor(color);
   };
 

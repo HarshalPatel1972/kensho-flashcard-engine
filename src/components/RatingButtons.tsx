@@ -44,7 +44,7 @@ export function RatingButtons({ onRate, disabled }: RatingButtonsProps) {
         <motion.button
           key={btn.label}
           disabled={disabled}
-          onClick={() => { playClick(); onRate(btn.value); }}
+          onClick={() => onRate(btn.value)}
           whileHover={shouldReduceMotion ? {} : { scale: 1.05, translateY: -2 }}
           whileTap={shouldReduceMotion ? {} : { translateY: 3, boxShadow: `0 2px 0 0 ${btn.shelfColor}` }}
           transition={{ type: "spring", stiffness: 450, damping: 20 }}

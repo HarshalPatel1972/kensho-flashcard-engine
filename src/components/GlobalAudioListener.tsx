@@ -8,18 +8,21 @@ export function GlobalAudioListener() {
 
   useEffect(() => {
     const handleGlobalInteraction = (e: PointerEvent) => {
-      // Find the closest interactive element
+      // Only handle primary interactions (left click / touch)
+      if (!e.isPrimary || (e.pointerType === "mouse" && e.button !== 0)) return;
+
       const target = e.target as HTMLElement;
-      const interactive = target.closest("button, a, input, [role='button'], .cursor-pointer, .btn-kensho-3d, .btn-kensho-3d-secondary");
       
-      if (interactive) {
-        // Prevent multiple sounds if we catch both pointerdown and another event
-        // (though pointerdown should be enough on its own)
+      // Find the closest interactive element
+      const interactive = target.closest("button, a, [role='button'], .btn-kensho-3d, .btn-kensho-3d-secondary, [data-kensho-sound='click']");
+      
+      // Check if we should ignore this element (e.g. it has its own custom sound)
+      if (interactive && !interactive.hasAttribute("data-kensho-ignore-sound")) {
         playClick();
       }
     };
 
-    document.addEventListener("pointerdown", handleGlobalInteraction, { capture: true });
+    document.addEventListener("pointerdown", handleGlobalInteraction, { capture: true, passive: true });
     return () => document.removeEventListener("pointerdown", handleGlobalInteraction, { capture: true });
   }, [playClick]);
 

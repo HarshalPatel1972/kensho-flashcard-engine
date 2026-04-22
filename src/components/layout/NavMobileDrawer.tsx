@@ -69,7 +69,6 @@ export function NavMobileDrawer({ isOpen, onClose }: NavMobileDrawerProps) {
                     key={item.label}
                     href={item.href}
                     onClick={() => {
-                      playClick();
                       onClose();
                     }}
                     onMouseEnter={() => playHover()}
@@ -88,7 +87,6 @@ export function NavMobileDrawer({ isOpen, onClose }: NavMobileDrawerProps) {
             <div className="p-4 border-t border-border/30">
               <button
                 onClick={() => {
-                  playClick();
                   onClose();
                   openSettings();
                 }}
