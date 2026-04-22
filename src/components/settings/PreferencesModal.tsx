@@ -37,9 +37,9 @@ export function PreferencesModal() {
                 onClick={() => {
                   close();
                 }}
-                className="absolute top-6 right-6 w-8 h-8 rounded-full hover:bg-surface/80 flex items-center justify-center transition-colors z-[110]"
+                className="absolute top-4 right-4 w-10 h-10 rounded-full bg-surface/80 border border-border/40 backdrop-blur-md flex items-center justify-center hover:bg-surface hover:scale-105 active:scale-95 transition-all z-[110] shadow-sm"
               >
-                <X className="w-4 h-4 text-secondary" />
+                <X className="w-5 h-5 text-primary" />
               </button>
 
               <UserProfile 
