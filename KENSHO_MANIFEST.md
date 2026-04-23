@@ -1,50 +1,72 @@
 # KENSHŌ — See Through the Noise
-**AI-Powered Flashcard Engine & Spaced Repetition Workspace**
+**The Definitive AI-Powered Flashcard Engine & Spaced Repetition Workspace**
 
 Built for the **Cuemath AI Builder Challenge** by **Harshal Patel**.
 
 ---
 
 ## 🚀 Overview
-Kenshō is a high-fidelity learning platform designed to turn dense, complex information into durable long-term knowledge. It leverages advanced AI to automate the tedious process of flashcard creation and uses the scientific SM-2 algorithm to optimize the study schedule.
+Kenshō is a high-fidelity learning platform designed to turn dense, complex information into durable long-term knowledge. It leverages advanced AI to automate the tedious process of flashcard creation and uses the scientific SM-2 algorithm to optimize study schedules. It is characterized by an uncompromising "Apple-like" obsession with tactile feedback, minimalism, and performance.
 
-## 🛠️ The Tech Stack
-- **Frontend**: Next.js 16 (App Router) + React 19 + Turbopack.
-- **Backend (High Performance)**: Go (Golang) orchestration for AI processing and PDF handling.
-- **Styling**: Vanilla CSS + Tailwind CSS (v4) with a custom "Apple-Glass" design system.
-- **Database**: PostgreSQL (Neon Serverless) with Drizzle ORM.
-- **Authentication**: Clerk (Secure session management).
-- **AI Models**: Multi-model fallback chain (Groq Llama 3.1, Mistral 7B, Gemini 2.5 Flash).
-- **Storage**: Vercel Blob & UploadThing for PDF assets.
+---
 
-## ✨ Key Features
+## 🛠️ The Technical Core
 
-### 1. AI-Driven Card Generation
-Upload any PDF (lecture notes, textbooks, research papers) and Kenshō's AI automatically extracts the most salient points, formatting them into high-quality active recall questions and answers.
+### Frontend Architecture
+- **Framework**: Next.js 16 (App Router) + React 19.
+- **Runtime**: Turbopack for lightning-fast development builds.
+- **State Management**: Zustand for global UI states and AI generation status.
+- **Animations**: Framer Motion with custom spring physics and reduced-motion fallbacks.
+- **Data Fetching**: Server Components for SEO and fast initial load; Client-side optimistic updates for study reviews.
 
-### 2. SM-2 Spaced Repetition
-Every card in Kenshō is scheduled using a refined version of the SM-2 algorithm. It tracks your ease-factor, repetitions, and intervals, ensuring you review material exactly at the point of forgetting to maximize retention.
+### Backend & AI Orchestration
+- **Performance Layer**: Go (Golang) backend for high-throughput PDF parsing and AI orchestration.
+- **AI Stack**: Multi-model fallback chain ensures 100% uptime:
+  1. `Groq Llama-3.1-8b-instant` (Primary - Ultra-low latency)
+  2. `Mistral-7B-Instruct-v0.3` (Secondary - Robust reliability)
+  3. `Gemini 2.5 Flash-Lite` (Tertiary - Deep context extraction)
+- **Database**: PostgreSQL (Neon Serverless) with Drizzle ORM for type-safe, low-latency queries.
 
-### 3. Tactile 3D Interface
-The UI is designed with a "Physical Digital" philosophy. Buttons have weight and depth (3D displacement), and interactions are reinforced with a custom hybrid audio engine that provides subtle click and flip sounds.
+### Infrastructure & Security
+- **Authentication**: Clerk (Full JWT-based user lifecycle management).
+- **Asset Management**: UploadThing & Vercel Blob for secure, fast PDF handling.
+- **Protection**: Edge Middleware (`proxy.ts`) for sub-millisecond route protection and public/private access control.
 
-### 4. Multi-Model AI Resilience
-To ensure 100% availability, Kenshō uses a prioritized fallback system:
-`Groq (Ultra-fast) -> Mistral (Reliable) -> Gemini (Deep analysis)`.
+---
 
-### 5. AI Learning Coach
-After each study session, an AI Coach analyzes your performance data (quality scores, speed, patterns) and provides specific, actionable feedback to help you improve your study habits.
+## ✨ Signature Features & UX Polish
 
-## 🎨 Design Philosophy
-- **Minimalism**: Removing everything that doesn't help the user learn.
-- **High Contrast**: Using deep blacks and high-contrast anchors (the "Visual Peek" footer) to guide focus.
-- **Glassmorphism**: Layered depth using refractive blurs and subtle borders.
-- **Accessibility**: Standardized 3D tactile feedback and keyboard-first navigation (1-4 rating shortcuts).
+### 1. The SM-2 Algorithm Engine
+Kenshō implements a mathematically precise SM-2 spaced repetition system:
+- **Ease Factor (EF)**: Dynamically adjusted based on quality scores (0-5).
+- **Interval Expansion**: Successful recalls increase intervals exponentially; failures reset the cycle.
+- **Session Logic**: Prioritizes cards due today while integrating new cards seamlessly.
 
-## 📊 Technical Architecture
-- **Hybrid Backend**: Next.js handles the UI and user sessions, while a high-performance Go backend handles heavy-lifting AI tasks and PDF text parsing to keep the frontend responsive.
-- **Edge Middleware**: Custom "Proxy" middleware manages public vs. private route protection at the edge for maximum performance.
-- **Atomic Commits**: The repository is maintained with atomic, recruiter-ready commit logs reflecting a professional production timeline.
+### 2. Hybrid Audio Interaction Engine
+Custom-built audio engine designed for tactile "physical" feedback:
+- **Zero-Latency Response**: Uses `pointerdown` on Desktop for instant response and `click` on Mobile to prevent accidental triggers during scrolls.
+- **Minimalist Palette**: Short, crisp "Kenshō-click", "Trash", "Success", and "Flip" samples balanced with precision gain nodes (0.2 gain) for a premium, non-aggressive feel.
+
+### 3. Tactile 3D Design System
+- **Mechanical Physics**: Buttons feature 3D depth with `3px` displacement and `5px` shadows that respond instantly to touch.
+- **Glassmorphism**: 20px blur refractive cards with 1px border-mix layering for a "Vision Pro" depth effect.
+- **Visual Peek UX**: Hero sections set to `92vh` to subtly reveal the high-contrast footer, creating a "discovery cue" that encourages natural scrolling.
+
+### 4. AI Learning Coach
+A dedicated post-session feedback loop:
+- **Quality Scale**: 0 (Blackout) to 5 (Instant Recall).
+- **Instructional Design**: The AI analyzes quality patterns and provides 2-3 sentences of direct, warm, and specific coaching tips to improve retrieval strength.
+
+### 5. Distraction-Free Workspace
+- **Doc-Mode**: Standalone documentation pages stripped of all navigation and sidebars for focused reading.
+- **Typewriter Slogan**: A custom CSS/JS typewriter effect on the landing page sets a meditative, focused tone from the first second.
+
+---
+
+## 📂 Repository Standards
+- **Atomic Commits**: Every feature, fix, and style adjustment is committed with professional, descriptive titles.
+- **Clean Architecture**: Atomic component structure (`/components`, `/hooks`, `/lib`, `/providers`) for maximum scalability and recruiter review.
+- **SEO Optimized**: Semantic HTML5, dynamic metadata generation per deck, and optimized font loading (Outfit).
 
 ---
 
