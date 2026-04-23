@@ -208,13 +208,7 @@ export default function StudyClient() {
             <RatingButtons onRate={handleRate} disabled={isSubmitting || !isFlipped} />
           </div>
         </main>
-        <footer className="w-full max-w-3xl mx-auto py-8 text-center">
-          <Link
-          href={`/dashboard/${deckId}`}
-          className="px-8 py-3 text-sm btn-kensho-3d-secondary"
-        >
-          Back to Deck
-        </Link>
+        <footer className="w-full max-w-3xl mx-auto py-8 text-center flex flex-col items-center gap-6">
           <Link 
             href="/docs" 
             className="px-6 py-2.5 text-xs font-bold btn-kensho-3d-secondary flex items-center gap-1"
