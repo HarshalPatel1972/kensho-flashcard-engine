@@ -5,7 +5,6 @@ import { NavSidebar } from "./NavSidebar";
 import { NavTopBar } from "./NavTopBar";
 import { NavMobileDrawer } from "./NavMobileDrawer";
 import { PreferencesModal } from "../settings/PreferencesModal";
-import { Footer } from "./Footer";
 
 interface AppLayoutProps {
   children: ReactNode;
@@ -32,7 +31,6 @@ export function AppLayout({ children, title }: AppLayoutProps) {
             <div className="flex-1">
               {children}
             </div>
-            <Footer />
           </div>
         </main>
       </div>
