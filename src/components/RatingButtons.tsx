@@ -65,12 +65,12 @@ export function RatingButtons({ onRate, disabled }: RatingButtonsProps) {
             key={btn.label}
             disabled={disabled}
             onClick={() => handleRateAction(btn.value)}
-            whileHover={shouldReduceMotion || disabled ? {} : { scale: 1.05, y: -2 }}
-            whileTap={shouldReduceMotion || disabled ? {} : { y: 4, boxShadow: `0 1px 0 0 ${btn.shelfColor}` }}
+            whileHover={shouldReduceMotion || disabled ? {} : { y: -1, boxShadow: `0 6px 0 0 ${btn.shelfColor}` }}
+            whileTap={shouldReduceMotion || disabled ? {} : { y: 3, boxShadow: `0 2px 0 0 ${btn.shelfColor}` }}
             animate={{ y: 0, boxShadow: `0 5px 0 0 ${btn.shelfColor}` }}
-            transition={{ type: "spring", stiffness: 450, damping: 20 }}
-            className={`group relative flex flex-col items-center justify-center w-full md:w-28 h-24 rounded-2xl border transition-all duration-300 ${btn.color} ${
-              shouldFade ? "opacity-20 grayscale-[0.5] scale-90" : "opacity-100"
+            transition={{ duration: 0.1, ease: "easeOut" }}
+            className={`group relative flex flex-col items-center justify-center w-full md:w-28 h-24 rounded-2xl border ${btn.color} ${
+              shouldFade ? "opacity-20 grayscale-[0.5] scale-95" : "opacity-100"
             }`}
             style={{
               backgroundColor: btn.bgColor,
