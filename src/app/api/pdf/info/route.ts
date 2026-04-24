@@ -11,6 +11,8 @@ export async function GET(request: NextRequest) {
   }
 
   const url = request.nextUrl.searchParams.get("url");
+  console.log("[API/PDF/INFO] Fetching info for URL:", url);
+  
   if (!url) {
     return NextResponse.json({ error: "No URL provided" }, { status: 400 });
   }
@@ -20,7 +22,10 @@ export async function GET(request: NextRequest) {
     if (!response.ok) throw new Error("Failed to fetch PDF");
     
     const buffer = Buffer.from(await response.arrayBuffer());
+    console.log("[API/PDF/INFO] Buffer size:", buffer.length);
+    
     const { totalPages } = await extractPDFInfo(buffer);
+    console.log("[API/PDF/INFO] Total pages extracted:", totalPages);
     
     return NextResponse.json({ totalPages });
   } catch (error) {

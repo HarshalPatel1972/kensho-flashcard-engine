@@ -15,7 +15,8 @@ import { useKenshoSounds } from "@/hooks/use-kensho-sounds";
 
 // Client-side worker config
 if (typeof window !== "undefined") {
-  pdfjsLib.GlobalWorkerOptions.workerSrc = `//cdnjs.cloudflare.com/ajax/libs/pdf.js/${pdfjsLib.version}/pdf.worker.min.mjs`;
+  // Use unpkg as a more reliable CDN for exact version matching
+  pdfjsLib.GlobalWorkerOptions.workerSrc = `https://unpkg.com/pdfjs-dist@${pdfjsLib.version}/legacy/build/pdf.worker.mjs`;
 }
 
 function parsePageRange(input: string, maxPages: number): number[] {
