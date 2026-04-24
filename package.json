@@ -45,6 +45,7 @@
     "typescript": "^5"
   },
   "overrides": {
-    "tar": "7.5.13"
+    "tar": "7.5.13",
+    "effect": "3.21.2"
   }
 }

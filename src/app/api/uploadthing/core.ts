@@ -5,8 +5,11 @@ const f = createUploadthing();
 
 export const ourFileRouter = {
   pdfUploader: f({ pdf: { maxFileSize: "64MB" } })
-    .middleware(async () => {
+    .middleware(async ({ req }) => {
+      // SECURITY: In Next.js + Effect environments, calling auth() early 
+      // within the middleware respects AsyncLocalStorage boundaries better.
       const { userId } = await auth();
+      
       if (!userId) throw new Error("Unauthorized");
       return { userId };
     })
