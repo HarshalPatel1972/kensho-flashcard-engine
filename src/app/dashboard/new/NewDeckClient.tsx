@@ -10,12 +10,12 @@ import { ErrorState } from "@/components/ErrorState";
 import { ArrowRight, Info, Loader2 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { toast } from "sonner";
-import * as pdfjsLib from "pdfjs-dist/legacy/build/pdf";
+import * as pdfjsLib from "pdfjs-dist/legacy/build/pdf.mjs";
 import { useKenshoSounds } from "@/hooks/use-kensho-sounds";
 
 // Client-side worker config
 if (typeof window !== "undefined") {
-  pdfjsLib.GlobalWorkerOptions.workerSrc = `//cdnjs.cloudflare.com/ajax/libs/pdf.js/${pdfjsLib.version}/pdf.worker.min.js`;
+  pdfjsLib.GlobalWorkerOptions.workerSrc = `//cdnjs.cloudflare.com/ajax/libs/pdf.js/${pdfjsLib.version}/pdf.worker.min.mjs`;
 }
 
 function parsePageRange(input: string, maxPages: number): number[] {
@@ -141,7 +141,10 @@ export default function NewDeckClient() {
           pdfDocRef.current = null;
         }
         const arrayBuffer = await pdfFile.arrayBuffer();
-        const pdf = await pdfjsLib.getDocument({ data: arrayBuffer }).promise;
+        const pdf = await pdfjsLib.getDocument({ 
+          data: arrayBuffer,
+          isEvalSupported: false 
+        }).promise;
         if (isMounted) {
           pdfDocRef.current = pdf;
           // Trigger a re-render to start thumbnail logic

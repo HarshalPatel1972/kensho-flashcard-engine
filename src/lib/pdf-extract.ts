@@ -1,7 +1,9 @@
-import * as pdfjsLib from "pdfjs-dist/legacy/build/pdf";
+import * as pdfjsLib from "pdfjs-dist/legacy/build/pdf.mjs";
 
-// Required for serverless environment
-pdfjsLib.GlobalWorkerOptions.workerSrc = "";
+// Required for serverless environment - disables workers to ensure stability in lambda
+if (typeof window === "undefined") {
+  pdfjsLib.GlobalWorkerOptions.workerSrc = "";
+}
 
 export interface PDFExtractionResult {
   totalPages: number;
@@ -14,7 +16,11 @@ export async function extractPDFInfo(
   buffer: Buffer
 ): Promise<{ totalPages: number }> {
   const uint8Array = new Uint8Array(buffer);
-  const pdf = await pdfjsLib.getDocument({ data: uint8Array }).promise;
+  const pdf = await pdfjsLib.getDocument({ 
+    data: uint8Array,
+    isEvalSupported: false,
+    useSystemFonts: true 
+  }).promise;
   return { totalPages: pdf.numPages };
 }
 
@@ -23,7 +29,11 @@ export async function extractTextFromPages(
   pageNumbers: number[] // 1-indexed page numbers to extract
 ): Promise<PDFExtractionResult> {
   const uint8Array = new Uint8Array(buffer);
-  const pdf = await pdfjsLib.getDocument({ data: uint8Array }).promise;
+  const pdf = await pdfjsLib.getDocument({ 
+    data: uint8Array,
+    isEvalSupported: false,
+    useSystemFonts: true 
+  }).promise;
   const totalPages = pdf.numPages;
 
   // HARD BLOCK: more than 20 pages selected
