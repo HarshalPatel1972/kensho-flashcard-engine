@@ -1,8 +1,8 @@
-import * as pdfjsLib from "pdfjs-dist/legacy/build/pdf.mjs";
+import { PDFDocument } from "pdf-lib";
 
-// Required for serverless environment - disables workers to ensure stability in lambda
-if (typeof window === "undefined") {
-  pdfjsLib.GlobalWorkerOptions.workerSrc = "";
+// Dynamic import for PDF.js to prevent top-level runtime crashes in Next.js
+async function getPdfJs() {
+  return await import("pdfjs-dist/legacy/build/pdf.mjs");
 }
 
 export interface PDFExtractionResult {
@@ -15,19 +15,28 @@ export interface PDFExtractionResult {
 export async function extractPDFInfo(
   buffer: Buffer
 ): Promise<{ totalPages: number }> {
-  const uint8Array = new Uint8Array(buffer);
-  const pdf = await pdfjsLib.getDocument({ 
-    data: uint8Array,
-    isEvalSupported: false,
-    useSystemFonts: true 
-  }).promise;
-  return { totalPages: pdf.numPages };
+  try {
+    const pdfDoc = await PDFDocument.load(buffer, { ignoreEncryption: true });
+    return { totalPages: pdfDoc.getPageCount() };
+  } catch (error) {
+    console.error("pdf-lib extraction failed, falling back to pdf.js:", error);
+    // Fallback to pdf.js if pdf-lib fails
+    const pdfjsLib = await getPdfJs();
+    const uint8Array = new Uint8Array(buffer);
+    const pdf = await pdfjsLib.getDocument({ 
+      data: uint8Array,
+      isEvalSupported: false,
+      useSystemFonts: true 
+    }).promise;
+    return { totalPages: pdf.numPages };
+  }
 }
 
 export async function extractTextFromPages(
   buffer: Buffer,
   pageNumbers: number[] // 1-indexed page numbers to extract
 ): Promise<PDFExtractionResult> {
+  const pdfjsLib = await getPdfJs();
   const uint8Array = new Uint8Array(buffer);
   const pdf = await pdfjsLib.getDocument({ 
     data: uint8Array,
