@@ -10,7 +10,7 @@ Built for the **Cuemath AI Builder Challenge** by **Harshal Patel**
 
 <br/>
 
-[![Live App](https://img.shields.io/badge/Live%20App-Vercel-black?style=for-the-badge&logo=vercel)](https://kensho-flashcard-engine.vercel.app)
+[![Live App](https://img.shields.io/badge/Live%20App-Vercel-black?style=for-the-badge&logo=vercel)](https://kensho-flashcard-engine.vercel-red.app)
 [![GitHub](https://img.shields.io/badge/GitHub-Repository-181717?style=for-the-badge&logo=github)](https://github.com/HarshalPatel1972/kensho-flashcard-engine)
 [![Write-up](https://img.shields.io/badge/Write--up-Google%20Docs-4285F4?style=for-the-badge&logo=googledocs&logoColor=white)](#)
 [![Next.js](https://img.shields.io/badge/Next.js-14-black?style=for-the-badge&logo=next.js)](https://nextjs.org)
